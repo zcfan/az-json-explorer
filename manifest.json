@@ -1,0 +1,38 @@
+{
+  "manifest_version": 3,
+  "name": "AZ JSON Explorer",
+  "description": "Browse large JSON documents with worker parsing, virtualized rendering, and nested string parsing.",
+  "version": "0.1.0",
+  "action": {
+    "default_title": "AZ JSON Explorer",
+    "default_popup": "src/popup.html"
+  },
+  "options_page": "src/viewer.html",
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*",
+        "file:///*"
+      ],
+      "js": [
+        "src/contentScript.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "src/viewer.html",
+        "src/viewer.js",
+        "src/core/*.js",
+        "src/ui/*.js",
+        "src/worker/*.js"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
+}

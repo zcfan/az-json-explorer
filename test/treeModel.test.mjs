@@ -1,0 +1,93 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import { ParseCache } from '../src/core/parseCache.js';
+import {
+  collectVisibleRows,
+  getChildNodes,
+  getNodeKind,
+  pathKey,
+} from '../src/core/treeModel.js';
+
+test('classifies JSON value kinds', () => {
+  assert.equal(getNodeKind(null), 'null');
+  assert.equal(getNodeKind([]), 'array');
+  assert.equal(getNodeKind({}), 'object');
+  assert.equal(getNodeKind('x'), 'string');
+  assert.equal(getNodeKind(1), 'number');
+  assert.equal(getNodeKind(false), 'boolean');
+});
+
+test('returns child nodes with stable paths for objects and arrays', () => {
+  const value = { users: [{ name: 'Ada' }], active: true };
+
+  assert.deepEqual(
+    getChildNodes(value).map((child) => ({
+      key: child.key,
+      path: child.path,
+      kind: child.kind,
+    })),
+    [
+      { key: 'users', path: ['users'], kind: 'array' },
+      { key: 'active', path: ['active'], kind: 'boolean' },
+    ],
+  );
+
+  assert.deepEqual(getChildNodes(value.users)[0].path, [0]);
+});
+
+test('collects only visible rows based on expansion state', async () => {
+  const value = { users: [{ name: 'Ada' }, { name: 'Grace' }], meta: { count: 2 } };
+  const expandedKeys = new Set([pathKey([]), pathKey(['users'])]);
+
+  const rows = await collectVisibleRows(value, { expandedKeys, yieldEvery: 2 });
+
+  assert.deepEqual(
+    rows.map((row) => [row.depth, row.key, row.kind, row.expandable, row.expanded]),
+    [
+      [0, '$', 'object', true, true],
+      [1, 'users', 'array', true, true],
+      [2, 0, 'object', true, false],
+      [2, 1, 'object', true, false],
+      [1, 'meta', 'object', true, false],
+    ],
+  );
+});
+
+test('uses cached parsed string as expandable children without losing raw string row', async () => {
+  const value = { payload: '{"items":[1,2]}' };
+  const cache = new ParseCache();
+  cache.storeParsed(['payload'], value.payload, { items: [1, 2] });
+
+  const rows = await collectVisibleRows(value, {
+    expandedKeys: new Set([pathKey([]), pathKey(['payload'])]),
+    parseCache: cache,
+  });
+
+  assert.deepEqual(
+    rows.map((row) => ({
+      key: row.key,
+      kind: row.kind,
+      parsed: row.parsed,
+      expandable: row.expandable,
+    })),
+    [
+      { key: '$', kind: 'object', parsed: false, expandable: true },
+      { key: 'payload', kind: 'string', parsed: true, expandable: true },
+      { key: 'items', kind: 'array', parsed: false, expandable: true },
+    ],
+  );
+});
+
+test('caps visible row collection to protect rendering work', async () => {
+  const value = { records: Array.from({ length: 1000 }, (_, index) => ({ id: index })) };
+  const rows = await collectVisibleRows(value, {
+    expandedKeys: new Set([pathKey([]), pathKey(['records'])]),
+    maxRows: 25,
+    yieldEvery: 5,
+  });
+
+  assert.equal(rows.length, 25);
+  assert.equal(rows[0].key, '$');
+  assert.equal(rows[1].key, 'records');
+});

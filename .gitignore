@@ -1,0 +1,6 @@
+GetCompleteProject.json
+docs/superpowers/
+node_modules/
+coverage/
+*.log
+.DS_Store

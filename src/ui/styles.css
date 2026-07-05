@@ -1,0 +1,361 @@
+:host {
+  display: block;
+  height: 100%;
+  color: #111827;
+  font: 13px/1.4 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.jt-app {
+  display: grid;
+  grid-template-rows: auto auto auto auto auto minmax(0, 1fr);
+  height: 100vh;
+  min-height: 0;
+  overflow: hidden;
+  background: #f6f7f9;
+}
+
+.jt-direct-file-banner {
+  padding: 10px 14px;
+  border-bottom: 1px solid #f59e0b;
+  color: #78350f;
+  background: #fff1c2;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.jt-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 48px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #d9dee8;
+  background: #ffffff;
+}
+
+.jt-title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.jt-title strong {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.jt-source {
+  overflow: hidden;
+  max-width: min(64vw, 820px);
+  color: #667085;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jt-toolbar-actions,
+.jt-loader-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.jt-search {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #475467;
+}
+
+.jt-search-input {
+  width: 190px;
+  height: 28px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 0 9px;
+  color: #111827;
+  background: #ffffff;
+  font: inherit;
+}
+
+.jt-search-count {
+  min-width: 74px;
+  color: #475467;
+  font-size: 12px;
+}
+
+.jt-loader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #d9dee8;
+  background: #eef2f7;
+}
+
+.jt-button,
+.jt-file-button,
+.jt-parse-button,
+.jt-badge,
+.jt-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0 10px;
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.jt-button-primary {
+  border-color: #1d4ed8;
+  color: #ffffff;
+  background: #2563eb;
+}
+
+.jt-button-secondary,
+.jt-file-button {
+  border-color: #cbd5e1;
+  color: #1f2937;
+  background: #ffffff;
+}
+
+.jt-file-input {
+  display: none;
+}
+
+.jt-status {
+  min-height: 30px;
+  padding: 7px 12px;
+  border-bottom: 1px solid #d9dee8;
+  color: #475467;
+  background: #ffffff;
+}
+
+.jt-search-preview {
+  overflow: hidden;
+  padding: 7px 12px;
+  border-bottom: 1px solid #d9dee8;
+  color: #334155;
+  background: #fff7ed;
+  font: 12px/1.35 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jt-error {
+  padding: 8px 12px;
+  border-bottom: 1px solid #fecaca;
+  color: #991b1b;
+  background: #fef2f2;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.jt-tree {
+  position: relative;
+  grid-row: -2 / -1;
+  overflow: auto;
+  min-height: 0;
+  background: #ffffff;
+  font: 12px/28px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.jt-spacer {
+  width: 1px;
+}
+
+.jt-row-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.jt-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  height: 28px;
+  min-width: max-content;
+  border-bottom: 1px solid #f1f5f9;
+  padding-right: 12px;
+  white-space: nowrap;
+}
+
+.jt-row:hover {
+  background: #f8fafc;
+}
+
+.jt-row-search-hit {
+  background: #fffdf3;
+}
+
+.jt-row-search-hit:hover {
+  background: #fff9e6;
+}
+
+.jt-row-search-current {
+  background: #fff6dc;
+  outline: 1px solid #f3d48a;
+  outline-offset: -1px;
+}
+
+.jt-row-search-current:hover {
+  background: #fff1c2;
+}
+
+.jt-indent {
+  flex: 0 0 auto;
+  height: 1px;
+}
+
+.jt-toggle {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  margin: 0 2px;
+  padding: 0;
+  border-color: transparent;
+  color: #475467;
+  background: transparent;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease,
+    color 120ms ease;
+}
+
+.jt-toggle:not(:disabled):hover {
+  border-color: #cbd5e1;
+  background: #eef2f7;
+  color: #111827;
+}
+
+.jt-toggle-empty {
+  cursor: default;
+}
+
+.jt-toggle-chevron {
+  --jt-toggle-chevron-offset-x: -2.5px;
+  --jt-toggle-chevron-offset-y: 0px;
+  --jt-toggle-chevron-rotation: -45deg;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  margin-top: var(--jt-toggle-chevron-offset-y);
+  margin-left: var(--jt-toggle-chevron-offset-x);
+  border-right: 1.6px solid currentColor;
+  border-bottom: 1.6px solid currentColor;
+  transform: translate(-50%, -50%) rotate(var(--jt-toggle-chevron-rotation));
+  transform-origin: 50% 50%;
+  transition: transform 140ms ease;
+}
+
+.jt-toggle-expanded .jt-toggle-chevron {
+  --jt-toggle-chevron-offset-x: 0px;
+  --jt-toggle-chevron-offset-y: -2.5px;
+  --jt-toggle-chevron-rotation: 45deg;
+}
+
+.jt-key {
+  margin-right: 3px;
+  color: #7c3aed;
+  font-weight: 600;
+}
+
+.jt-colon {
+  margin-right: 8px;
+  color: #98a2b3;
+}
+
+.jt-value {
+  color: #111827;
+}
+
+.jt-effective-string {
+  color: #047857;
+}
+
+.jt-effective-number {
+  color: #1d4ed8;
+}
+
+.jt-effective-boolean {
+  color: #b45309;
+}
+
+.jt-effective-null,
+.jt-effective-undefined {
+  color: #667085;
+}
+
+.jt-parse-button {
+  height: 22px;
+  margin-right: 8px;
+  border-color: #99f6e4;
+  color: #115e59;
+  background: #ecfdf5;
+  font-size: 11px;
+}
+
+.jt-badge {
+  height: 22px;
+  margin-right: 8px;
+  border-color: #fde68a;
+  color: #92400e;
+  background: #fffbeb;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.jt-badge-raw {
+  border-color: #d1d5db;
+  color: #374151;
+  background: #f9fafb;
+}
+
+.jt-inline-error {
+  margin-left: 8px;
+  color: #b91c1c;
+}
+
+.jt-search-mark {
+  border-radius: 3px;
+  padding: 0 1px;
+  color: inherit;
+  background: #facc15;
+  font-weight: 800;
+}
+
+@media (max-width: 720px) {
+  .jt-toolbar,
+  .jt-loader {
+    align-items: stretch;
+  }
+
+  .jt-toolbar {
+    flex-direction: column;
+  }
+
+  .jt-toolbar-actions,
+  .jt-loader-actions {
+    width: 100%;
+  }
+
+  .jt-button,
+  .jt-file-button,
+  .jt-search,
+  .jt-search-input {
+    flex: 1 1 120px;
+  }
+}

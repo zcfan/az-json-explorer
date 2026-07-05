@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>AZ JSON Explorer</title>
+    <style>
+      body {
+        width: 220px;
+        margin: 0;
+        padding: 12px;
+        color: #111827;
+        background: #f8fafc;
+        font: 13px/1.4 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      button {
+        width: 100%;
+        height: 34px;
+        border: 1px solid #2563eb;
+        border-radius: 6px;
+        color: #ffffff;
+        background: #2563eb;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      p {
+        margin: 8px 0 0;
+        color: #4b5563;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="open-viewer" type="button">Open AZ JSON Explorer</button>
+    <p>Open a local JSON file.</p>
+    <p>For direct file:// previews, enable Allow access to file URLs in extension details.</p>
+    <script type="module" src="./popup.js"></script>
+  </body>
+</html>
