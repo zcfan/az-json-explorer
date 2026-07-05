@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "store-assets": "node scripts/generate-store-assets.mjs",
     "test": "node --test"
   }
 }

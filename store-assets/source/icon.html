@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <style>
+      html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: transparent;
+      }
+      .mark {
+        position: absolute;
+        inset: 12.5vmin;
+        border-radius: 21%;
+        background: #2563eb;
+        box-shadow: inset 0 -0.9vmin 0 rgba(15, 23, 42, 0.16);
+      }
+      .braces {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 2.5vmin;
+        font: 900 39vmin/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        letter-spacing: 0;
+      }
+      .brace-left { color: #ffffff; }
+      .brace-right { color: #34d399; }
+    </style>
+  </head>
+  <body>
+    <div class="mark">
+      <div class="braces"><span class="brace-left">{</span><span class="brace-right">}</span></div>
+    </div>
+  </body>
+</html>

@@ -2,5 +2,6 @@ GetCompleteProject.json
 docs/superpowers/
 node_modules/
 coverage/
+dist/
 *.log
 .DS_Store
