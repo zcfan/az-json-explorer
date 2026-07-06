@@ -84,6 +84,20 @@
   font: inherit;
 }
 
+.jt-manual-input {
+  display: block;
+  width: 100%;
+  min-height: 92px;
+  max-height: 24vh;
+  resize: vertical;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: #111827;
+  background: #ffffff;
+  font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
 .jt-search-count {
   min-width: 74px;
   color: #475467;
@@ -92,7 +106,8 @@
 
 .jt-loader {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   gap: 10px;
   padding: 10px 12px;
   border-bottom: 1px solid #d9dee8;

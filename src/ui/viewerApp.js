@@ -95,7 +95,9 @@ class JsonViewerApp {
         </div>
       </header>
       <section class="jt-loader">
+        <textarea class="jt-manual-input" spellcheck="false" placeholder="Paste JSON"></textarea>
         <div class="jt-loader-actions">
+          <button class="jt-button jt-button-primary" data-action="parse-manual" type="button">Parse input</button>
           <label class="jt-file-button">
             Open file
             <input class="jt-file-input" type="file" accept=".json,application/json,text/plain">
@@ -120,6 +122,8 @@ class JsonViewerApp {
       directFileBanner: this.shadow.querySelector('.jt-direct-file-banner'),
       source: this.shadow.querySelector('.jt-source'),
       loader: this.shadow.querySelector('.jt-loader'),
+      manualInput: this.shadow.querySelector('.jt-manual-input'),
+      parseManualButton: this.shadow.querySelector('[data-action="parse-manual"]'),
       fileInput: this.shadow.querySelector('.jt-file-input'),
       searchInput: this.shadow.querySelector('.jt-search-input'),
       searchPrevButton: this.shadow.querySelector('[data-action="search-prev"]'),
@@ -140,6 +144,10 @@ class JsonViewerApp {
   }
 
   bindEvents() {
+    this.elements.parseManualButton.addEventListener('click', () => {
+      this.parseManualInput();
+    });
+
     this.elements.loadSampleButton.addEventListener('click', () => {
       this.parseText(SAMPLE_JSON);
     });
@@ -186,6 +194,18 @@ class JsonViewerApp {
         this.renderVisibleRows();
       });
     });
+  }
+
+  parseManualInput() {
+    const text = this.elements.manualInput.value;
+    if (!text.trim()) {
+      this.clearError();
+      this.setStatus('Paste JSON input to parse.');
+      return;
+    }
+
+    this.setSourceLabel('Manual input');
+    this.parseText(text);
   }
 
   createWorker() {

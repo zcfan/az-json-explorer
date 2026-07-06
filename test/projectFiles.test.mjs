@@ -54,13 +54,16 @@ test('viewer layout constrains the virtual tree to a scroll viewport', async () 
   assert.match(css, /\.jt-tree\s*\{[^}]*(?:^|\n)\s*min-height:\s*0;/s);
 });
 
-test('viewer does not render or fill a JSON textarea for file loading', async () => {
+test('viewer supports one-way manual JSON input without echoing file content', async () => {
   const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
 
-  assert.doesNotMatch(viewer, /<textarea/);
-  assert.doesNotMatch(viewer, /jt-input/);
+  assert.match(viewer, /<textarea class="jt-manual-input"/);
+  assert.match(viewer, /data-action="parse-manual"/);
+  assert.match(viewer, /parseManualInput\(\)/);
+  assert.match(viewer, /this\.parseText\(text\)/);
+  assert.match(viewer, /setSourceLabel\('Manual input'\)/);
   assert.doesNotMatch(viewer, /file\.text\(\)/);
-  assert.doesNotMatch(viewer, /\.input\.value\s*=/);
+  assert.doesNotMatch(viewer, /manualInput\.value\s*=/);
   assert.match(viewer, /parseFile\(file\)/);
   assert.match(viewer, /this\.requestWorker\('parse-root', \{ file/);
 });
