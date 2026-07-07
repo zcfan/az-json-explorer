@@ -59,11 +59,15 @@ test('viewer supports one-way manual JSON input without echoing file content', a
 
   assert.match(viewer, /<textarea class="jt-manual-input"/);
   assert.match(viewer, /data-action="parse-manual"/);
+  assert.match(viewer, /data-action="format-manual"/);
   assert.match(viewer, /parseManualInput\(\)/);
+  assert.match(viewer, /formatManualInput\(\)/);
+  assert.match(viewer, /formatJsonText/);
+  assert.match(viewer, /manualInput\.value\s*=\s*formatJsonText\(text\)/);
   assert.match(viewer, /this\.parseText\(text\)/);
   assert.match(viewer, /setSourceLabel\('Manual input'\)/);
   assert.doesNotMatch(viewer, /file\.text\(\)/);
-  assert.doesNotMatch(viewer, /manualInput\.value\s*=/);
+  assert.doesNotMatch(viewer, /manualInput\.value\s*=\s*await\s+file\.text/);
   assert.match(viewer, /parseFile\(file\)/);
   assert.match(viewer, /this\.requestWorker\('parse-root', \{ file/);
 });

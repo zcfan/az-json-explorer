@@ -1,3 +1,4 @@
+import { formatJsonText } from '../core/jsonFormat.js';
 import { formatPath, pathKey } from '../core/treeModel.js';
 import { getRowSearchState, splitHighlightedText } from './searchHighlight.js';
 
@@ -99,6 +100,7 @@ class JsonViewerApp {
         <textarea class="jt-manual-input" spellcheck="false" placeholder="Paste JSON"></textarea>
         <div class="jt-loader-actions">
           <button class="jt-button jt-button-primary" data-action="parse-manual" type="button">Parse input</button>
+          <button class="jt-button jt-button-secondary" data-action="format-manual" type="button">Format JSON</button>
           <label class="jt-file-button">
             Open file
             <input class="jt-file-input" type="file" accept=".json,application/json,text/plain">
@@ -128,6 +130,7 @@ class JsonViewerApp {
       loader: this.shadow.querySelector('.jt-loader'),
       manualInput: this.shadow.querySelector('.jt-manual-input'),
       parseManualButton: this.shadow.querySelector('[data-action="parse-manual"]'),
+      formatManualButton: this.shadow.querySelector('[data-action="format-manual"]'),
       fileInput: this.shadow.querySelector('.jt-file-input'),
       searchInput: this.shadow.querySelector('.jt-search-input'),
       searchPrevButton: this.shadow.querySelector('[data-action="search-prev"]'),
@@ -152,6 +155,10 @@ class JsonViewerApp {
   bindEvents() {
     this.elements.parseManualButton.addEventListener('click', () => {
       this.parseManualInput();
+    });
+
+    this.elements.formatManualButton.addEventListener('click', () => {
+      this.formatManualInput();
     });
 
     this.elements.loadSampleButton.addEventListener('click', () => {
@@ -234,6 +241,24 @@ class JsonViewerApp {
 
     this.setSourceLabel('Manual input');
     this.parseText(text);
+  }
+
+  formatManualInput() {
+    const text = this.elements.manualInput.value;
+    if (!text.trim()) {
+      this.clearError();
+      this.setStatus('Paste JSON input to format.');
+      return;
+    }
+
+    try {
+      this.elements.manualInput.value = formatJsonText(text);
+      this.clearError();
+      this.setStatus('Formatted JSON input.');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.showError(`JSON format failed: ${message}`);
+    }
   }
 
   createWorker() {
