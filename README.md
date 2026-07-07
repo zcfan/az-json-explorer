@@ -49,7 +49,9 @@ This project is intentionally not a JSON editor. It does not modify, upload, syn
 
 ## Install And Try
 
-There is no build step for local development. Chrome loads the repository files directly.
+Install the published extension from the [Chrome Web Store](https://chromewebstore.google.com/detail/az-json-explorer/logkfmmknmmkpflgamhddeaedneaankj).
+
+For local development, there is no build step. Chrome loads the repository files directly:
 
 1. Clone or download this repository.
 2. Open `chrome://extensions` in Chrome.
