@@ -1,6 +1,6 @@
-import { appendPath, formatPath, pathKey } from './path.js';
+import { appendPath, formatCopyPath, formatPath, pathKey } from './path.js';
 
-export { formatPath, pathKey };
+export { formatCopyPath, formatPath, pathKey };
 
 export function getNodeKind(value) {
   if (value === null) {

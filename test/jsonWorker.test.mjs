@@ -167,3 +167,79 @@ test('worker collects visible row summaries from the retained root without cloni
   assert.equal('value' in rowsResponse.rows[0], false);
   assert.equal('effectiveValue' in rowsResponse.rows[0], false);
 });
+
+test('worker parses string values inside already parsed string containers', async () => {
+  const worker = new Worker(new URL('../src/worker/jsonWorker.js', import.meta.url), {
+    type: 'module',
+  });
+
+  const send = (message) =>
+    new Promise((resolve, reject) => {
+      worker.once('message', resolve);
+      worker.once('error', reject);
+      worker.postMessage(message);
+    });
+
+  let parseResponse;
+  let firstParseResponse;
+  let secondParseResponse;
+  let rowsResponse;
+
+  try {
+    parseResponse = await send({
+      id: 'parse-root-for-nested-parse',
+      type: 'parse-root',
+      text: JSON.stringify({
+        payload: JSON.stringify({
+          items: [
+            {
+              extra: JSON.stringify({ deep: true }),
+            },
+          ],
+        }),
+      }),
+    });
+
+    firstParseResponse = await send({
+      id: 'parse-payload',
+      type: 'parse-string',
+      path: ['payload'],
+    });
+
+    secondParseResponse = await send({
+      id: 'parse-extra',
+      type: 'parse-string',
+      path: ['payload', 'items', 0, 'extra'],
+    });
+
+    rowsResponse = await send({
+      id: 'collect-nested-parsed-rows',
+      type: 'collect-visible-rows',
+      expandedKeys: [
+        pathKey([]),
+        pathKey(['payload']),
+        pathKey(['payload', 'items']),
+        pathKey(['payload', 'items', 0]),
+        pathKey(['payload', 'items', 0, 'extra']),
+      ],
+      maxRows: 20,
+    });
+  } finally {
+    await worker.terminate();
+  }
+
+  assert.equal(parseResponse.ok, true);
+  assert.equal(firstParseResponse.ok, true);
+  assert.equal(secondParseResponse.ok, true);
+
+  assert.equal(rowsResponse.ok, true);
+  const extraRow = rowsResponse.rows.find(
+    (row) => row.pathKey === pathKey(['payload', 'items', 0, 'extra']),
+  );
+  const deepRow = rowsResponse.rows.find(
+    (row) => row.pathKey === pathKey(['payload', 'items', 0, 'extra', 'deep']),
+  );
+
+  assert.equal(extraRow.copyPath, 'JSON.parse(root.payload).items[0].extra');
+  assert.equal(deepRow.copyPath, 'JSON.parse(JSON.parse(root.payload).items[0].extra).deep');
+});

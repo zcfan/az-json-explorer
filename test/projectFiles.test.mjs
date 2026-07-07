@@ -137,6 +137,17 @@ test('parse button is hidden after a string already has parsed cache', async () 
   assert.match(viewer, /if \(row\.canParseAsJson && !row\.hasParsed\)/);
 });
 
+test('viewer key context menu copies the worker-provided row path', async () => {
+  const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
+
+  assert.match(viewer, /Copy path/);
+  assert.match(viewer, /contextmenu/);
+  assert.match(viewer, /row\.copyPath/);
+  assert.match(viewer, /navigator\.clipboard\.writeText/);
+  assert.match(css, /\.jt-context-menu/);
+});
+
 test('viewer keeps the parsed root inside the worker and requests visible rows by summary', async () => {
   const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
 

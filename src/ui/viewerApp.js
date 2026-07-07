@@ -43,6 +43,7 @@ class JsonViewerApp {
     this.searchToken = 0;
     this.searchResults = [];
     this.selectedSearchIndex = -1;
+    this.contextMenuCopyPath = '';
   }
 
   mount() {
@@ -112,6 +113,9 @@ class JsonViewerApp {
         <div class="jt-spacer"></div>
         <div class="jt-row-layer"></div>
       </section>
+      <div class="jt-context-menu" role="menu" hidden>
+        <button class="jt-context-menu-item" data-action="copy-path" type="button" role="menuitem">Copy path</button>
+      </div>
     `;
     fragment.append(shell);
     return fragment;
@@ -138,6 +142,8 @@ class JsonViewerApp {
       loadSampleButton: this.shadow.querySelector('[data-action="load-sample"]'),
       collapseAllButton: this.shadow.querySelector('[data-action="collapse-all"]'),
       expandRootButton: this.shadow.querySelector('[data-action="expand-root"]'),
+      contextMenu: this.shadow.querySelector('.jt-context-menu'),
+      copyPathButton: this.shadow.querySelector('[data-action="copy-path"]'),
     };
 
     this.elements.source.textContent = this.options.sourceLabel || '';
@@ -184,7 +190,29 @@ class JsonViewerApp {
       this.refreshRows();
     });
 
+    this.elements.copyPathButton.addEventListener('click', () => {
+      this.copyContextMenuPath();
+    });
+
+    this.shadow.addEventListener('click', (event) => {
+      if (this.elements.contextMenu.hidden) {
+        return;
+      }
+
+      if (!event.composedPath().includes(this.elements.contextMenu)) {
+        this.closeContextMenu();
+      }
+    });
+
+    this.shadow.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        this.closeContextMenu();
+      }
+    });
+
     this.elements.tree.addEventListener('scroll', () => {
+      this.closeContextMenu();
+
       if (this.scrollFrame) {
         return;
       }
@@ -376,7 +404,11 @@ class JsonViewerApp {
     element.append(toggle);
 
     const key = document.createElement('span');
-    key.className = 'jt-key';
+    key.className = row.key === '$' ? 'jt-key' : 'jt-key jt-key-copyable';
+    if (row.key !== '$') {
+      key.title = `Copy path: ${row.copyPath}`;
+      key.addEventListener('contextmenu', (event) => this.openKeyContextMenu(event, row));
+    }
     this.appendHighlightedText(key, row.key === '$' ? '$' : JSON.stringify(row.key), {
       active: searchState.keyMatched,
     });
@@ -449,6 +481,47 @@ class JsonViewerApp {
 
   formatRowValue(row) {
     return row.displayValue;
+  }
+
+  openKeyContextMenu(event, row) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    this.contextMenuCopyPath = row.copyPath || formatPath(row.path);
+    const menu = this.elements.contextMenu;
+    menu.hidden = false;
+    menu.style.left = `${event.clientX}px`;
+    menu.style.top = `${event.clientY}px`;
+
+    const rect = menu.getBoundingClientRect();
+    const left = Math.max(4, Math.min(event.clientX, window.innerWidth - rect.width - 4));
+    const top = Math.max(4, Math.min(event.clientY, window.innerHeight - rect.height - 4));
+    menu.style.left = `${left}px`;
+    menu.style.top = `${top}px`;
+    this.elements.copyPathButton.focus();
+  }
+
+  closeContextMenu() {
+    this.elements.contextMenu.hidden = true;
+    this.contextMenuCopyPath = '';
+  }
+
+  async copyContextMenuPath() {
+    const copyPath = this.contextMenuCopyPath;
+    this.closeContextMenu();
+
+    if (!copyPath) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(copyPath);
+      this.clearError();
+      this.setStatus(`Copied path: ${copyPath}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.showError(`Copy path failed: ${message}`);
+    }
   }
 
   toggleExpanded(row) {

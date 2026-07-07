@@ -1,5 +1,5 @@
 import { canParseStringAsJson } from '../core/parseCache.js';
-import { formatPath, pathKey, collectVisibleRows } from '../core/treeModel.js';
+import { formatCopyPath, formatPath, pathKey, collectVisibleRows } from '../core/treeModel.js';
 import { searchJsonTree } from '../core/treeSearch.js';
 
 let retainedRootValue;
@@ -60,14 +60,24 @@ function createRootSummary(value) {
   };
 }
 
-function getValueAtPath(rootValue, path) {
+function getVisibleValueAtPath(rootValue, path) {
   let value = rootValue;
+  let currentPath = [];
+
   for (const segment of path) {
+    const parsedEntry = retainedParseCache.get(pathKey(currentPath));
+    if (parsedEntry?.parsedValue !== undefined && parsedEntry.displayMode === 'parsed') {
+      value = parsedEntry.parsedValue;
+    }
+
     if (value == null) {
       return undefined;
     }
+
     value = value[segment];
+    currentPath = [...currentPath, segment];
   }
+
   return value;
 }
 
@@ -94,6 +104,7 @@ function createDisplayRow(row, parseCache) {
     path: row.path,
     pathKey: row.pathKey,
     labelPath: row.labelPath,
+    copyPath: formatCopyPath(row.path, parseCache),
     depth: row.depth,
     kind: row.kind,
     effectiveKind: row.effectiveKind,
@@ -147,7 +158,7 @@ async function createParseResult(message, resultType, { retainRoot = false } = {
 }
 
 function createStringParseResult(message) {
-  const sourceValue = getValueAtPath(retainedRootValue, message.path);
+  const sourceValue = getVisibleValueAtPath(retainedRootValue, message.path);
   const key = pathKey(message.path);
 
   if (typeof sourceValue !== 'string') {
