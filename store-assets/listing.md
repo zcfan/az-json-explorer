@@ -6,7 +6,7 @@ Name:
 AZ JSON Explorer
 
 Short description:
-View large JSON and parse nested JSON strings into browsable trees with one click.
+View, format, search, and browse large JSON. Parse nested JSON strings into expandable trees with one click.
 
 Category:
 Developer Tools
@@ -16,14 +16,18 @@ English
 
 ## Detailed Description
 
-AZ JSON Explorer is a fast JSON viewer for developers working with API responses, logs, fixtures, and local JSON files.
+AZ JSON Explorer is a local-first JSON viewer for developers working with API responses, logs, fixtures, and local JSON files.
 
-Many APIs return objects or arrays as escaped string fields. AZ JSON Explorer detects string values that look like JSON and shows a Parse as JSON action, so you can expand them into a normal tree without copying the value into another tool.
+Use it to inspect raw JSON pages in Chrome, open local JSON files, or paste JSON directly into the standalone viewer. You can format pasted JSON into readable two-space indentation, search across the parsed tree, and navigate large documents without leaving the browser.
+
+Many APIs return objects or arrays as escaped string fields. AZ JSON Explorer detects string values that look like JSON and shows a Parse as JSON action, so you can expand them into normal tree nodes without copying the value into another tool. When you need to reference a value, copy a JavaScript-style path from the tree, including paths inside parsed nested JSON strings.
 
 Key features:
-- Parse nested JSON strings into browsable trees with one click.
 - Browse raw JSON pages directly in Chrome.
 - Open local JSON files in the standalone viewer.
+- Paste JSON manually and format it into readable indentation.
+- Parse nested JSON strings into expandable tree nodes with one click.
+- Copy parse-aware JavaScript-style paths from tree rows.
 - Parse JSON in a Web Worker so large files do not block the page UI.
 - Use virtual scrolling to keep large JSON trees responsive.
 - Search across the parsed JSON tree.
@@ -39,9 +43,10 @@ Headline:
 Parse nested JSON strings with one click
 
 Feature callouts:
-- Turn escaped JSON strings into normal tree nodes.
+- Paste, format, search, and browse JSON in one local viewer.
+- Turn escaped JSON strings into normal expandable tree nodes.
 - Keep large JSON responsive with worker parsing and virtual scrolling.
-- Search API responses, logs, fixtures, and local files without leaving Chrome.
+- Copy parse-aware JavaScript-style paths from nested values.
 
 ## Privacy And Permissions Notes
 
