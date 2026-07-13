@@ -1,0 +1,23 @@
+src/core/standalonePerformanceHint.js
+  s_775c2a98871f1c::t_616deb8ee3f1ea 1-21
+test/standalonePerformanceHint.test.mjs
+  s_775c2a98871f1c::t_1f2c9417bd2e59 1-43
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "e1f659906ea9d92b85be93e7ecb0632772067819",
+  "prompts": {},
+  "sessions": {
+    "s_775c2a98871f1c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f59a0-1b27-71b3-9e1b-64bfdca51fc9",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
