@@ -1,0 +1,23 @@
+src/worker/jsonWorker.js
+  s_ac6619b44b2813::t_3f8c7545e43a81 259,261
+test/jsonWorker.test.mjs
+  s_ac6619b44b2813::t_41f57107a58e67 246-299
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "977924a2c0258562bbf2f5918a4166ca6d7ae96c",
+  "prompts": {},
+  "sessions": {
+    "s_ac6619b44b2813": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f5993-2795-7011-9792-88f249fecf0a",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
