@@ -1,5 +1,12 @@
 import { formatJsonText } from '../core/jsonFormat.js';
 import { formatPath, pathKey } from '../core/treeModel.js';
+import {
+  createAllExpansionState,
+  createExplicitExpansionState,
+  ensureExpanded,
+  revealExpansionPaths,
+  toggleExpansion,
+} from './expansionState.js';
 import { getRowSearchState, splitHighlightedText } from './searchHighlight.js';
 
 const ROW_HEIGHT = 28;
@@ -36,7 +43,7 @@ class JsonViewerApp {
     this.nextRequestId = 1;
     this.hasParsedRoot = false;
     this.rows = [];
-    this.expandedKeys = new Set();
+    this.expansion = createExplicitExpansionState();
     this.renderToken = 0;
     this.scrollFrame = 0;
     this.hasRowLimit = false;
@@ -94,6 +101,7 @@ class JsonViewerApp {
           <span class="jt-search-count">0 matches</span>
           <button class="jt-button jt-button-secondary" data-action="collapse-all" type="button">Collapse</button>
           <button class="jt-button jt-button-secondary" data-action="expand-root" type="button">Expand root</button>
+          <button class="jt-button jt-button-secondary" data-action="expand-all" type="button">Expand all</button>
         </div>
       </header>
       <section class="jt-loader">
@@ -145,6 +153,7 @@ class JsonViewerApp {
       loadSampleButton: this.shadow.querySelector('[data-action="load-sample"]'),
       collapseAllButton: this.shadow.querySelector('[data-action="collapse-all"]'),
       expandRootButton: this.shadow.querySelector('[data-action="expand-root"]'),
+      expandAllButton: this.shadow.querySelector('[data-action="expand-all"]'),
       contextMenu: this.shadow.querySelector('.jt-context-menu'),
       copyPathButton: this.shadow.querySelector('[data-action="copy-path"]'),
     };
@@ -188,13 +197,18 @@ class JsonViewerApp {
     });
 
     this.elements.collapseAllButton.addEventListener('click', () => {
-      this.expandedKeys = new Set();
+      this.expansion = createExplicitExpansionState();
       this.refreshRows();
     });
 
     this.elements.expandRootButton.addEventListener('click', () => {
-      this.expandedKeys.add(pathKey([]));
+      this.expansion = createExplicitExpansionState([pathKey([])]);
       this.refreshRows();
+    });
+
+    this.elements.expandAllButton.addEventListener('click', () => {
+      this.expansion = createAllExpansionState();
+      this.refreshRows({ pendingStatus: 'Expanding all...' });
     });
 
     this.elements.copyPathButton.addEventListener('click', () => {
@@ -307,7 +321,7 @@ class JsonViewerApp {
     }
 
     this.hasParsedRoot = true;
-    this.expandedKeys = new Set([pathKey([])]);
+    this.expansion = createExplicitExpansionState([pathKey([])]);
     await this.refreshRows();
   }
 
@@ -329,19 +343,21 @@ class JsonViewerApp {
     }
 
     this.hasParsedRoot = true;
-    this.expandedKeys = new Set([pathKey([])]);
+    this.expansion = createExplicitExpansionState([pathKey([])]);
     await this.refreshRows();
   }
 
-  async refreshRows() {
+  async refreshRows(options = {}) {
     if (!this.hasParsedRoot) {
       return;
     }
 
     const token = ++this.renderToken;
-    this.setStatus('Preparing visible rows...');
+    this.setStatus(options.pendingStatus || 'Preparing visible rows...');
     const response = await this.requestWorker('collect-visible-rows', {
-      expandedKeys: Array.from(this.expandedKeys),
+      expansionMode: this.expansion.mode,
+      expandedKeys: Array.from(this.expansion.expandedKeys),
+      collapsedKeys: Array.from(this.expansion.collapsedKeys),
       maxRows: MAX_VISIBLE_ROWS,
       yieldEvery: 500,
     });
@@ -554,12 +570,7 @@ class JsonViewerApp {
       return;
     }
 
-    if (this.expandedKeys.has(row.pathKey)) {
-      this.expandedKeys.delete(row.pathKey);
-    } else {
-      this.expandedKeys.add(row.pathKey);
-    }
-
+    this.expansion = toggleExpansion(this.expansion, row.pathKey);
     this.refreshRows();
   }
 
@@ -570,7 +581,7 @@ class JsonViewerApp {
     });
 
     if (response.ok) {
-      this.expandedKeys.add(row.pathKey);
+      this.expansion = ensureExpanded(this.expansion, row.pathKey);
       this.clearError();
     } else {
       this.showError(response.error);
@@ -590,7 +601,7 @@ class JsonViewerApp {
     }
 
     if (response.displayMode === 'parsed') {
-      this.expandedKeys.add(row.pathKey);
+      this.expansion = ensureExpanded(this.expansion, row.pathKey);
     }
 
     await this.refreshRows();
@@ -685,9 +696,10 @@ class JsonViewerApp {
   }
 
   async revealSearchMatch(match) {
-    for (let index = 0; index < match.path.length; index += 1) {
-      this.expandedKeys.add(pathKey(match.path.slice(0, index)));
-    }
+    const ancestorPathKeys = Array.from({ length: match.path.length }, (_, index) =>
+      pathKey(match.path.slice(0, index)),
+    );
+    this.expansion = revealExpansionPaths(this.expansion, ancestorPathKeys);
 
     await this.refreshRows();
     const rowIndex = this.rows.findIndex((row) => row.pathKey === match.pathKey);

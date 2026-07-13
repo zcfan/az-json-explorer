@@ -112,6 +112,7 @@ test('browser entry modules pass syntax checks', () => {
   const files = [
     'src/contentScript.js',
     'src/viewer.js',
+    'src/ui/expansionState.js',
     'src/ui/viewerApp.js',
     'src/worker/jsonWorker.js',
   ];
@@ -183,4 +184,20 @@ test('expand toggles use a DOM chevron rotated by CSS instead of text glyphs', a
   assert.match(css, /--jt-toggle-chevron-offset-x:\s*-2(?:\.5)?px;/);
   assert.match(css, /--jt-toggle-chevron-offset-y:\s*-2(?:\.5)?px;/);
   assert.match(css, /\.jt-toggle-expanded\s+\.jt-toggle-chevron/);
+});
+
+test('viewer wires Expand all through compact expansion state', async () => {
+  const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
+
+  assert.match(viewer, /data-action="expand-all"/);
+  assert.match(viewer, /createAllExpansionState/);
+  assert.match(viewer, /expansionMode:\s*this\.expansion\.mode/);
+  assert.match(viewer, /collapsedKeys:\s*Array\.from\(this\.expansion\.collapsedKeys\)/);
+  assert.match(viewer, /pendingStatus:\s*'Expanding all\.\.\.'/);
+  assert.match(viewer, /this\.expansion\s*=\s*ensureExpanded\(this\.expansion, row\.pathKey\)/);
+  assert.match(
+    viewer,
+    /this\.expansion\s*=\s*revealExpansionPaths\(this\.expansion, ancestorPathKeys\)/,
+  );
+  assert.doesNotMatch(viewer, /this\.expandedKeys/);
 });
