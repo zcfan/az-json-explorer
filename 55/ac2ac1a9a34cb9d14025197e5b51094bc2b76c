@@ -1,0 +1,31 @@
+src/ui/expansionState.js
+  s_ac6619b44b2813::t_6196b513055dfc 1-61
+test/expansionState.test.mjs
+  s_775c2a98871f1c::t_db947169edfa0f 1-48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "55ac2ac1a9a34cb9d14025197e5b51094bc2b76c",
+  "prompts": {},
+  "sessions": {
+    "s_775c2a98871f1c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f59a0-1b27-71b3-9e1b-64bfdca51fc9",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    },
+    "s_ac6619b44b2813": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f5993-2795-7011-9792-88f249fecf0a",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
