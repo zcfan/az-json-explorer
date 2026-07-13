@@ -1,0 +1,23 @@
+src/ui/viewerApp.js
+  s_ac6619b44b2813::t_b99f4b5737fbb9 3-9,46,104,156,200,205,209-213,324,346,350,356,358-360,573,584,604,699-702
+test/projectFiles.test.mjs
+  s_ac6619b44b2813::t_f8a66eefc6d147 115,188-203
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "78dbb6b1008a65f8c14fdcc9b7f64fee8c59a806",
+  "prompts": {},
+  "sessions": {
+    "s_ac6619b44b2813": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f5993-2795-7011-9792-88f249fecf0a",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
