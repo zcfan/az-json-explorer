@@ -1,0 +1,21 @@
+docs/specs/2026-07-13-expand-all-design.md
+  s_ac6619b44b2813::t_619e7dec33298b 1-136
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "37e2359e2a3228fba1974b011f7918ada6b7ac1d",
+  "prompts": {},
+  "sessions": {
+    "s_ac6619b44b2813": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f5993-2795-7011-9792-88f249fecf0a",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
