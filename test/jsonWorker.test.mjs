@@ -243,3 +243,57 @@ test('worker parses string values inside already parsed string containers', asyn
   assert.equal(extraRow.copyPath, 'JSON.parse(root.payload).items[0].extra');
   assert.equal(deepRow.copyPath, 'JSON.parse(JSON.parse(root.payload).items[0].extra).deep');
 });
+
+test('worker expands all containers with collapsed exceptions and enforces max rows', async () => {
+  const worker = new Worker(new URL('../src/worker/jsonWorker.js', import.meta.url), {
+    type: 'module',
+  });
+
+  const send = (message) =>
+    new Promise((resolve, reject) => {
+      worker.once('message', resolve);
+      worker.once('error', reject);
+      worker.postMessage(message);
+    });
+
+  let parseResponse;
+  let rowsResponse;
+
+  try {
+    parseResponse = await send({
+      id: 'parse-root-for-expand-all',
+      type: 'parse-root',
+      text: JSON.stringify({
+        open: { deep: { value: 1 } },
+        closed: { hidden: 2 },
+        tail: 3,
+      }),
+    });
+
+    rowsResponse = await send({
+      id: 'collect-expand-all-rows',
+      type: 'collect-visible-rows',
+      expansionMode: 'all',
+      expandedKeys: [],
+      collapsedKeys: [pathKey(['closed'])],
+      maxRows: 5,
+      yieldEvery: 2,
+    });
+  } finally {
+    await worker.terminate();
+  }
+
+  assert.equal(parseResponse.ok, true);
+  assert.equal(rowsResponse.ok, true);
+  assert.equal(rowsResponse.truncated, true);
+  assert.deepEqual(
+    rowsResponse.rows.map((row) => [row.pathKey, row.expanded]),
+    [
+      [pathKey([]), true],
+      [pathKey(['open']), true],
+      [pathKey(['open', 'deep']), true],
+      [pathKey(['open', 'deep', 'value']), false],
+      [pathKey(['closed']), false],
+    ],
+  );
+});
