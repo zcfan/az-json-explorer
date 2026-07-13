@@ -42,6 +42,8 @@ Parsing a new root resets both values.
 
 - Uses `collectVisibleRows` and returns display rows only.
 - Adds summary fields such as `displayValue`, `canParseAsJson`, `hasParsed`, and `copyPath`.
+- Accepts `expansionMode`, `expandedKeys`, and `collapsedKeys`; only the set relevant to the active mode shapes expansion.
+- Enforces `maxRows` before display summaries cross to the UI and reports truncation through `truncated`.
 
 `search-tree`:
 
@@ -57,6 +59,7 @@ Nested parse actions must resolve through already parsed string ancestors. For e
 - Do not return full containers to the UI from `parse-root` or `collect-visible-rows`.
 - Keep worker responses serializable.
 - Keep parse failures as structured responses, not thrown worker errors.
+- Keep expansion state request-scoped; the worker must not retain UI expansion mode or exceptions.
 - Row `copyPath` must be computed in the worker from the same parse cache that shapes visible rows.
 
 ## Verification

@@ -44,7 +44,9 @@ Parse failures keep the last successful parsed value but switch display mode to 
 
 ## Visible Rows
 
-`collectVisibleRows(rootValue, options)` walks the tree according to `expandedKeys` and returns rows with:
+`collectVisibleRows(rootValue, options)` walks the tree according to one of two expansion modes. In `explicit` mode, `expandedKeys` lists open containers. In `all` mode, every expandable container opens unless its path key appears in `collapsedKeys`.
+
+It returns rows with:
 
 - raw `value`
 - `effectiveValue`, which may be parsed cache content
@@ -59,6 +61,7 @@ The worker converts these internal rows into UI-safe summaries before sending th
 - Do not replace path arrays with string paths internally.
 - Array indexes stay numeric in path arrays.
 - Object child order follows `Object.keys(value)`.
+- `all` mode must use collapsed-path exceptions; do not enumerate every expanded container.
 - Row collection must yield every `yieldEvery` visits to avoid long blocking work.
 - Copy-path formatting must stay parse-aware for nested parsed strings.
 
