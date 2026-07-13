@@ -1,4 +1,8 @@
 import { formatJsonText } from '../core/jsonFormat.js';
+import {
+  dismissStandalonePerformanceHint,
+  isStandalonePerformanceHintDismissed,
+} from '../core/standalonePerformanceHint.js';
 import { formatPath, pathKey } from '../core/treeModel.js';
 import { getRowSearchState, splitHighlightedText } from './searchHighlight.js';
 
@@ -77,7 +81,16 @@ class JsonViewerApp {
     shell.className = 'jt-app';
     shell.innerHTML = `
       <div class="jt-direct-file-banner" role="note" hidden>
-        For very large JSON files, use Standalone Viewer > Open file for better performance.
+        <span class="jt-performance-banner-message">
+          For very large JSON files, use Standalone Viewer > Open file for better performance.
+        </span>
+        <button
+          class="jt-performance-banner-close"
+          data-action="dismiss-performance-hint"
+          type="button"
+          aria-label="Dismiss performance hint"
+          hidden
+        >×</button>
       </div>
       <header class="jt-toolbar">
         <div class="jt-title">
@@ -126,6 +139,10 @@ class JsonViewerApp {
   bindElements() {
     this.elements = {
       directFileBanner: this.shadow.querySelector('.jt-direct-file-banner'),
+      performanceBannerMessage: this.shadow.querySelector('.jt-performance-banner-message'),
+      performanceBannerClose: this.shadow.querySelector(
+        '[data-action="dismiss-performance-hint"]',
+      ),
       source: this.shadow.querySelector('.jt-source'),
       loader: this.shadow.querySelector('.jt-loader'),
       manualInput: this.shadow.querySelector('.jt-manual-input'),
@@ -153,6 +170,10 @@ class JsonViewerApp {
   }
 
   bindEvents() {
+    this.elements.performanceBannerClose.addEventListener('click', () => {
+      this.dismissStandalonePerformanceBanner();
+    });
+
     this.elements.parseManualButton.addEventListener('click', () => {
       this.parseManualInput();
     });
@@ -702,13 +723,26 @@ class JsonViewerApp {
   }
 
   showDirectFileBanner() {
+    this.elements.performanceBannerMessage.textContent =
+      'For very large JSON files, use Standalone Viewer > Open file for better performance.';
+    this.elements.performanceBannerClose.hidden = true;
     this.elements.directFileBanner.hidden = false;
   }
 
   showStandalonePerformanceBanner() {
-    this.elements.directFileBanner.textContent =
+    if (isStandalonePerformanceHintDismissed()) {
+      return;
+    }
+
+    this.elements.performanceBannerMessage.textContent =
       'For very large JSON files, use Open file instead of pasting JSON for better performance.';
+    this.elements.performanceBannerClose.hidden = false;
     this.elements.directFileBanner.hidden = false;
+  }
+
+  dismissStandalonePerformanceBanner() {
+    this.elements.directFileBanner.hidden = true;
+    dismissStandalonePerformanceHint();
   }
 
   setSourceLabel(sourceLabel) {

@@ -102,10 +102,17 @@ test('direct page previews show a standalone viewer performance banner', async (
 test('standalone viewer shows an open-file performance banner', async () => {
   const viewer = await readFile(new URL('../src/viewer.js', import.meta.url), 'utf8');
   const viewerApp = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
 
   assert.match(viewerApp, /For very large JSON files, use Open file instead of pasting JSON/);
   assert.match(viewerApp, /showStandalonePerformanceBanner\(\)/);
   assert.match(viewer, /if \(embedded\)[\s\S]*else \{[\s\S]*showStandalonePerformanceBanner\(\)/);
+  assert.match(viewerApp, /data-action="dismiss-performance-hint"/);
+  assert.match(viewerApp, /aria-label="Dismiss performance hint"/);
+  assert.match(viewerApp, /isStandalonePerformanceHintDismissed\(\)/);
+  assert.match(viewerApp, /dismissStandalonePerformanceHint\(\)/);
+  assert.match(viewerApp, /dismissStandalonePerformanceBanner\(\)/);
+  assert.match(css, /\.jt-performance-banner-close/);
 });
 
 test('browser entry modules pass syntax checks', () => {

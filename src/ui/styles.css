@@ -19,12 +19,41 @@
 }
 
 .jt-direct-file-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   padding: 10px 14px;
   border-bottom: 1px solid #f59e0b;
   color: #78350f;
   background: #fff1c2;
   font-size: 13px;
   font-weight: 700;
+}
+
+.jt-direct-file-banner[hidden],
+.jt-performance-banner-close[hidden] {
+  display: none;
+}
+
+.jt-performance-banner-close {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.jt-performance-banner-close:hover,
+.jt-performance-banner-close:focus-visible {
+  background: rgb(120 53 15 / 10%);
 }
 
 .jt-toolbar {
