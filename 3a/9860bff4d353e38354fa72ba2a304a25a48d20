@@ -1,0 +1,25 @@
+src/ui/styles.css
+  s_775c2a98871f1c::t_44cabdca672b3f 22-25,34-58
+src/ui/viewerApp.js
+  s_775c2a98871f1c::t_e08a588a12a4ce 2-5,84-93,142-145,173-176,726-728,733-737,739,743-747
+test/projectFiles.test.mjs
+  s_775c2a98871f1c::t_92334bc55f232f 105,110-115
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "3a9860bff4d353e38354fa72ba2a304a25a48d20",
+  "prompts": {},
+  "sessions": {
+    "s_775c2a98871f1c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f59a0-1b27-71b3-9e1b-64bfdca51fc9",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
