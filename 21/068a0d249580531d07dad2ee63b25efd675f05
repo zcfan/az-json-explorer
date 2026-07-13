@@ -1,0 +1,27 @@
+docs/modules/core-tree-model.md
+  s_ac6619b44b2813::t_9b78eccf32ce57 47-49,64
+docs/modules/testing.md
+  s_ac6619b44b2813::t_efcf7bbeac9b17 26
+docs/modules/viewer-ui.md
+  s_ac6619b44b2813::t_6857d80526429f 21,42-45,57
+docs/modules/worker-protocol.md
+  s_ac6619b44b2813::t_ad3f79a6d6f08a 45-46,62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "21068a0d249580531d07dad2ee63b25efd675f05",
+  "prompts": {},
+  "sessions": {
+    "s_ac6619b44b2813": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f5993-2795-7011-9792-88f249fecf0a",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
