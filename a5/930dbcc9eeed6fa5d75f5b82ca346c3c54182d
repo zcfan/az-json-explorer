@@ -1,0 +1,23 @@
+src/core/treeModel.js
+  s_ac6619b44b2813::t_aa4475e9ab1d8c 62-71,76-80,93,107,109,122-131
+test/treeModel.test.mjs
+  s_ac6619b44b2813::t_44084215c2e870 94-141
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "a5930dbcc9eeed6fa5d75f5b82ca346c3c54182d",
+  "prompts": {},
+  "sessions": {
+    "s_ac6619b44b2813": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f5993-2795-7011-9792-88f249fecf0a",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
