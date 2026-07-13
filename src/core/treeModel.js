@@ -59,11 +59,25 @@ function getEffectiveValue(value, path, parseCache) {
   return value;
 }
 
-function createRow({ key, path, value, depth, expandedKeys, parseCache }) {
+function createRow({
+  key,
+  path,
+  value,
+  depth,
+  expansionMode,
+  expandedKeys,
+  collapsedKeys,
+  parseCache,
+}) {
   const effectiveValue = getEffectiveValue(value, path, parseCache);
   const rowPathKey = pathKey(path);
   const parsed = effectiveValue !== value;
   const expandable = isExpandableValue(effectiveValue);
+  const expanded =
+    expandable &&
+    (expansionMode === 'all'
+      ? !collapsedKeys.has(rowPathKey)
+      : expandedKeys.has(rowPathKey));
 
   return {
     key,
@@ -76,7 +90,7 @@ function createRow({ key, path, value, depth, expandedKeys, parseCache }) {
     kind: getNodeKind(value),
     effectiveKind: getNodeKind(effectiveValue),
     expandable,
-    expanded: expandable && expandedKeys.has(rowPathKey),
+    expanded,
     parsed,
     parseError: parseCache?.getError(path) ?? null,
   };
@@ -90,7 +104,9 @@ function waitForNextTurn() {
 
 export async function collectVisibleRows(rootValue, options = {}) {
   const {
+    expansionMode = 'explicit',
     expandedKeys = new Set(),
+    collapsedKeys = new Set(),
     parseCache = null,
     yieldEvery = 500,
     maxRows = Number.POSITIVE_INFINITY,
@@ -103,7 +119,16 @@ export async function collectVisibleRows(rootValue, options = {}) {
       return;
     }
 
-    const row = createRow({ key, path, value, depth, expandedKeys, parseCache });
+    const row = createRow({
+      key,
+      path,
+      value,
+      depth,
+      expansionMode,
+      expandedKeys,
+      collapsedKeys,
+      parseCache,
+    });
     rows.push(row);
     visitedSinceYield += 1;
 

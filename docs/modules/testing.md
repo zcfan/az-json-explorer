@@ -23,6 +23,7 @@ The project uses Node's built-in test runner. There is no test build step.
 | `test/textSearch.test.mjs` | Chunked long-string search and truncation. |
 | `test/treeSearch.test.mjs` | Tree-wide key and primitive value search. |
 | `test/searchHighlight.test.mjs` | UI search highlight segmentation and row flags. |
+| `test/expansionState.test.mjs` | Explicit/all expansion transitions, collapsed exceptions, parsed-node reopening, and search reveal. |
 | `test/jsonWorker.test.mjs` | Worker parse, retained root, nested parse, visible rows, search messages. |
 | `test/projectFiles.test.mjs` | Manifest, entrypoint, layout, syntax, and browser-surface invariants. |
 

@@ -20,7 +20,7 @@ The viewer UI is the main-thread coordinator. It owns DOM rendering, user intera
 - Worker request map and request IDs.
 - `hasParsedRoot`.
 - Current visible `rows`.
-- Expanded row keys.
+- Expansion mode plus explicit expanded keys or all-mode collapsed exceptions.
 - Render token for stale async row responses.
 - Search query timer, matches, and selected match.
 - Context menu copy-path state.
@@ -41,7 +41,10 @@ This is why row height and row DOM layout must remain stable.
 - `Parse input`: sends textarea text to `parse-root`.
 - `Open file`: sends a File directly to `parse-root`.
 - `Sample`: loads the inline sample JSON.
-- Expand/collapse: updates `expandedKeys` and refreshes rows from the worker.
+- `Collapse`, `Expand root`, and `Expand all`: replace the expansion mode and refresh rows from the worker.
+- Individual expand/collapse: updates explicit expanded keys or all-mode collapsed exceptions.
+- `Expand all` shows `Expanding all...` while the worker prepares rows and keeps the 100,000-row truncation message on completion.
+- `Expand all` never parses raw strings; already-parsed strings participate when their display mode is `parsed`.
 - `Parse as JSON`: sends `parse-string` with the row path.
 - `parsed` or `raw` badge: toggles cached parsed display.
 - Search: debounced worker search, result reveal, row highlighting.
@@ -54,10 +57,10 @@ This is why row height and row DOM layout must remain stable.
 - Do not keep the full parsed root in `JsonViewerApp`.
 - Keep controls tied to worker responses; the UI should not invent row data.
 - Close transient context menus on scroll, outside click, and Escape.
-- Search reveal must expand ancestors before scrolling to the matching row.
+- Search reveal must add explicit ancestors or remove all-mode collapsed exceptions before scrolling to the matching row.
 - Keep standalone hint dismissal local to the extension origin and independent from direct-page warnings.
 
 ## Verification
 
-- Run `npm test -- test/standalonePerformanceHint.test.mjs test/projectFiles.test.mjs test/searchHighlight.test.mjs`.
+- Run `npm test -- test/expansionState.test.mjs test/standalonePerformanceHint.test.mjs test/projectFiles.test.mjs test/searchHighlight.test.mjs`.
 - For visual changes, load the unpacked extension and check standalone plus embedded viewer flows.

@@ -256,7 +256,9 @@ export async function handleWorkerMessage(message) {
     const maxRows = message.maxRows ?? Number.POSITIVE_INFINITY;
     const parseCache = createParseCacheAdapter();
     const rows = await collectVisibleRows(retainedRootValue, {
+      expansionMode: message.expansionMode ?? 'explicit',
       expandedKeys: new Set(message.expandedKeys || []),
+      collapsedKeys: new Set(message.collapsedKeys || []),
       maxRows,
       parseCache,
       yieldEvery: message.yieldEvery ?? 500,

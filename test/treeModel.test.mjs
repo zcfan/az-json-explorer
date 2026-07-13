@@ -91,3 +91,51 @@ test('caps visible row collection to protect rendering work', async () => {
   assert.equal(rows[0].key, '$');
   assert.equal(rows[1].key, 'records');
 });
+
+test('all mode expands every container except collapsed path exceptions', async () => {
+  const value = {
+    open: { deep: { value: 1 } },
+    closed: { hidden: 2 },
+  };
+
+  const rows = await collectVisibleRows(value, {
+    expansionMode: 'all',
+    collapsedKeys: new Set([pathKey(['closed'])]),
+  });
+
+  assert.deepEqual(
+    rows.map((row) => [row.pathKey, row.expanded]),
+    [
+      [pathKey([]), true],
+      [pathKey(['open']), true],
+      [pathKey(['open', 'deep']), true],
+      [pathKey(['open', 'deep', 'value']), false],
+      [pathKey(['closed']), false],
+    ],
+  );
+});
+
+test('all mode expands parsed string containers without parsing raw strings', async () => {
+  const value = {
+    parsed: '{"items":[1]}',
+    raw: '{"hidden":true}',
+  };
+  const cache = new ParseCache();
+  cache.storeParsed(['parsed'], value.parsed, { items: [1] });
+
+  const rows = await collectVisibleRows(value, {
+    expansionMode: 'all',
+    parseCache: cache,
+  });
+
+  assert.deepEqual(
+    rows.map((row) => [row.pathKey, row.expandable, row.expanded]),
+    [
+      [pathKey([]), true, true],
+      [pathKey(['parsed']), true, true],
+      [pathKey(['parsed', 'items']), true, true],
+      [pathKey(['parsed', 'items', 0]), false, false],
+      [pathKey(['raw']), false, false],
+    ],
+  );
+});
