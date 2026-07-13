@@ -28,4 +28,6 @@ if (embedded) {
       app.parseFile(event.data.file, event.data.sourceLabel || 'JSON page');
     }
   });
+} else {
+  app.showStandalonePerformanceBanner();
 }

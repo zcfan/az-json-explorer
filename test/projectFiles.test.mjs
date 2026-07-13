@@ -99,6 +99,15 @@ test('direct page previews show a standalone viewer performance banner', async (
   assert.match(css, /\.jt-direct-file-banner/);
 });
 
+test('standalone viewer shows an open-file performance banner', async () => {
+  const viewer = await readFile(new URL('../src/viewer.js', import.meta.url), 'utf8');
+  const viewerApp = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
+
+  assert.match(viewerApp, /For very large JSON files, use Open file instead of pasting JSON/);
+  assert.match(viewerApp, /showStandalonePerformanceBanner\(\)/);
+  assert.match(viewer, /if \(embedded\)[\s\S]*else \{[\s\S]*showStandalonePerformanceBanner\(\)/);
+});
+
 test('browser entry modules pass syntax checks', () => {
   const files = [
     'src/contentScript.js',

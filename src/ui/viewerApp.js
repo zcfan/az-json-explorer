@@ -705,6 +705,12 @@ class JsonViewerApp {
     this.elements.directFileBanner.hidden = false;
   }
 
+  showStandalonePerformanceBanner() {
+    this.elements.directFileBanner.textContent =
+      'For very large JSON files, use Open file instead of pasting JSON for better performance.';
+    this.elements.directFileBanner.hidden = false;
+  }
+
   setSourceLabel(sourceLabel) {
     this.elements.source.textContent = sourceLabel;
   }
