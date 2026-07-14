@@ -1,0 +1,27 @@
+docs/modules/viewer-ui.md
+  s_13c0ccee7da3dc::t_eb701764c36dfd 45
+src/ui/styles.css
+  s_13c0ccee7da3dc::t_f4f20f909d15d8 242-245
+src/ui/viewerApp.js
+  s_13c0ccee7da3dc::t_844d1e11bc12f5 431,439-447
+test/projectFiles.test.mjs
+  s_13c0ccee7da3dc::t_551e789bc3fb60 196-206
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "b53ffe5fae8b13b61fd311c1a028bc1344ddf918",
+  "prompts": {},
+  "sessions": {
+    "s_13c0ccee7da3dc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f5e79-d8b8-7941-bcf8-a2d76210408c",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
