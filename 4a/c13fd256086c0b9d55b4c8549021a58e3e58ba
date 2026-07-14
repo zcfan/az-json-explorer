@@ -1,0 +1,43 @@
+docs/modules/testing.md
+  s_c409c47b8415e4::t_3ce92d6b1104e7 23
+docs/modules/viewer-ui.md
+  s_c409c47b8415e4::t_96854c9034532c 24,45,60
+docs/modules/worker-protocol.md
+  s_c409c47b8415e4::t_5bd70bbbb9c78c 29,64
+docs/specs/2026-07-13-expand-all-design.md
+  s_c409c47b8415e4::t_8fce8d701ba51f 49-51,122
+src/core/treeStats.js
+  s_c409c47b8415e4::t_2bf1ca80012acb 1-49
+src/ui/expansionState.js
+  s_c409c47b8415e4::t_c52057abaf6e0d 36-41
+src/ui/viewerApp.js
+  s_c409c47b8415e4::t_97783662e0138e 10,20,337-340,350,362-365,375
+src/worker/jsonWorker.js
+  s_c409c47b8415e4::t_51084bec654247 4,140-142
+test/expansionState.test.mjs
+  s_c409c47b8415e4::t_2887b12cfab0b0 7,13-23
+test/jsonWorker.test.mjs
+  s_c409c47b8415e4::t_45b01513234682 58-75
+test/projectFiles.test.mjs
+  s_c409c47b8415e4::t_125a52179188d9 72,222-229
+test/treeStats.test.mjs
+  s_c409c47b8415e4::t_1447ab7af807e8 1-27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "4ac13fd256086c0b9d55b4c8549021a58e3e58ba",
+  "prompts": {},
+  "sessions": {
+    "s_c409c47b8415e4": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f5e7a-3082-74e0-a827-e8ab2dc05d12",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
