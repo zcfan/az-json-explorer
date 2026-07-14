@@ -428,6 +428,7 @@ class JsonViewerApp {
     element.className = [
       'jt-row',
       `jt-kind-${row.kind}`,
+      row.expandable ? 'jt-row-expandable' : '',
       searchState.highlighted ? 'jt-row-search-hit' : '',
       searchState.current ? 'jt-row-search-current' : '',
     ]
@@ -435,6 +436,15 @@ class JsonViewerApp {
       .join(' ');
     element.style.transform = `translateY(${index * ROW_HEIGHT}px)`;
     element.title = formatPath(row.path);
+    if (row.expandable) {
+      element.addEventListener('click', (event) => {
+        if (event.target.closest('button')) {
+          return;
+        }
+
+        this.toggleExpanded(row);
+      });
+    }
 
     const indent = document.createElement('span');
     indent.className = 'jt-indent';

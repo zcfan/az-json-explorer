@@ -42,7 +42,7 @@ This is why row height and row DOM layout must remain stable.
 - `Open file`: sends a File directly to `parse-root`.
 - `Sample`: loads the inline sample JSON.
 - `Collapse`, `Expand root`, and `Expand all`: replace the expansion mode and refresh rows from the worker.
-- Individual expand/collapse: updates explicit expanded keys or all-mode collapsed exceptions.
+- Clicking anywhere on an expandable row expands or collapses it; row buttons keep their own actions.
 - `Expand all` shows `Expanding all...` while the worker prepares rows and keeps the 100,000-row truncation message on completion.
 - `Expand all` never parses raw strings; already-parsed strings participate when their display mode is `parsed`.
 - `Parse as JSON`: sends `parse-string` with the row path.

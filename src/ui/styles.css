@@ -239,6 +239,10 @@
   background: #f8fafc;
 }
 
+.jt-row-expandable {
+  cursor: pointer;
+}
+
 .jt-row-search-hit {
   background: #fffdf3;
 }
