@@ -33,6 +33,12 @@ export function createAllExpansionState(collapsedKeys = []) {
   };
 }
 
+export function createInitialExpansionState(nodeCount, rootPathKey) {
+  return nodeCount?.truncated === false
+    ? createAllExpansionState()
+    : createExplicitExpansionState([rootPathKey]);
+}
+
 export function toggleExpansion(state, pathKey) {
   const nextState = cloneState(state);
   const keys = nextState.mode === ALL_MODE ? nextState.collapsedKeys : nextState.expandedKeys;

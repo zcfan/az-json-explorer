@@ -7,6 +7,7 @@ import { formatPath, pathKey } from '../core/treeModel.js';
 import {
   createAllExpansionState,
   createExplicitExpansionState,
+  createInitialExpansionState,
   ensureExpanded,
   revealExpansionPaths,
   toggleExpansion,
@@ -16,6 +17,7 @@ import { getRowSearchState, splitHighlightedText } from './searchHighlight.js';
 const ROW_HEIGHT = 28;
 const OVERSCAN_ROWS = 14;
 const MAX_VISIBLE_ROWS = 100000;
+const AUTO_EXPAND_MAX_ROWS = 5000;
 const MAX_SEARCH_RESULTS = 500;
 const SEARCH_DEBOUNCE_MS = 250;
 const SAMPLE_JSON = JSON.stringify(
@@ -332,7 +334,10 @@ class JsonViewerApp {
     this.elements.rowLayer.replaceChildren();
     this.elements.spacer.style.height = '0px';
 
-    const response = await this.requestWorker('parse-root', { text: rawText });
+    const response = await this.requestWorker('parse-root', {
+      text: rawText,
+      nodeCountLimit: AUTO_EXPAND_MAX_ROWS,
+    });
     if (!response.ok) {
       this.hasParsedRoot = false;
       this.rows = [];
@@ -342,7 +347,7 @@ class JsonViewerApp {
     }
 
     this.hasParsedRoot = true;
-    this.expansion = createExplicitExpansionState([pathKey([])]);
+    this.expansion = createInitialExpansionState(response.nodeCount, pathKey([]));
     await this.refreshRows();
   }
 
@@ -354,7 +359,10 @@ class JsonViewerApp {
     this.elements.rowLayer.replaceChildren();
     this.elements.spacer.style.height = '0px';
 
-    const response = await this.requestWorker('parse-root', { file });
+    const response = await this.requestWorker('parse-root', {
+      file,
+      nodeCountLimit: AUTO_EXPAND_MAX_ROWS,
+    });
     if (!response.ok) {
       this.hasParsedRoot = false;
       this.rows = [];
@@ -364,7 +372,7 @@ class JsonViewerApp {
     }
 
     this.hasParsedRoot = true;
-    this.expansion = createExplicitExpansionState([pathKey([])]);
+    this.expansion = createInitialExpansionState(response.nodeCount, pathKey([]));
     await this.refreshRows();
   }
 

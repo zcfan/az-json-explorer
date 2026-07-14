@@ -55,6 +55,24 @@ test('worker parses a file-like blob without requiring main-thread text extracti
   });
 });
 
+test('worker reports whether a root fits within an expanded-row budget', async () => {
+  const withinBudget = await runWorkerRequest({
+    id: 'parse-root-within-node-budget',
+    type: 'parse-root',
+    text: '{"nested":{"value":1}}',
+    nodeCountLimit: 3,
+  });
+  const overBudget = await runWorkerRequest({
+    id: 'parse-root-over-node-budget',
+    type: 'parse-root',
+    text: '{"nested":{"value":1},"tail":2}',
+    nodeCountLimit: 3,
+  });
+
+  assert.deepEqual(withinBudget.nodeCount, { count: 3, truncated: false });
+  assert.deepEqual(overBudget.nodeCount, { count: 3, truncated: true });
+});
+
 test('worker reports parse errors without throwing', async () => {
   const response = await runWorkerRequest({
     id: 'parse-root-2',

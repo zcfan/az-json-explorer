@@ -26,6 +26,7 @@ Parsing a new root resets both values.
 
 - Input: `{ text }`, `{ file }`, or `{ blob }`.
 - Output: root summary only.
+- When `nodeCountLimit` is provided, also counts fully expanded tree rows up to that limit and reports whether the count was truncated.
 - Side effect: stores parsed root and clears nested parse cache.
 
 `parse-string`:
@@ -60,6 +61,7 @@ Nested parse actions must resolve through already parsed string ancestors. For e
 - Keep worker responses serializable.
 - Keep parse failures as structured responses, not thrown worker errors.
 - Keep expansion state request-scoped; the worker must not retain UI expansion mode or exceptions.
+- Keep automatic-expansion sizing in the worker and bound it with `nodeCountLimit`; source bytes are not a reliable proxy for expanded row work.
 - Row `copyPath` must be computed in the worker from the same parse cache that shapes visible rows.
 
 ## Verification

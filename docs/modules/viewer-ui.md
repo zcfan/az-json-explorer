@@ -21,6 +21,7 @@ The viewer UI is the main-thread coordinator. It owns DOM rendering, user intera
 - `hasParsedRoot`.
 - Current visible `rows`.
 - Expansion mode plus explicit expanded keys or all-mode collapsed exceptions.
+- Initial expansion selected from the worker's bounded fully-expanded row count.
 - Render token for stale async row responses.
 - Search query timer, matches, and selected match.
 - Context menu copy-path state.
@@ -41,6 +42,7 @@ This is why row height and row DOM layout must remain stable.
 - `Parse input`: sends textarea text to `parse-root`.
 - `Open file`: sends a File directly to `parse-root`.
 - `Sample`: loads the inline sample JSON.
+- New roots with at most 5,000 fully expanded rows open in `all` mode; larger roots open with only the root expanded.
 - `Collapse`, `Expand root`, and `Expand all`: replace the expansion mode and refresh rows from the worker.
 - Clicking anywhere on an expandable row expands or collapses it; row buttons keep their own actions.
 - `Expand all` shows `Expanding all...` while the worker prepares rows and keeps the 100,000-row truncation message on completion.
@@ -55,6 +57,7 @@ This is why row height and row DOM layout must remain stable.
 
 - Do not parse large JSON on the main thread.
 - Do not keep the full parsed root in `JsonViewerApp`.
+- Base automatic expansion on bounded row count, not source byte size; row summaries and worker-to-UI transfer are the relevant costs.
 - Keep controls tied to worker responses; the UI should not invent row data.
 - Close transient context menus on scroll, outside click, and Escape.
 - Search reveal must add explicit ancestors or remove all-mode collapsed exceptions before scrolling to the matching row.

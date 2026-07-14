@@ -46,7 +46,9 @@ The UI owns an expansion mode plus mode-specific exceptions:
 - `explicit`: a node is expanded only when its path key is in `expandedKeys`.
 - `all`: every expandable node is expanded unless its path key is in `collapsedKeys`.
 
-Only one mode is active. Starting a new parse resets the state to `explicit` with only the root expanded, preserving current behavior.
+Only one mode is active. Starting a new parse counts the rows a fully expanded tree would produce, stopping at 5,000. Roots within that budget start in `all` mode; larger roots start in `explicit` mode with only the root expanded.
+
+The decision uses bounded expanded-row count instead of source bytes. Source size is a poor proxy for the actual cost: a large string can render as one row, while a much smaller deeply structured document can require thousands of row summaries. Counting stops as soon as the budget is exceeded, stays in the worker, and does not clone parsed containers to the UI.
 
 Control transitions are:
 
@@ -117,6 +119,7 @@ Automated tests will cover:
 
 - tree-model expansion in both modes;
 - `collapsedKeys` overriding all-mode expansion;
+- bounded root-size classification on both sides of the 5,000-row threshold;
 - worker request and response behavior with the 100,000-row limit;
 - `Expand all`, `Collapse all`, and `Expand root` state transitions;
 - row toggling in both modes;

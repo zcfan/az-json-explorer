@@ -20,6 +20,7 @@ The project uses Node's built-in test runner. There is no test build step.
 | `test/path.test.mjs` | Display and copy-path formatting, including parse-aware `JSON.parse(...)` wrapping. |
 | `test/parseCache.test.mjs` | Parsed string cache, raw/parsed toggling, error preservation. |
 | `test/treeModel.test.mjs` | Child paths, node kinds, visible row flattening, row caps. |
+| `test/treeStats.test.mjs` | Bounded fully-expanded node counting for automatic expansion. |
 | `test/textSearch.test.mjs` | Chunked long-string search and truncation. |
 | `test/treeSearch.test.mjs` | Tree-wide key and primitive value search. |
 | `test/searchHighlight.test.mjs` | UI search highlight segmentation and row flags. |

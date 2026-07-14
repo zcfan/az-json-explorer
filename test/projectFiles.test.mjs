@@ -69,7 +69,7 @@ test('viewer supports one-way manual JSON input without echoing file content', a
   assert.doesNotMatch(viewer, /file\.text\(\)/);
   assert.doesNotMatch(viewer, /manualInput\.value\s*=\s*await\s+file\.text/);
   assert.match(viewer, /parseFile\(file\)/);
-  assert.match(viewer, /this\.requestWorker\('parse-root', \{ file/);
+  assert.match(viewer, /this\.requestWorker\('parse-root', \{\s*file,/);
 });
 
 test('direct page previews pass file-like payloads instead of raw JSON text strings', async () => {
@@ -218,4 +218,12 @@ test('viewer wires Expand all through compact expansion state', async () => {
     /this\.expansion\s*=\s*revealExpansionPaths\(this\.expansion, ancestorPathKeys\)/,
   );
   assert.doesNotMatch(viewer, /this\.expandedKeys/);
+});
+
+test('viewer automatically expands roots within a bounded expanded-row budget', async () => {
+  const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
+
+  assert.match(viewer, /const AUTO_EXPAND_MAX_ROWS = 5000;/);
+  assert.match(viewer, /nodeCountLimit:\s*AUTO_EXPAND_MAX_ROWS/);
+  assert.match(viewer, /createInitialExpansionState\(response\.nodeCount, pathKey\(\[\]\)\)/);
 });

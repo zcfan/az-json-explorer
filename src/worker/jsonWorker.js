@@ -1,6 +1,7 @@
 import { canParseStringAsJson } from '../core/parseCache.js';
 import { formatCopyPath, formatPath, pathKey, collectVisibleRows } from '../core/treeModel.js';
 import { searchJsonTree } from '../core/treeSearch.js';
+import { countJsonNodesUpTo } from '../core/treeStats.js';
 
 let retainedRootValue;
 let retainedParseCache = new Map();
@@ -136,6 +137,9 @@ async function createParseResult(message, resultType, { retainRoot = false } = {
 
     if (retainRoot) {
       response.root = createRootSummary(value);
+      if (Number.isFinite(message.nodeCountLimit)) {
+        response.nodeCount = countJsonNodesUpTo(value, message.nodeCountLimit);
+      }
     } else {
       response.value = value;
     }
