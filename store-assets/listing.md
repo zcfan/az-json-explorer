@@ -27,6 +27,8 @@ Key features:
 - Open local JSON files in the standalone viewer.
 - Paste JSON manually and format it into readable indentation.
 - Parse nested JSON strings into expandable tree nodes with one click.
+- Automatically expand small JSON trees while keeping large documents shallow by default.
+- Click anywhere on a container row to expand or collapse it, or use the tree-wide expansion controls.
 - Copy parse-aware JavaScript-style paths from tree rows.
 - Parse JSON in a Web Worker so large files do not block the page UI.
 - Use virtual scrolling to keep large JSON trees responsive.
@@ -45,6 +47,7 @@ Parse nested JSON strings with one click
 Feature callouts:
 - Paste, format, search, and browse JSON in one local viewer.
 - Turn escaped JSON strings into normal expandable tree nodes.
+- Open small JSON trees fully expanded and navigate containers by clicking their rows.
 - Keep large JSON responsive with worker parsing and virtual scrolling.
 - Copy parse-aware JavaScript-style paths from nested values.
 
