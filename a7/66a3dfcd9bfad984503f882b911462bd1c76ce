@@ -1,0 +1,25 @@
+manifest.json
+  s_c409c47b8415e4::t_0582798e459723 5
+package.json
+  s_c409c47b8415e4::t_350aca0c3e87ca 3
+store-assets/listing.md
+  s_c409c47b8415e4::t_503b7ffaa350cc 30-31,50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "a766a3dfcd9bfad984503f882b911462bd1c76ce",
+  "prompts": {},
+  "sessions": {
+    "s_c409c47b8415e4": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f5e7a-3082-74e0-a827-e8ab2dc05d12",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
