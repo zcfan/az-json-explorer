@@ -1,5 +1,11 @@
 import { formatJsonText } from '../core/jsonFormat.js';
 import {
+  getParseShortcutLabel,
+  getPasteShortcutLabel,
+  isParseShortcut,
+  shouldRedirectPaste,
+} from '../core/inputShortcuts.js';
+import {
   dismissStandalonePerformanceHint,
   isStandalonePerformanceHintDismissed,
 } from '../core/standalonePerformanceHint.js';
@@ -178,6 +184,11 @@ class JsonViewerApp {
     };
 
     this.elements.source.textContent = this.options.sourceLabel || '';
+    const parseShortcut = getParseShortcutLabel();
+    const pasteShortcut = getPasteShortcutLabel();
+    this.elements.parseManualButton.textContent = `Parse input (${parseShortcut})`;
+    this.elements.manualInput.placeholder =
+      `Paste JSON, or press ${pasteShortcut} anywhere to paste here`;
   }
 
   bindEvents() {
@@ -188,6 +199,37 @@ class JsonViewerApp {
     this.elements.parseManualButton.addEventListener('click', () => {
       this.parseManualInput();
     });
+
+    this.elements.manualInput.addEventListener('keydown', (event) => {
+      if (!isParseShortcut(event)) {
+        return;
+      }
+
+      event.preventDefault();
+      this.parseManualInput();
+    });
+
+    if (!this.options.embedded) {
+      this.host.ownerDocument.addEventListener('paste', (event) => {
+        const target = event.composedPath?.()[0] || event.target;
+        if (!shouldRedirectPaste(target)) {
+          return;
+        }
+
+        const text = event.clipboardData?.getData('text/plain');
+        if (typeof text !== 'string') {
+          return;
+        }
+
+        event.preventDefault();
+        const { manualInput } = this.elements;
+        manualInput.focus();
+        const start = manualInput.selectionStart ?? manualInput.value.length;
+        const end = manualInput.selectionEnd ?? manualInput.value.length;
+        manualInput.setRangeText(text, start, end, 'end');
+        manualInput.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+      });
+    }
 
     this.elements.formatManualButton.addEventListener('click', () => {
       this.formatManualInput();

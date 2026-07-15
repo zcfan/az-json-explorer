@@ -72,6 +72,19 @@ test('viewer supports one-way manual JSON input without echoing file content', a
   assert.match(viewer, /this\.requestWorker\('parse-root', \{\s*file,/);
 });
 
+test('viewer redirects page paste and exposes the platform parse shortcut', async () => {
+  const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
+
+  assert.match(viewer, /getParseShortcutLabel/);
+  assert.match(viewer, /getPasteShortcutLabel/);
+  assert.match(viewer, /Paste JSON, or press \$\{pasteShortcut\} anywhere/);
+  assert.match(viewer, /shouldRedirectPaste/);
+  assert.match(viewer, /clipboardData\?\.getData\('text\/plain'\)/);
+  assert.match(viewer, /manualInput\.setRangeText/);
+  assert.match(viewer, /manualInput\.addEventListener\('keydown'/);
+  assert.match(viewer, /this\.parseManualInput\(\)/);
+});
+
 test('direct page previews pass file-like payloads instead of raw JSON text strings', async () => {
   const contentScript = await readFile(new URL('../src/contentScript.js', import.meta.url), 'utf8');
   const viewer = await readFile(new URL('../src/viewer.js', import.meta.url), 'utf8');

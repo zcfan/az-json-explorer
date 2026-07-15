@@ -39,7 +39,8 @@ This is why row height and row DOM layout must remain stable.
 
 ## User Interactions
 
-- `Parse input`: sends textarea text to `parse-root`.
+- Pasting anywhere in the standalone page redirects the clipboard text into the manual JSON textarea, unless an `input` or `textarea` already owns focus.
+- `Parse input`: sends textarea text to `parse-root`; `cmd+enter` on macOS or `ctrl+enter` on Windows/Linux triggers it while the manual textarea has focus.
 - `Open file`: sends a File directly to `parse-root`.
 - `Sample`: loads the inline sample JSON.
 - New roots with at most 5,000 fully expanded rows open in `all` mode; larger roots open with only the root expanded.
