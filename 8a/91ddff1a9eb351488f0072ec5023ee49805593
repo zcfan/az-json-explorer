@@ -1,0 +1,29 @@
+docs/modules/viewer-ui.md
+  s_172cb441d889d3::t_714d7e2a4ad3eb 42-43
+src/core/inputShortcuts.js
+  s_172cb441d889d3::t_2bb912afa7f16d 1-33
+src/ui/viewerApp.js
+  s_172cb441d889d3::t_dbe34337f8763e 2-7,187-191,203-233
+test/inputShortcuts.test.mjs
+  s_172cb441d889d3::t_5d131f671ae725 1-39
+test/projectFiles.test.mjs
+  s_172cb441d889d3::t_ed3586497d949d 75-87
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "8a91ddff1a9eb351488f0072ec5023ee49805593",
+  "prompts": {},
+  "sessions": {
+    "s_172cb441d889d3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f64cc-d89f-7240-973c-207c21396b6f",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
