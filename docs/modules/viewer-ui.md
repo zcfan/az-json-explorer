@@ -43,6 +43,7 @@ This is why row height and row DOM layout must remain stable.
 - `Parse input`: sends textarea text to `parse-root`; `cmd+enter` on macOS or `ctrl+enter` on Windows/Linux triggers it while the manual textarea has focus.
 - `Open file`: sends a File directly to `parse-root`.
 - `Sample`: loads the inline sample JSON.
+- The expansion controls sit below the manual-input actions and align left; search controls share that row and align right.
 - New roots with at most 5,000 fully expanded rows open in `all` mode; larger roots open with only the root expanded.
 - `Collapse`, `Expand root`, and `Expand all`: replace the expansion mode and refresh rows from the worker.
 - Clicking anywhere on an expandable row expands or collapses it; row buttons keep their own actions.
@@ -51,6 +52,7 @@ This is why row height and row DOM layout must remain stable.
 - `Parse as JSON`: sends `parse-string` with the row path.
 - `parsed` or `raw` badge: toggles cached parsed display.
 - Search: debounced worker search, result reveal, row highlighting.
+- `cmd+f` on macOS or `ctrl+f` on Windows/Linux focuses the viewer search input instead of opening browser find.
 - Key context menu: right-click a non-root key and copy `row.copyPath`.
 - Standalone performance hint: the close button hides it immediately and stores a local dismissed preference; direct-page warnings ignore that preference and remain non-dismissible.
 

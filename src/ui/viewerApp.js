@@ -3,6 +3,7 @@ import {
   getParseShortcutLabel,
   getPasteShortcutLabel,
   isParseShortcut,
+  isSearchShortcut,
   shouldRedirectPaste,
 } from '../core/inputShortcuts.js';
 import {
@@ -112,18 +113,6 @@ class JsonViewerApp {
           <strong>AZ JSON Explorer</strong>
           <span class="jt-source"></span>
         </div>
-        <div class="jt-toolbar-actions">
-          <label class="jt-search">
-            <span>Search</span>
-            <input class="jt-search-input" type="search" placeholder="Full text" autocomplete="off">
-          </label>
-          <button class="jt-button jt-button-secondary jt-search-prev" data-action="search-prev" type="button" disabled>Prev</button>
-          <button class="jt-button jt-button-secondary jt-search-next" data-action="search-next" type="button" disabled>Next</button>
-          <span class="jt-search-count">0 matches</span>
-          <button class="jt-button jt-button-secondary" data-action="collapse-all" type="button">Collapse</button>
-          <button class="jt-button jt-button-secondary" data-action="expand-root" type="button">Expand root</button>
-          <button class="jt-button jt-button-secondary" data-action="expand-all" type="button">Expand all</button>
-        </div>
       </header>
       <section class="jt-loader">
         <textarea class="jt-manual-input" spellcheck="false" placeholder="Paste JSON"></textarea>
@@ -135,6 +124,22 @@ class JsonViewerApp {
             <input class="jt-file-input" type="file" accept=".json,application/json,text/plain">
           </label>
           <button class="jt-button jt-button-secondary" data-action="load-sample" type="button">Sample</button>
+        </div>
+      </section>
+      <section class="jt-view-controls">
+        <div class="jt-expansion-controls">
+          <button class="jt-button jt-button-secondary" data-action="collapse-all" type="button">Collapse</button>
+          <button class="jt-button jt-button-secondary" data-action="expand-root" type="button">Expand root</button>
+          <button class="jt-button jt-button-secondary" data-action="expand-all" type="button">Expand all</button>
+        </div>
+        <div class="jt-search-controls">
+          <label class="jt-search">
+            <span>Search</span>
+            <input class="jt-search-input" type="search" placeholder="Full text" autocomplete="off">
+          </label>
+          <button class="jt-button jt-button-secondary jt-search-prev" data-action="search-prev" type="button" disabled>Prev</button>
+          <button class="jt-button jt-button-secondary jt-search-next" data-action="search-next" type="button" disabled>Next</button>
+          <span class="jt-search-count">0 matches</span>
         </div>
       </section>
       <div class="jt-status" role="status"></div>
@@ -207,6 +212,15 @@ class JsonViewerApp {
 
       event.preventDefault();
       this.parseManualInput();
+    });
+
+    this.host.ownerDocument.addEventListener('keydown', (event) => {
+      if (!isSearchShortcut(event)) {
+        return;
+      }
+
+      event.preventDefault();
+      this.elements.searchInput.focus();
     });
 
     if (!this.options.embedded) {

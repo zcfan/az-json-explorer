@@ -5,6 +5,7 @@ import {
   getParseShortcutLabel,
   getPasteShortcutLabel,
   isParseShortcut,
+  isSearchShortcut,
   shouldRedirectPaste,
 } from '../src/core/inputShortcuts.js';
 
@@ -29,6 +30,18 @@ test('parse shortcut requires the platform primary modifier and Enter', () => {
     false,
   );
   assert.equal(isParseShortcut({ key: 'NumpadEnter', ctrlKey: true }, 'Windows'), false);
+});
+
+test('search shortcut matches the platform equivalent of browser find', () => {
+  assert.equal(isSearchShortcut({ key: 'f', metaKey: true }, 'MacIntel'), true);
+  assert.equal(isSearchShortcut({ key: 'F', metaKey: true }, 'MacIntel'), true);
+  assert.equal(isSearchShortcut({ key: 'f', ctrlKey: true }, 'MacIntel'), false);
+  assert.equal(isSearchShortcut({ key: 'f', ctrlKey: true }, 'Windows'), true);
+  assert.equal(isSearchShortcut({ key: 'f', metaKey: true }, 'Windows'), false);
+  assert.equal(
+    isSearchShortcut({ key: 'f', ctrlKey: true, shiftKey: true }, 'Windows'),
+    false,
+  );
 });
 
 test('paste redirects unless its real target is an input or textarea', () => {

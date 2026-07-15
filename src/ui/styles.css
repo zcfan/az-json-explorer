@@ -11,7 +11,7 @@
 
 .jt-app {
   display: grid;
-  grid-template-rows: auto auto auto auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto auto auto auto auto minmax(0, 1fr);
   height: 100vh;
   min-height: 0;
   overflow: hidden;
@@ -87,12 +87,28 @@
   white-space: nowrap;
 }
 
-.jt-toolbar-actions,
-.jt-loader-actions {
+.jt-loader-actions,
+.jt-expansion-controls,
+.jt-search-controls {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.jt-view-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #d9dee8;
+  background: #eef2f7;
+}
+
+.jt-search-controls {
+  margin-left: auto;
+  justify-content: flex-end;
 }
 
 .jt-search {
@@ -426,7 +442,8 @@
 
 @media (max-width: 720px) {
   .jt-toolbar,
-  .jt-loader {
+  .jt-loader,
+  .jt-view-controls {
     align-items: stretch;
   }
 
@@ -434,9 +451,14 @@
     flex-direction: column;
   }
 
-  .jt-toolbar-actions,
-  .jt-loader-actions {
+  .jt-loader-actions,
+  .jt-expansion-controls,
+  .jt-search-controls {
     width: 100%;
+  }
+
+  .jt-view-controls {
+    flex-wrap: wrap;
   }
 
   .jt-button,

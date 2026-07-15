@@ -85,6 +85,21 @@ test('viewer redirects page paste and exposes the platform parse shortcut', asyn
   assert.match(viewer, /this\.parseManualInput\(\)/);
 });
 
+test('viewer places expansion and search controls below the loader and intercepts find', async () => {
+  const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
+
+  assert.match(
+    viewer,
+    /<\/section>\s*<section class="jt-view-controls">[\s\S]*class="jt-expansion-controls"[\s\S]*>Collapse<[\s\S]*>Expand root<[\s\S]*>Expand all<[\s\S]*class="jt-search-controls"[\s\S]*class="jt-search-input"[\s\S]*<\/section>\s*<div class="jt-status"/,
+  );
+  assert.match(viewer, /isSearchShortcut/);
+  assert.match(viewer, /ownerDocument\.addEventListener\('keydown'/);
+  assert.match(viewer, /searchInput\.focus\(\)/);
+  assert.match(css, /\.jt-view-controls\s*\{[^}]*justify-content:\s*space-between;/s);
+  assert.match(css, /\.jt-search-controls\s*\{[^}]*margin-left:\s*auto;/s);
+});
+
 test('direct page previews pass file-like payloads instead of raw JSON text strings', async () => {
   const contentScript = await readFile(new URL('../src/contentScript.js', import.meta.url), 'utf8');
   const viewer = await readFile(new URL('../src/viewer.js', import.meta.url), 'utf8');
