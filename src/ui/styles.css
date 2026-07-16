@@ -259,6 +259,13 @@
   cursor: pointer;
 }
 
+.jt-row-expandable .jt-key:not(.jt-key-copyable),
+.jt-row-expandable .jt-colon,
+.jt-row-expandable .jt-value,
+.jt-row-expandable .jt-inline-error {
+  cursor: text;
+}
+
 .jt-row-search-hit {
   background: #fffdf3;
 }

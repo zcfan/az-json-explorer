@@ -234,15 +234,18 @@ test('expand toggles use a DOM chevron rotated by CSS instead of text glyphs', a
   assert.match(css, /\.jt-toggle-expanded\s+\.jt-toggle-chevron/);
 });
 
-test('clicking an expandable row toggles it without hijacking row buttons', async () => {
+test('only blank areas and the toggle expand a row without blocking text selection', async () => {
   const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
   const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
 
   assert.match(viewer, /row\.expandable \? 'jt-row-expandable' : ''/);
   assert.match(viewer, /element\.addEventListener\('click', \(event\) =>/);
-  assert.match(viewer, /event\.target\.closest\('button'\)/);
+  assert.match(viewer, /event\.target === element/);
+  assert.match(viewer, /event\.target\.classList\.contains\('jt-indent'\)/);
+  assert.match(viewer, /window\.getSelection\(\)\?\.isCollapsed === false/);
   assert.match(viewer, /this\.toggleExpanded\(row\)/);
   assert.match(css, /\.jt-row-expandable\s*\{[^}]*cursor:\s*pointer;/s);
+  assert.match(css, /\.jt-row-expandable \.jt-value[^}]*cursor:\s*text;/s);
 });
 
 test('viewer wires Expand all through compact expansion state', async () => {

@@ -537,7 +537,10 @@ class JsonViewerApp {
     }
     if (row.expandable) {
       element.addEventListener('click', (event) => {
-        if (event.target.closest('button')) {
+        const clickedEmptyArea =
+          event.target === element || event.target.classList.contains('jt-indent');
+        const hasTextSelection = window.getSelection()?.isCollapsed === false;
+        if (!clickedEmptyArea || hasTextSelection) {
           return;
         }
 

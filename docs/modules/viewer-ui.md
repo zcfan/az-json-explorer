@@ -46,7 +46,7 @@ This is why row height and row DOM layout must remain stable.
 - The expansion controls sit below the manual-input actions and align left; search controls share that row and align right.
 - New roots with at most 5,000 fully expanded rows open in `all` mode; larger roots open with only the root expanded.
 - `Collapse`, `Expand root`, and `Expand all`: replace the expansion mode and refresh rows from the worker.
-- Clicking anywhere on an expandable row expands or collapses it; row buttons keep their own actions.
+- Clicking an expandable row's chevron, indentation, or trailing blank area expands or collapses it; clicking or selecting row text does not.
 - `Expand all` shows `Expanding all...` while the worker prepares rows and keeps the 100,000-row truncation message on completion.
 - `Expand all` never parses raw strings; already-parsed strings participate when their display mode is `parsed`.
 - `Parse as JSON`: sends `parse-string` with the row path.
