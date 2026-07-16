@@ -1,0 +1,21 @@
+test/integrationClient.test.mjs
+  s_767ac29038feeb::t_dc516cb31917ed 5,256-317
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "09d8d40bece6fba82815abebe073e8d4bcb7829d",
+  "prompts": {},
+  "sessions": {
+    "s_767ac29038feeb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f69a5-73a8-7a01-b512-f0885c5a2372",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
