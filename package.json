@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "release:chrome": "node scripts/release-chrome-web-store.mjs",
     "store-assets": "node scripts/generate-store-assets.mjs",
     "test": "node --test"
   }

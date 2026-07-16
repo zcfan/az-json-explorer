@@ -2,6 +2,8 @@
 
 These docs explain the long-lived module boundaries. One-off build plans live under `docs/superpowers/`.
 
+Release automation and credential setup are documented in [`chrome-web-store-release.md`](chrome-web-store-release.md).
+
 ## Module Map
 
 | Module | Start Here | Owns |
