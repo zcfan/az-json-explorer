@@ -344,12 +344,6 @@ test('worker prepares copy text for retained values without adding values to row
       path: ['object'],
       format: 'value',
     });
-    const stringContents = await send({
-      id: 'copy-string-contents',
-      type: 'copy-node',
-      path: ['text'],
-      format: 'string-contents',
-    });
     const jsLiteral = await send({
       id: 'copy-js-string',
       type: 'copy-node',
@@ -378,7 +372,6 @@ test('worker prepares copy text for retained values without adding values to row
       path: ['object'],
       text: '{\n  "nested": true\n}',
     });
-    assert.equal(stringContents.text, `line 1\nIt's "quoted"`);
     assert.equal(jsLiteral.text, `'line 1\\nIt\\'s "quoted"'`);
     assert.equal(jsonLiteral.text, `"line 1\\nIt's \\"quoted\\""`);
     assert.equal(parsedValue.text, '{\n  "deep": true\n}');

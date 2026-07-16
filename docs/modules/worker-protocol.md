@@ -42,7 +42,7 @@ Parsing a new root resets both values.
 `copy-node`:
 
 - Resolves a node by its visible path only when the user invokes a copy action.
-- Supports value, raw string contents, JavaScript string literal, and JSON string literal formats.
+- Supports value, JavaScript string literal, and JSON string literal formats.
 - Returns clipboard text, never the parsed container itself. Object and array values are formatted as two-space JSON.
 
 `collect-visible-rows`:

@@ -187,17 +187,19 @@ test('parse button is hidden after a string already has parsed cache', async () 
   assert.match(viewer, /if \(row\.canParseAsJson && !row\.hasParsed\)/);
 });
 
-test('viewer key context menu supports value, path, string, and recursive expansion actions', async () => {
+test('viewer row context menu avoids duplicate string actions and works outside the key', async () => {
   const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
   const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
 
   assert.match(viewer, /Copy value/);
   assert.match(viewer, /Copy path/);
-  assert.match(viewer, /Copy string contents/);
+  assert.doesNotMatch(viewer, /Copy string contents/);
   assert.match(viewer, /Copy string as JavaScript literal/);
   assert.match(viewer, /Copy string as JSON literal/);
   assert.match(viewer, /Expand recursively/);
-  assert.match(viewer, /contextmenu/);
+  assert.match(viewer, /element\.addEventListener\('contextmenu'/);
+  assert.match(viewer, /openRowContextMenu/);
+  assert.doesNotMatch(viewer, /key\.addEventListener\('contextmenu'/);
   assert.match(viewer, /row\.copyPath/);
   assert.match(viewer, /'copy-node'/);
   assert.match(viewer, /expandRecursively/);

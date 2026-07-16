@@ -120,8 +120,6 @@ function createCopyNodeResult(message) {
       path: message.path,
       error: `Value at ${formatPath(message.path)} is not a string.`,
     };
-  } else if (message.format === 'string-contents') {
-    text = sourceValue;
   } else if (message.format === 'javascript-string-literal') {
     text = formatJavaScriptStringLiteral(sourceValue);
   } else if (message.format === 'json-string-literal') {

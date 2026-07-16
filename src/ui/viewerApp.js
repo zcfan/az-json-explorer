@@ -153,7 +153,6 @@ class JsonViewerApp {
       <div class="jt-context-menu" role="menu" hidden>
         <button class="jt-context-menu-item" data-action="copy-value" type="button" role="menuitem">Copy value</button>
         <button class="jt-context-menu-item" data-action="copy-path" type="button" role="menuitem">Copy path</button>
-        <button class="jt-context-menu-item" data-action="copy-string-contents" type="button" role="menuitem">Copy string contents</button>
         <button class="jt-context-menu-item" data-action="copy-javascript-string-literal" type="button" role="menuitem">Copy string as JavaScript literal</button>
         <button class="jt-context-menu-item" data-action="copy-json-string-literal" type="button" role="menuitem">Copy string as JSON literal</button>
         <div class="jt-context-menu-separator" role="separator"></div>
@@ -194,7 +193,6 @@ class JsonViewerApp {
       contextMenu: this.shadow.querySelector('.jt-context-menu'),
       copyValueButton: this.shadow.querySelector('[data-action="copy-value"]'),
       copyPathButton: this.shadow.querySelector('[data-action="copy-path"]'),
-      copyStringContentsButton: this.shadow.querySelector('[data-action="copy-string-contents"]'),
       copyJavaScriptStringLiteralButton: this.shadow.querySelector(
         '[data-action="copy-javascript-string-literal"]',
       ),
@@ -313,10 +311,6 @@ class JsonViewerApp {
 
     this.elements.copyPathButton.addEventListener('click', () => {
       this.copyContextMenuPath();
-    });
-
-    this.elements.copyStringContentsButton.addEventListener('click', () => {
-      this.copyContextMenuNode('string-contents', 'string contents');
     });
 
     this.elements.copyJavaScriptStringLiteralButton.addEventListener('click', () => {
@@ -538,6 +532,9 @@ class JsonViewerApp {
       .join(' ');
     element.style.transform = `translateY(${index * ROW_HEIGHT}px)`;
     element.title = formatPath(row.path);
+    if (row.key !== '$') {
+      element.addEventListener('contextmenu', (event) => this.openRowContextMenu(event, row));
+    }
     if (row.expandable) {
       element.addEventListener('click', (event) => {
         if (event.target.closest('button')) {
@@ -581,7 +578,6 @@ class JsonViewerApp {
     key.className = row.key === '$' ? 'jt-key' : 'jt-key jt-key-copyable';
     if (row.key !== '$') {
       key.title = `Copy path: ${row.copyPath}`;
-      key.addEventListener('contextmenu', (event) => this.openKeyContextMenu(event, row));
     }
     this.appendHighlightedText(key, row.key === '$' ? '$' : JSON.stringify(row.key), {
       active: searchState.keyMatched,
@@ -657,13 +653,12 @@ class JsonViewerApp {
     return row.displayValue;
   }
 
-  openKeyContextMenu(event, row) {
+  openRowContextMenu(event, row) {
     event.preventDefault();
     event.stopPropagation();
 
     this.contextMenuRow = row;
     const isString = row.kind === 'string';
-    this.elements.copyStringContentsButton.hidden = !isString;
     this.elements.copyJavaScriptStringLiteralButton.hidden = !isString;
     this.elements.copyJsonStringLiteralButton.hidden = !isString;
     this.elements.contextMenuSeparator.hidden = !row.expandable;

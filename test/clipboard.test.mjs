@@ -13,7 +13,7 @@ test('formats copied values like the JSON object inspector', () => {
   assert.equal(formatValueForClipboard(null), 'null');
 });
 
-test('copies string contents as distinct JavaScript and JSON literals', () => {
+test('formats distinct JavaScript and JSON string literals', () => {
   const value = `line 1\nIt's "quoted" \\ ${String.fromCharCode(0)}`;
 
   assert.equal(formatJavaScriptStringLiteral(value), `'line 1\\nIt\\'s "quoted" \\\\ \\x00'`);

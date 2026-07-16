@@ -53,8 +53,8 @@ This is why row height and row DOM layout must remain stable.
 - `parsed` or `raw` badge: toggles cached parsed display.
 - Search: debounced worker search, result reveal, row highlighting.
 - `cmd+f` on macOS or `ctrl+f` on Windows/Linux focuses the viewer search input instead of opening browser find.
-- Key context menu: right-click a non-root key to copy its value or `row.copyPath`.
-- String rows also expose raw contents, JavaScript literal, and JSON literal copy formats.
+- Row context menu: right-click anywhere on a non-root row to copy its value or `row.copyPath`.
+- String rows also expose JavaScript literal and JSON literal copy formats.
 - Expandable rows expose `Expand recursively`, which opens only that subtree and keeps the 100,000-row cap.
 - Recursive expansion never parses raw strings; already parsed string subtrees participate when displayed as parsed.
 - Standalone performance hint: the close button hides it immediately and stores a local dismissed preference; direct-page warnings ignore that preference and remain non-dismissible.
