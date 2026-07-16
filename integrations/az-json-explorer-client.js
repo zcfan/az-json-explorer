@@ -1,4 +1,6 @@
 export const AZ_JSON_EXPLORER_WEB_STORE_ID = 'logkfmmknmmkpflgamhddeaedneaankj';
+export const AZ_JSON_EXPLORER_STORE_URL =
+  `https://chromewebstore.google.com/detail/az-json-explorer/${AZ_JSON_EXPLORER_WEB_STORE_ID}`;
 
 const CHANNEL = 'az-json-explorer';
 const VERSION = 1;
@@ -52,6 +54,7 @@ export function createAzJsonExplorerClient(
   { extensionId = AZ_JSON_EXPLORER_WEB_STORE_ID } = {},
   {
     runtime = globalThis.chrome?.runtime,
+    tabs = globalThis.chrome?.tabs,
     windowObject = globalThis.window,
     randomUUID = () => globalThis.crypto.randomUUID(),
     setTimeoutFn = setTimeout,
@@ -148,6 +151,48 @@ export function createAzJsonExplorerClient(
     );
   };
 
+  const openInstallPage = async () => {
+    try {
+      if (typeof tabs?.create === 'function') {
+        await tabs.create({
+          active: true,
+          url: AZ_JSON_EXPLORER_STORE_URL,
+        });
+      } else if (typeof windowObject?.open === 'function') {
+        const installWindow = windowObject.open(AZ_JSON_EXPLORER_STORE_URL, '_blank');
+        if (!installWindow) {
+          throw new AzJsonExplorerError(
+            'OPEN_FAILED',
+            'The browser blocked the AZ JSON Explorer store page.',
+          );
+        }
+        try {
+          installWindow.opener = null;
+        } catch {
+          // The store page is already open; severing the opener is best effort.
+        }
+      } else {
+        throw new AzJsonExplorerError(
+          'OPEN_FAILED',
+          'This context cannot open the AZ JSON Explorer store page.',
+        );
+      }
+    } catch (error) {
+      if (error instanceof AzJsonExplorerError) {
+        throw error;
+      }
+      throw new AzJsonExplorerError(
+        'OPEN_FAILED',
+        error instanceof Error ? error.message : 'Failed to open the store page.',
+      );
+    }
+
+    return {
+      opened: true,
+      url: AZ_JSON_EXPLORER_STORE_URL,
+    };
+  };
+
   return {
     async isAvailable() {
       try {
@@ -173,5 +218,6 @@ export function createAzJsonExplorerClient(
       return openText(jsonText, options);
     },
     openText,
+    openInstallPage,
   };
 }

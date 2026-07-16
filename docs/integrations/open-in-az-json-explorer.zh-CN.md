@@ -14,18 +14,61 @@ import { createAzJsonExplorerClient } from './az-json-explorer-client.js';
 const client = createAzJsonExplorerClient();
 const button = document.querySelector('#open-json');
 
-button.hidden = !(await client.isAvailable());
-button.addEventListener('click', () => {
-  client.open(
-    { orderId: 123, status: 'paid' },
-    { sourceLabel: '订单 #123' },
-  ).catch((error) => {
+let available = await client.isAvailable();
+
+function renderButton() {
+  button.textContent = available
+    ? '在 AZ JSON Explorer 中打开'
+    : '安装 AZ JSON Explorer';
+}
+
+renderButton();
+button.addEventListener('click', async () => {
+  if (!available) {
+    await client.openInstallPage();
+    return;
+  }
+
+  try {
+    await client.open(
+      { orderId: 123, status: 'paid' },
+      { sourceLabel: '订单 #123' },
+    );
+  } catch (error) {
+    if (error.code === 'NOT_AVAILABLE') {
+      available = false;
+      renderButton();
+      return;
+    }
     console.error(error.code, error.message);
-  });
+  }
 });
 ```
 
 网页必须直接在真实点击事件中调用 `open()`。每次可信点击只能发起一次 `open`，并且请求需要在点击后的 5 秒内到达。`isAvailable()` 不需要用户操作；插件不可用或 1 秒内没有响应时，它会返回 `false`。
+
+## 未安装时引导到商店
+
+`openInstallPage()` 会显式打开已发布的 AZ JSON Explorer Chrome Web Store 详情页。它只负责跳转到商店，Chrome 仍会要求用户查看详情并主动确认安装。
+
+普通网页应在点击前调用 `isAvailable()`，根据结果渲染“打开”或“安装”按钮，如上面的示例所示。安装按钮必须直接在点击事件中调用 `openInstallPage()`，避免新标签页被浏览器拦截。如果之前缓存的安装状态已经失效，导致 `open()` 返回 `NOT_AVAILABLE`，应把按钮切换为“安装”，让用户下一次点击时再打开商店；不要在异步失败之后立即尝试弹出商店页面。
+
+安装完成后，应提示网页用户刷新原页面，让扩展的 content-script bridge 在页面中生效；刷新后页面可以重新执行 `isAvailable()`。
+
+插件页面和 service worker 会通过同一个方法调用 `chrome.tabs.create()`，不需要 `tabs` 权限。在 popup 或其他可见界面中也应让用户明确选择：
+
+```js
+button.addEventListener('click', async () => {
+  if (!(await client.isAvailable())) {
+    await client.openInstallPage();
+    return;
+  }
+
+  await client.open(value, { sourceLabel: '我的插件' });
+});
+```
+
+不要从定时器、启动处理器或后台任务中自动调用 `openInstallPage()`。后台检测到 `NOT_AVAILABLE` 时，应把状态交给可见界面，再由用户选择是否打开商店。helper 还导出了 `AZ_JSON_EXPLORER_STORE_URL`，调用方也可以用它渲染普通的商店链接。
 
 如果调用方已经持有序列化后的 JSON 文本，请使用 `openText()`：
 

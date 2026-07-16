@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  AZ_JSON_EXPLORER_STORE_URL,
   AZ_JSON_EXPLORER_WEB_STORE_ID,
   createAzJsonExplorerClient,
 } from '../integrations/az-json-explorer-client.js';
@@ -250,5 +251,67 @@ test('the helper validates source labels before sending', async () => {
   await assert.rejects(
     client.openText('{}', { sourceLabel: 123 }),
     (error) => error.code === 'INVALID_REQUEST',
+  );
+});
+
+test('another extension can explicitly open the store page without extra permissions', async () => {
+  const createdTabs = [];
+  const client = createAzJsonExplorerClient(
+    {},
+    {
+      runtime: { id: 'caller-extension' },
+      tabs: {
+        async create(options) {
+          createdTabs.push(options);
+        },
+      },
+      windowObject: undefined,
+    },
+  );
+
+  assert.deepEqual(await client.openInstallPage(), {
+    opened: true,
+    url: AZ_JSON_EXPLORER_STORE_URL,
+  });
+  assert.deepEqual(createdTabs, [{
+    active: true,
+    url: AZ_JSON_EXPLORER_STORE_URL,
+  }]);
+});
+
+test('a webpage can explicitly open the store page from its click handler', async () => {
+  const calls = [];
+  const openedWindow = { opener: 'calling-page' };
+  const client = createAzJsonExplorerClient(
+    {},
+    {
+      runtime: undefined,
+      windowObject: {
+        open(url, target) {
+          calls.push({ url, target });
+          return openedWindow;
+        },
+      },
+    },
+  );
+
+  await client.openInstallPage();
+
+  assert.deepEqual(calls, [{ url: AZ_JSON_EXPLORER_STORE_URL, target: '_blank' }]);
+  assert.equal(openedWindow.opener, null);
+});
+
+test('a blocked webpage store popup is reported as OPEN_FAILED', async () => {
+  const client = createAzJsonExplorerClient(
+    {},
+    {
+      runtime: undefined,
+      windowObject: { open: () => null },
+    },
+  );
+
+  await assert.rejects(
+    client.openInstallPage(),
+    (error) => error.code === 'OPEN_FAILED' && /store page/.test(error.message),
   );
 });

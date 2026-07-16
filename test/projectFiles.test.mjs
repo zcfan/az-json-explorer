@@ -66,6 +66,10 @@ test('public docs expose copyable webpage and extension integration paths', asyn
     new URL('../docs/integrations/open-in-az-json-explorer.md', import.meta.url),
     'utf8',
   );
+  const integrationZh = await readFile(
+    new URL('../docs/integrations/open-in-az-json-explorer.zh-CN.md', import.meta.url),
+    'utf8',
+  );
   const helper = await readFile(
     new URL('../integrations/az-json-explorer-client.js', import.meta.url),
     'utf8',
@@ -75,9 +79,14 @@ test('public docs expose copyable webpage and extension integration paths', asyn
   assert.match(integration, /createAzJsonExplorerClient/);
   assert.match(integration, /isAvailable\(\)/);
   assert.match(integration, /openText/);
+  assert.match(integration, /openInstallPage/);
   assert.match(integration, /runtime\.sendMessage/);
   assert.match(integration, /USER_GESTURE_REQUIRED/);
+  assert.match(integrationZh, /未安装时引导到商店/);
+  assert.match(integrationZh, /openInstallPage/);
+  assert.match(integrationZh, /安装完成后.*刷新原页面/);
   assert.match(helper, /logkfmmknmmkpflgamhddeaedneaankj/);
+  assert.match(helper, /AZ_JSON_EXPLORER_STORE_URL/);
 });
 
 test('visible extension surfaces use the product name', async () => {
