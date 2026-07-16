@@ -1,0 +1,47 @@
+docs/modules/viewer-ui.md
+  s_4543417fb26d62::t_72a20a3284feef 49
+manifest.json
+  s_172cb441d889d3::t_cf81716c1c98e3 5
+package.json
+  s_b00580f03507bc::t_d3bb8022ec5448 3
+src/ui/styles.css
+  s_4543417fb26d62::t_92a9fb363f1cf5 262-268
+src/ui/viewerApp.js
+  s_4543417fb26d62::t_b30651eea92ae4 540-543
+test/projectFiles.test.mjs
+  s_4543417fb26d62::t_38d7b6c8e8c5bb 237,243-245,248
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "6a5702776e9683bf5d55f1b4ca7e40380008f5c3",
+  "prompts": {},
+  "sessions": {
+    "s_172cb441d889d3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f64cc-d89f-7240-973c-207c21396b6f",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    },
+    "s_4543417fb26d62": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f6907-15c8-7ed1-bf55-bab0abf55ef0",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    },
+    "s_b00580f03507bc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f690b-86b9-7362-8cd6-40d0e0c67f05",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
