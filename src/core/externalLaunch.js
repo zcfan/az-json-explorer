@@ -1,6 +1,5 @@
 export const EXTERNAL_LAUNCH_CHANNEL = 'az-json-explorer';
 export const EXTERNAL_LAUNCH_VERSION = 1;
-export const EXTERNAL_LAUNCH_MAX_BYTES = 8 * 1024 * 1024;
 export const EXTERNAL_LAUNCH_CAPABILITIES = ['open', 'open-text'];
 export const EXTERNAL_LAUNCH_TIMEOUT_MS = 10_000;
 export const EXTERNAL_LAUNCH_RATE_LIMIT_MS = 1_000;
@@ -61,7 +60,6 @@ export function createLaunchBroker({
             available: true,
             protocolVersion: EXTERNAL_LAUNCH_VERSION,
             capabilities: [...EXTERNAL_LAUNCH_CAPABILITIES],
-            maxPayloadBytes: EXTERNAL_LAUNCH_MAX_BYTES,
           },
         });
       }
@@ -71,13 +69,6 @@ export function createLaunchBroker({
           request,
           'INVALID_REQUEST',
           'Open requests must include JSON text.',
-        );
-      }
-      if (new TextEncoder().encode(request.jsonText).byteLength > EXTERNAL_LAUNCH_MAX_BYTES) {
-        return createExternalLaunchErrorResponse(
-          request,
-          'PAYLOAD_TOO_LARGE',
-          'JSON payloads must be 8 MiB or smaller.',
         );
       }
       if (request.sourceLabel !== undefined && typeof request.sourceLabel !== 'string') {

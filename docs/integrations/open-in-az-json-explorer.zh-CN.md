@@ -92,14 +92,13 @@ const response = await chrome.runtime.sendMessage(
 );
 ```
 
-检测插件是否可用时，发送相同的消息外层结构，将 `type` 改为 `ping`，并省略 `jsonText`。成功响应会返回协议版本、能力列表和 payload 上限：
+检测插件是否可用时，发送相同的消息外层结构，将 `type` 改为 `ping`，并省略 `jsonText`。成功响应会返回协议版本和能力列表：
 
 ```js
 {
   available: true,
   protocolVersion: 1,
   capabilities: ['open', 'open-text'],
-  maxPayloadBytes: 8 * 1024 * 1024,
 }
 ```
 
@@ -121,7 +120,6 @@ const response = await chrome.runtime.sendMessage(
 
 ## 成功语义、限制与错误
 
-- v1 协议中的 JSON 文本最大为 8 MiB。
 - 每次成功的 `open` 都会创建一个新的 active Viewer 标签页，不复用已有标签页。
 - Promise 成功表示 Viewer 已领取 payload，不表示 JSON 一定解析成功；解析错误会由 Viewer 展示。
 - payload 暂存在 service worker 的内存中，并在 Viewer 领取后立即删除。
@@ -133,7 +131,6 @@ helper 抛出的 `AzJsonExplorerError` 包含以下 `code` 之一：
 - `NOT_AVAILABLE`：插件不可用或未按时响应。
 - `USER_GESTURE_REQUIRED`：网页没有从有效的真实点击发起调用。
 - `INVALID_REQUEST`：value、JSON 文本或参数不符合接口要求。
-- `PAYLOAD_TOO_LARGE`：JSON 文本超过 8 MiB。
 - `RATE_LIMITED`：同一调用方调用过于频繁。
 - `OPEN_FAILED`：无法创建 Viewer 标签页。
 - `HANDOFF_TIMEOUT`：Viewer 没有在 10 秒内领取 payload。

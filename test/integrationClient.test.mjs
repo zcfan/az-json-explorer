@@ -89,7 +89,7 @@ test('the same client helper discovers and opens from a regular webpage', async 
   assert.equal(requests[1].request.sourceLabel, 'Page data');
 });
 
-test('the client helper rejects values that cannot cross the public protocol', async () => {
+test('the client helper rejects values that are not JSON serializable', async () => {
   const client = createAzJsonExplorerClient(
     {},
     { runtime: { id: 'caller', sendMessage: async () => assert.fail('must not send') } },
@@ -98,10 +98,27 @@ test('the client helper rejects values that cannot cross the public protocol', a
   circular.self = circular;
 
   await assert.rejects(client.open(circular), (error) => error.code === 'INVALID_REQUEST');
-  await assert.rejects(
-    client.openText('a'.repeat(8 * 1024 * 1024 + 1)),
-    (error) => error.code === 'PAYLOAD_TOO_LARGE',
+});
+
+test('the client helper does not impose an explicit JSON text size limit', async () => {
+  let sentLength = 0;
+  const client = createAzJsonExplorerClient(
+    {},
+    {
+      runtime: {
+        id: 'caller',
+        async sendMessage(extensionId, request) {
+          sentLength = request.jsonText.length;
+          return createSuccessResponse(request, { opened: true });
+        },
+      },
+    },
   );
+  const largeJsonText = 'a'.repeat(8 * 1024 * 1024 + 1);
+
+  await client.openText(largeJsonText);
+
+  assert.equal(sentLength, largeJsonText.length);
 });
 
 test('protocol errors are exposed through the helper error code', async () => {

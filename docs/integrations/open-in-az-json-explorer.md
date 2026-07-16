@@ -76,14 +76,13 @@ const response = await chrome.runtime.sendMessage(
 );
 ```
 
-For installation discovery, send the same envelope with `type: 'ping'` and omit `jsonText`. A successful ping reports the protocol version, capabilities, and payload limit:
+For installation discovery, send the same envelope with `type: 'ping'` and omit `jsonText`. A successful ping reports the protocol version and capabilities:
 
 ```js
 {
   available: true,
   protocolVersion: 1,
   capabilities: ['open', 'open-text'],
-  maxPayloadBytes: 8 * 1024 * 1024,
 }
 ```
 
@@ -105,7 +104,6 @@ Failures use the same envelope with `{ ok: false, error: { code, message } }`.
 
 ## Limits And Errors
 
-- JSON text is limited to 8 MiB in protocol v1.
 - Every successful `open` creates a new active viewer tab.
 - Success means the viewer claimed the payload; parse errors are displayed in the viewer.
 - Payloads expire if the viewer does not claim them within ten seconds.
@@ -116,7 +114,6 @@ The helper throws `AzJsonExplorerError` with one of these codes:
 - `NOT_AVAILABLE`
 - `USER_GESTURE_REQUIRED`
 - `INVALID_REQUEST`
-- `PAYLOAD_TOO_LARGE`
 - `RATE_LIMITED`
 - `OPEN_FAILED`
 - `HANDOFF_TIMEOUT`

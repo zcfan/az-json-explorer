@@ -2,7 +2,6 @@ export const AZ_JSON_EXPLORER_WEB_STORE_ID = 'logkfmmknmmkpflgamhddeaedneaankj';
 
 const CHANNEL = 'az-json-explorer';
 const VERSION = 1;
-const MAX_PAYLOAD_BYTES = 8 * 1024 * 1024;
 const AVAILABILITY_TIMEOUT_MS = 1_000;
 const OPEN_RESPONSE_TIMEOUT_MS = 11_000;
 
@@ -22,15 +21,6 @@ function createRequest(type, requestId, fields = {}) {
     type,
     ...fields,
   };
-}
-
-function assertPayloadSize(jsonText) {
-  if (new TextEncoder().encode(jsonText).byteLength > MAX_PAYLOAD_BYTES) {
-    throw new AzJsonExplorerError(
-      'PAYLOAD_TOO_LARGE',
-      'JSON payloads must be 8 MiB or smaller.',
-    );
-  }
 }
 
 function assertSuccessfulResponse(response) {
@@ -149,7 +139,6 @@ export function createAzJsonExplorerClient(
     if (sourceLabel !== undefined && typeof sourceLabel !== 'string') {
       throw new AzJsonExplorerError('INVALID_REQUEST', 'The source label must be text.');
     }
-    assertPayloadSize(jsonText);
     const fields = { jsonText };
     if (sourceLabel !== undefined) {
       fields.sourceLabel = sourceLabel;

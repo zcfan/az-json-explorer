@@ -1,10 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
-  EXTERNAL_LAUNCH_MAX_BYTES,
-  createLaunchBroker,
-} from '../src/core/externalLaunch.js';
+import { createLaunchBroker } from '../src/core/externalLaunch.js';
 
 test('callers can discover the external launch protocol without opening a tab', async () => {
   const broker = createLaunchBroker({
@@ -30,7 +27,6 @@ test('callers can discover the external launch protocol without opening a tab', 
       available: true,
       protocolVersion: 1,
       capabilities: ['open', 'open-text'],
-      maxPayloadBytes: EXTERNAL_LAUNCH_MAX_BYTES,
     },
   });
 });
@@ -93,21 +89,27 @@ test('unsupported protocol versions are rejected without opening a tab', async (
   });
 });
 
-test('open requests over the public payload limit are rejected before opening a tab', async () => {
+test('the protocol does not impose an explicit JSON text size limit', async () => {
+  const largeJsonText = 'a'.repeat(8 * 1024 * 1024 + 1);
   const broker = createLaunchBroker({
-    openTab: async () => assert.fail('oversized requests must not open a tab'),
+    createLaunchId: () => 'large-launch',
+    openTab: async () => {},
   });
-  const request = {
-    channel: 'az-json-explorer',
-    version: 1,
-    requestId: 'large-1',
-    type: 'open',
-    jsonText: 'a'.repeat(EXTERNAL_LAUNCH_MAX_BYTES + 1),
-  };
+  const responsePromise = broker.handleRequest(
+    {
+      channel: 'az-json-explorer',
+      version: 1,
+      requestId: 'large-1',
+      type: 'open',
+      jsonText: largeJsonText,
+    },
+    { callerKey: 'page:1' },
+  );
 
-  const response = await broker.handleRequest(request, { callerKey: 'page:1' });
-  assert.equal(response.ok, false);
-  assert.equal(response.error.code, 'PAYLOAD_TOO_LARGE');
+  await Promise.resolve();
+  assert.equal(broker.claim('large-launch').jsonText.length, largeJsonText.length);
+
+  assert.equal((await responsePromise).ok, true);
 });
 
 test('each caller can open at most one viewer per second', async () => {
