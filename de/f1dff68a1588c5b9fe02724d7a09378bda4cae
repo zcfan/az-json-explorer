@@ -1,0 +1,29 @@
+docs/README.md
+  s_b00580f03507bc::t_e2c61679f5a956 5-6
+docs/chrome-web-store-release.md
+  s_b00580f03507bc::t_100c33f8636573 1-75
+package.json
+  s_b00580f03507bc::t_28ba21232424c8 7
+scripts/release-chrome-web-store.mjs
+  s_b00580f03507bc::t_e58287aec52b6d 1-244
+test/chromeWebStoreRelease.test.mjs
+  s_b00580f03507bc::t_cca72d418ae738 1-133
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "def1dff68a1588c5b9fe02724d7a09378bda4cae",
+  "prompts": {},
+  "sessions": {
+    "s_b00580f03507bc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f690b-86b9-7362-8cd6-40d0e0c67f05",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
