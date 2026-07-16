@@ -1,0 +1,45 @@
+docs/modules/extension-entrypoints.md
+  s_767ac29038feeb::t_93f94274955483 31-37,43-44
+docs/modules/testing.md
+  s_767ac29038feeb::t_e495347ff00962 30-32
+integrations/az-json-explorer-client.js
+  s_767ac29038feeb::t_307e12402a6070 1-188
+manifest.json
+  s_767ac29038feeb::t_08aec55b5b18f6 17-25
+src/background.js
+  s_767ac29038feeb::t_34e8a1ce788a86 1-73
+src/contentScript.js
+  s_767ac29038feeb::t_9446190d7a7eb4 2-16
+src/core/externalLaunch.js
+  s_767ac29038feeb::t_844444a7ae8867 1-169
+src/core/pageLaunchBridge.js
+  s_767ac29038feeb::t_d7a85e14acb499 1-88
+src/viewer.js
+  s_767ac29038feeb::t_e2fce45b38f4cb 2,6,33-37,41-85
+test/externalLaunch.test.mjs
+  s_767ac29038feeb::t_1b2591d50b6748 1-255
+test/integrationClient.test.mjs
+  s_767ac29038feeb::t_e8ec1f2bbbdc86 1-237
+test/pageLaunchBridge.test.mjs
+  s_767ac29038feeb::t_a135ee2588653e 1-176
+test/projectFiles.test.mjs
+  s_767ac29038feeb::t_1a881295108243 20-82,211-212,215-216
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "0117f098caccec38fc4c8e80495f7be7141f6389",
+  "prompts": {},
+  "sessions": {
+    "s_767ac29038feeb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f69a5-73a8-7a01-b512-f0885c5a2372",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
