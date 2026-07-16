@@ -1,0 +1,29 @@
+docs/integrations/open-in-az-json-explorer.md
+  s_767ac29038feeb::t_ea4bb061365090 79
+docs/integrations/open-in-az-json-explorer.zh-CN.md
+  s_767ac29038feeb::t_6698ea4b714bab 95
+docs/modules/testing.md
+  s_767ac29038feeb::t_52dc29c5cda5fb 30
+test/externalLaunch.test.mjs
+  s_767ac29038feeb::t_51fa1a4b0bf2b7 4,92-93,95-96,98-110,112
+test/integrationClient.test.mjs
+  s_767ac29038feeb::t_30c89202c13a76 92,101-115,117-121
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "e1ab68d1d6868010ee7fc510d1a3be862b0e6640",
+  "prompts": {},
+  "sessions": {
+    "s_767ac29038feeb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f69a5-73a8-7a01-b512-f0885c5a2372",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
