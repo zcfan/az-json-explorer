@@ -6,6 +6,7 @@ import {
   createExplicitExpansionState,
   createInitialExpansionState,
   ensureExpanded,
+  expandRecursively,
   revealExpansionPaths,
   toggleExpansion,
 } from '../src/ui/expansionState.js';
@@ -57,4 +58,20 @@ test('search reveal opens every ancestor in either mode', () => {
 
   assert.deepEqual([...explicit.expandedKeys], ancestors);
   assert.deepEqual([...all.collapsedKeys], []);
+});
+
+test('recursive expansion stores one subtree root and permits collapsed exceptions', () => {
+  const rootKey = '[]';
+  const itemsKey = '["items"]';
+  const recordKey = '["items",0]';
+  const initial = createExplicitExpansionState([rootKey]);
+  const recursive = expandRecursively(initial, itemsKey);
+  const covered = expandRecursively(recursive, recordKey);
+  const collapsed = toggleExpansion(covered, recordKey, { recursivelyExpanded: true });
+  const reopened = expandRecursively(collapsed, recordKey);
+
+  assert.deepEqual([...recursive.recursiveExpandedKeys], [itemsKey]);
+  assert.deepEqual([...covered.recursiveExpandedKeys], [itemsKey]);
+  assert.deepEqual([...collapsed.collapsedKeys], [recordKey]);
+  assert.deepEqual([...reopened.collapsedKeys], []);
 });

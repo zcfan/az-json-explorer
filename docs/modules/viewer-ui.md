@@ -20,11 +20,11 @@ The viewer UI is the main-thread coordinator. It owns DOM rendering, user intera
 - Worker request map and request IDs.
 - `hasParsedRoot`.
 - Current visible `rows`.
-- Expansion mode plus explicit expanded keys or all-mode collapsed exceptions.
+- Expansion mode plus explicit keys, compact recursive subtree roots, and collapsed exceptions.
 - Initial expansion selected from the worker's bounded fully-expanded row count.
 - Render token for stale async row responses.
 - Search query timer, matches, and selected match.
-- Context menu copy-path state.
+- Context menu state for the selected row and applicable copy/expansion actions.
 
 ## Rendering Model
 
@@ -53,7 +53,10 @@ This is why row height and row DOM layout must remain stable.
 - `parsed` or `raw` badge: toggles cached parsed display.
 - Search: debounced worker search, result reveal, row highlighting.
 - `cmd+f` on macOS or `ctrl+f` on Windows/Linux focuses the viewer search input instead of opening browser find.
-- Key context menu: right-click a non-root key and copy `row.copyPath`.
+- Key context menu: right-click a non-root key to copy its value or `row.copyPath`.
+- String rows also expose raw contents, JavaScript literal, and JSON literal copy formats.
+- Expandable rows expose `Expand recursively`, which opens only that subtree and keeps the 100,000-row cap.
+- Recursive expansion never parses raw strings; already parsed string subtrees participate when displayed as parsed.
 - Standalone performance hint: the close button hides it immediately and stores a local dismissed preference; direct-page warnings ignore that preference and remain non-dismissible.
 
 ## Contracts

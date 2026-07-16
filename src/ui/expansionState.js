@@ -6,13 +6,22 @@ function cloneState(state) {
     mode: state.mode,
     expandedKeys: new Set(state.expandedKeys),
     collapsedKeys: new Set(state.collapsedKeys),
+    recursiveExpandedKeys: new Set(state.recursiveExpandedKeys || []),
   };
 }
 
+function isPathWithin(candidateKey, ancestorKey) {
+  const candidate = JSON.parse(candidateKey);
+  const ancestor = JSON.parse(ancestorKey);
+  return (
+    ancestor.length <= candidate.length &&
+    ancestor.every((segment, index) => segment === candidate[index])
+  );
+}
+
 function markExpanded(state, pathKey) {
-  if (state.mode === ALL_MODE) {
-    state.collapsedKeys.delete(pathKey);
-  } else {
+  state.collapsedKeys.delete(pathKey);
+  if (state.mode !== ALL_MODE) {
     state.expandedKeys.add(pathKey);
   }
 }
@@ -22,6 +31,7 @@ export function createExplicitExpansionState(expandedKeys = []) {
     mode: EXPLICIT_MODE,
     expandedKeys: new Set(expandedKeys),
     collapsedKeys: new Set(),
+    recursiveExpandedKeys: new Set(),
   };
 }
 
@@ -30,6 +40,7 @@ export function createAllExpansionState(collapsedKeys = []) {
     mode: ALL_MODE,
     expandedKeys: new Set(),
     collapsedKeys: new Set(collapsedKeys),
+    recursiveExpandedKeys: new Set(),
   };
 }
 
@@ -39,16 +50,50 @@ export function createInitialExpansionState(nodeCount, rootPathKey) {
     : createExplicitExpansionState([rootPathKey]);
 }
 
-export function toggleExpansion(state, pathKey) {
+export function toggleExpansion(state, pathKey, options = {}) {
   const nextState = cloneState(state);
-  const keys = nextState.mode === ALL_MODE ? nextState.collapsedKeys : nextState.expandedKeys;
 
-  if (keys.has(pathKey)) {
-    keys.delete(pathKey);
+  if (nextState.mode === ALL_MODE || options.recursivelyExpanded) {
+    if (nextState.collapsedKeys.has(pathKey)) {
+      nextState.collapsedKeys.delete(pathKey);
+    } else {
+      nextState.collapsedKeys.add(pathKey);
+    }
+  } else if (nextState.expandedKeys.has(pathKey)) {
+    nextState.expandedKeys.delete(pathKey);
   } else {
-    keys.add(pathKey);
+    nextState.expandedKeys.add(pathKey);
   }
 
+  return nextState;
+}
+
+export function expandRecursively(state, pathKey) {
+  const nextState = cloneState(state);
+
+  for (const collapsedKey of nextState.collapsedKeys) {
+    if (isPathWithin(collapsedKey, pathKey)) {
+      nextState.collapsedKeys.delete(collapsedKey);
+    }
+  }
+
+  if (nextState.mode === ALL_MODE) {
+    return nextState;
+  }
+
+  const alreadyCovered = Array.from(nextState.recursiveExpandedKeys).some((recursiveKey) =>
+    isPathWithin(pathKey, recursiveKey),
+  );
+  if (alreadyCovered) {
+    return nextState;
+  }
+
+  for (const recursiveKey of nextState.recursiveExpandedKeys) {
+    if (isPathWithin(recursiveKey, pathKey)) {
+      nextState.recursiveExpandedKeys.delete(recursiveKey);
+    }
+  }
+  nextState.recursiveExpandedKeys.add(pathKey);
   return nextState;
 }
 

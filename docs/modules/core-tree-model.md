@@ -44,7 +44,7 @@ Parse failures keep the last successful parsed value but switch display mode to 
 
 ## Visible Rows
 
-`collectVisibleRows(rootValue, options)` walks the tree according to one of two expansion modes. In `explicit` mode, `expandedKeys` lists open containers. In `all` mode, every expandable container opens unless its path key appears in `collapsedKeys`.
+`collectVisibleRows(rootValue, options)` walks the tree according to one of two expansion modes. In `explicit` mode, `expandedKeys` lists individually opened containers. In `all` mode, every expandable container opens. `recursiveExpandedKeys` compactly marks subtrees that should open at every depth, while `collapsedKeys` stores manual exceptions in either mode.
 
 It returns rows with:
 
@@ -62,6 +62,7 @@ The worker converts these internal rows into UI-safe summaries before sending th
 - Array indexes stay numeric in path arrays.
 - Object child order follows `Object.keys(value)`.
 - `all` mode must use collapsed-path exceptions; do not enumerate every expanded container.
+- Recursive expansion must store subtree roots, not every descendant path.
 - Row collection must yield every `yieldEvery` visits to avoid long blocking work.
 - Copy-path formatting must stay parse-aware for nested parsed strings.
 

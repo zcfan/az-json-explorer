@@ -2,6 +2,11 @@ import { canParseStringAsJson } from '../core/parseCache.js';
 import { formatCopyPath, formatPath, pathKey, collectVisibleRows } from '../core/treeModel.js';
 import { searchJsonTree } from '../core/treeSearch.js';
 import { countJsonNodesUpTo } from '../core/treeStats.js';
+import {
+  formatJavaScriptStringLiteral,
+  formatJsonStringLiteral,
+  formatValueForClipboard,
+} from '../core/clipboard.js';
 
 let retainedRootValue;
 let retainedParseCache = new Map();
@@ -82,6 +87,64 @@ function getVisibleValueAtPath(rootValue, path) {
   return value;
 }
 
+function getEffectiveValueAtPath(rootValue, path) {
+  const value = getVisibleValueAtPath(rootValue, path);
+  const parsedEntry = retainedParseCache.get(pathKey(path));
+  return parsedEntry?.parsedValue !== undefined && parsedEntry.displayMode === 'parsed'
+    ? parsedEntry.parsedValue
+    : value;
+}
+
+function createCopyNodeResult(message) {
+  if (retainedRootValue === undefined) {
+    return {
+      id: message.id,
+      type: 'copy-node-result',
+      ok: false,
+      path: message.path,
+      error: 'No parsed JSON is available to copy.',
+    };
+  }
+
+  const sourceValue = getVisibleValueAtPath(retainedRootValue, message.path);
+  const effectiveValue = getEffectiveValueAtPath(retainedRootValue, message.path);
+  let text;
+
+  if (message.format === 'value') {
+    text = formatValueForClipboard(effectiveValue);
+  } else if (typeof sourceValue !== 'string') {
+    return {
+      id: message.id,
+      type: 'copy-node-result',
+      ok: false,
+      path: message.path,
+      error: `Value at ${formatPath(message.path)} is not a string.`,
+    };
+  } else if (message.format === 'string-contents') {
+    text = sourceValue;
+  } else if (message.format === 'javascript-string-literal') {
+    text = formatJavaScriptStringLiteral(sourceValue);
+  } else if (message.format === 'json-string-literal') {
+    text = formatJsonStringLiteral(sourceValue);
+  } else {
+    return {
+      id: message.id,
+      type: 'copy-node-result',
+      ok: false,
+      path: message.path,
+      error: `Unknown copy format: ${message.format}`,
+    };
+  }
+
+  return {
+    id: message.id,
+    type: 'copy-node-result',
+    ok: true,
+    path: message.path,
+    text,
+  };
+}
+
 function createParseCacheAdapter() {
   return {
     hasParsed(path) {
@@ -111,6 +174,7 @@ function createDisplayRow(row, parseCache) {
     effectiveKind: row.effectiveKind,
     expandable: row.expandable,
     expanded: row.expanded,
+    recursivelyExpanded: row.recursivelyExpanded,
     parsed: row.parsed,
     hasParsed: parseCache.hasParsed(row.path),
     canParseAsJson: typeof row.value === 'string' && canParseStringAsJson(row.value),
@@ -247,6 +311,10 @@ export async function handleWorkerMessage(message) {
     };
   }
 
+  if (message?.type === 'copy-node') {
+    return createCopyNodeResult(message);
+  }
+
   if (message?.type === 'collect-visible-rows') {
     if (retainedRootValue === undefined) {
       return {
@@ -263,6 +331,7 @@ export async function handleWorkerMessage(message) {
       expansionMode: message.expansionMode ?? 'explicit',
       expandedKeys: new Set(message.expandedKeys || []),
       collapsedKeys: new Set(message.collapsedKeys || []),
+      recursiveExpandedKeys: new Set(message.recursiveExpandedKeys || []),
       maxRows,
       parseCache,
       yieldEvery: message.yieldEvery ?? 500,

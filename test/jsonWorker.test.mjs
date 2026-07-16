@@ -315,3 +315,114 @@ test('worker expands all containers with collapsed exceptions and enforces max r
     ],
   );
 });
+
+test('worker prepares copy text for retained values without adding values to row summaries', async () => {
+  const worker = new Worker(new URL('../src/worker/jsonWorker.js', import.meta.url), {
+    type: 'module',
+  });
+  const send = (message) =>
+    new Promise((resolve, reject) => {
+      worker.once('message', resolve);
+      worker.once('error', reject);
+      worker.postMessage(message);
+    });
+
+  try {
+    await send({
+      id: 'parse-root-for-copy',
+      type: 'parse-root',
+      text: JSON.stringify({
+        object: { nested: true },
+        text: `line 1\nIt's "quoted"`,
+        payload: '{"deep":true}',
+      }),
+    });
+
+    const objectValue = await send({
+      id: 'copy-object-value',
+      type: 'copy-node',
+      path: ['object'],
+      format: 'value',
+    });
+    const stringContents = await send({
+      id: 'copy-string-contents',
+      type: 'copy-node',
+      path: ['text'],
+      format: 'string-contents',
+    });
+    const jsLiteral = await send({
+      id: 'copy-js-string',
+      type: 'copy-node',
+      path: ['text'],
+      format: 'javascript-string-literal',
+    });
+    const jsonLiteral = await send({
+      id: 'copy-json-string',
+      type: 'copy-node',
+      path: ['text'],
+      format: 'json-string-literal',
+    });
+
+    await send({ id: 'parse-copy-payload', type: 'parse-string', path: ['payload'] });
+    const parsedValue = await send({
+      id: 'copy-parsed-value',
+      type: 'copy-node',
+      path: ['payload'],
+      format: 'value',
+    });
+
+    assert.deepEqual(objectValue, {
+      id: 'copy-object-value',
+      type: 'copy-node-result',
+      ok: true,
+      path: ['object'],
+      text: '{\n  "nested": true\n}',
+    });
+    assert.equal(stringContents.text, `line 1\nIt's "quoted"`);
+    assert.equal(jsLiteral.text, `'line 1\\nIt\\'s "quoted"'`);
+    assert.equal(jsonLiteral.text, `"line 1\\nIt's \\"quoted\\""`);
+    assert.equal(parsedValue.text, '{\n  "deep": true\n}');
+  } finally {
+    await worker.terminate();
+  }
+});
+
+test('worker applies compact recursive subtree expansion with collapsed exceptions', async () => {
+  const worker = new Worker(new URL('../src/worker/jsonWorker.js', import.meta.url), {
+    type: 'module',
+  });
+  const send = (message) =>
+    new Promise((resolve, reject) => {
+      worker.once('message', resolve);
+      worker.once('error', reject);
+      worker.postMessage(message);
+    });
+
+  try {
+    await send({
+      id: 'parse-root-for-recursive-expansion',
+      type: 'parse-root',
+      text: '{"open":{"deep":{"value":1}},"closed":{"hidden":2}}',
+    });
+    const response = await send({
+      id: 'collect-recursive-expansion',
+      type: 'collect-visible-rows',
+      expandedKeys: [pathKey([])],
+      recursiveExpandedKeys: [pathKey(['open'])],
+      collapsedKeys: [pathKey(['open', 'deep'])],
+      maxRows: 20,
+    });
+
+    assert.deepEqual(
+      response.rows.map((row) => [row.pathKey, row.expanded, row.recursivelyExpanded]),
+      [
+        [pathKey([]), true, false],
+        [pathKey(['open']), true, true],
+        [pathKey(['open', 'deep']), false, true],
+        [pathKey(['closed']), false, false],
+      ],
+    );
+  } finally {
+    await worker.terminate();
+  }
+});

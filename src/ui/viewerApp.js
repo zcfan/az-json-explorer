@@ -16,6 +16,7 @@ import {
   createExplicitExpansionState,
   createInitialExpansionState,
   ensureExpanded,
+  expandRecursively,
   revealExpansionPaths,
   toggleExpansion,
 } from './expansionState.js';
@@ -64,7 +65,7 @@ class JsonViewerApp {
     this.searchToken = 0;
     this.searchResults = [];
     this.selectedSearchIndex = -1;
-    this.contextMenuCopyPath = '';
+    this.contextMenuRow = null;
   }
 
   mount() {
@@ -150,7 +151,13 @@ class JsonViewerApp {
         <div class="jt-row-layer"></div>
       </section>
       <div class="jt-context-menu" role="menu" hidden>
+        <button class="jt-context-menu-item" data-action="copy-value" type="button" role="menuitem">Copy value</button>
         <button class="jt-context-menu-item" data-action="copy-path" type="button" role="menuitem">Copy path</button>
+        <button class="jt-context-menu-item" data-action="copy-string-contents" type="button" role="menuitem">Copy string contents</button>
+        <button class="jt-context-menu-item" data-action="copy-javascript-string-literal" type="button" role="menuitem">Copy string as JavaScript literal</button>
+        <button class="jt-context-menu-item" data-action="copy-json-string-literal" type="button" role="menuitem">Copy string as JSON literal</button>
+        <div class="jt-context-menu-separator" role="separator"></div>
+        <button class="jt-context-menu-item" data-action="expand-recursively" type="button" role="menuitem">Expand recursively</button>
       </div>
     `;
     fragment.append(shell);
@@ -185,7 +192,17 @@ class JsonViewerApp {
       expandRootButton: this.shadow.querySelector('[data-action="expand-root"]'),
       expandAllButton: this.shadow.querySelector('[data-action="expand-all"]'),
       contextMenu: this.shadow.querySelector('.jt-context-menu'),
+      copyValueButton: this.shadow.querySelector('[data-action="copy-value"]'),
       copyPathButton: this.shadow.querySelector('[data-action="copy-path"]'),
+      copyStringContentsButton: this.shadow.querySelector('[data-action="copy-string-contents"]'),
+      copyJavaScriptStringLiteralButton: this.shadow.querySelector(
+        '[data-action="copy-javascript-string-literal"]',
+      ),
+      copyJsonStringLiteralButton: this.shadow.querySelector(
+        '[data-action="copy-json-string-literal"]',
+      ),
+      contextMenuSeparator: this.shadow.querySelector('.jt-context-menu-separator'),
+      expandRecursivelyButton: this.shadow.querySelector('[data-action="expand-recursively"]'),
     };
 
     this.elements.source.textContent = this.options.sourceLabel || '';
@@ -290,8 +307,28 @@ class JsonViewerApp {
       this.refreshRows({ pendingStatus: 'Expanding all...' });
     });
 
+    this.elements.copyValueButton.addEventListener('click', () => {
+      this.copyContextMenuNode('value', 'value');
+    });
+
     this.elements.copyPathButton.addEventListener('click', () => {
       this.copyContextMenuPath();
+    });
+
+    this.elements.copyStringContentsButton.addEventListener('click', () => {
+      this.copyContextMenuNode('string-contents', 'string contents');
+    });
+
+    this.elements.copyJavaScriptStringLiteralButton.addEventListener('click', () => {
+      this.copyContextMenuNode('javascript-string-literal', 'JavaScript string literal');
+    });
+
+    this.elements.copyJsonStringLiteralButton.addEventListener('click', () => {
+      this.copyContextMenuNode('json-string-literal', 'JSON string literal');
+    });
+
+    this.elements.expandRecursivelyButton.addEventListener('click', () => {
+      this.expandContextMenuRowRecursively();
     });
 
     this.shadow.addEventListener('click', (event) => {
@@ -443,6 +480,7 @@ class JsonViewerApp {
       expansionMode: this.expansion.mode,
       expandedKeys: Array.from(this.expansion.expandedKeys),
       collapsedKeys: Array.from(this.expansion.collapsedKeys),
+      recursiveExpandedKeys: Array.from(this.expansion.recursiveExpandedKeys),
       maxRows: MAX_VISIBLE_ROWS,
       yieldEvery: 500,
     });
@@ -623,7 +661,14 @@ class JsonViewerApp {
     event.preventDefault();
     event.stopPropagation();
 
-    this.contextMenuCopyPath = row.copyPath || formatPath(row.path);
+    this.contextMenuRow = row;
+    const isString = row.kind === 'string';
+    this.elements.copyStringContentsButton.hidden = !isString;
+    this.elements.copyJavaScriptStringLiteralButton.hidden = !isString;
+    this.elements.copyJsonStringLiteralButton.hidden = !isString;
+    this.elements.contextMenuSeparator.hidden = !row.expandable;
+    this.elements.expandRecursivelyButton.hidden = !row.expandable;
+
     const menu = this.elements.contextMenu;
     menu.hidden = false;
     menu.style.left = `${event.clientX}px`;
@@ -634,22 +679,23 @@ class JsonViewerApp {
     const top = Math.max(4, Math.min(event.clientY, window.innerHeight - rect.height - 4));
     menu.style.left = `${left}px`;
     menu.style.top = `${top}px`;
-    this.elements.copyPathButton.focus();
+    this.elements.copyValueButton.focus();
   }
 
   closeContextMenu() {
     this.elements.contextMenu.hidden = true;
-    this.contextMenuCopyPath = '';
+    this.contextMenuRow = null;
   }
 
   async copyContextMenuPath() {
-    const copyPath = this.contextMenuCopyPath;
+    const row = this.contextMenuRow;
     this.closeContextMenu();
 
-    if (!copyPath) {
+    if (!row) {
       return;
     }
 
+    const copyPath = row.copyPath || formatPath(row.path);
     try {
       await navigator.clipboard.writeText(copyPath);
       this.clearError();
@@ -660,12 +706,53 @@ class JsonViewerApp {
     }
   }
 
+  async copyContextMenuNode(format, label) {
+    const row = this.contextMenuRow;
+    this.closeContextMenu();
+
+    if (!row) {
+      return;
+    }
+
+    try {
+      const response = await this.requestWorker('copy-node', {
+        path: row.path,
+        format,
+      });
+      if (!response.ok) {
+        this.showError(`Copy ${label} failed: ${response.error}`);
+        return;
+      }
+
+      await navigator.clipboard.writeText(response.text);
+      this.clearError();
+      this.setStatus(`Copied ${label} at ${formatPath(row.path)}.`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.showError(`Copy ${label} failed: ${message}`);
+    }
+  }
+
+  expandContextMenuRowRecursively() {
+    const row = this.contextMenuRow;
+    this.closeContextMenu();
+
+    if (!row?.expandable) {
+      return;
+    }
+
+    this.expansion = expandRecursively(this.expansion, row.pathKey);
+    this.refreshRows({ pendingStatus: `Expanding ${formatPath(row.path)} recursively...` });
+  }
+
   toggleExpanded(row) {
     if (!row.expandable) {
       return;
     }
 
-    this.expansion = toggleExpansion(this.expansion, row.pathKey);
+    this.expansion = toggleExpansion(this.expansion, row.pathKey, {
+      recursivelyExpanded: row.recursivelyExpanded,
+    });
     this.refreshRows();
   }
 

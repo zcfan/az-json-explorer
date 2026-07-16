@@ -67,6 +67,7 @@ function createRow({
   expansionMode,
   expandedKeys,
   collapsedKeys,
+  recursivelyExpanded,
   parseCache,
 }) {
   const effectiveValue = getEffectiveValue(value, path, parseCache);
@@ -75,9 +76,8 @@ function createRow({
   const expandable = isExpandableValue(effectiveValue);
   const expanded =
     expandable &&
-    (expansionMode === 'all'
-      ? !collapsedKeys.has(rowPathKey)
-      : expandedKeys.has(rowPathKey));
+    !collapsedKeys.has(rowPathKey) &&
+    (expansionMode === 'all' || recursivelyExpanded || expandedKeys.has(rowPathKey));
 
   return {
     key,
@@ -91,6 +91,7 @@ function createRow({
     effectiveKind: getNodeKind(effectiveValue),
     expandable,
     expanded,
+    recursivelyExpanded,
     parsed,
     parseError: parseCache?.getError(path) ?? null,
   };
@@ -107,6 +108,7 @@ export async function collectVisibleRows(rootValue, options = {}) {
     expansionMode = 'explicit',
     expandedKeys = new Set(),
     collapsedKeys = new Set(),
+    recursiveExpandedKeys = new Set(),
     parseCache = null,
     yieldEvery = 500,
     maxRows = Number.POSITIVE_INFINITY,
@@ -114,11 +116,12 @@ export async function collectVisibleRows(rootValue, options = {}) {
   const rows = [];
   let visitedSinceYield = 0;
 
-  async function visit({ key, path, value, depth }) {
+  async function visit({ key, path, value, depth, withinRecursiveExpansion = false }) {
     if (rows.length >= maxRows) {
       return;
     }
 
+    const recursivelyExpanded = withinRecursiveExpansion || recursiveExpandedKeys.has(pathKey(path));
     const row = createRow({
       key,
       path,
@@ -127,6 +130,7 @@ export async function collectVisibleRows(rootValue, options = {}) {
       expansionMode,
       expandedKeys,
       collapsedKeys,
+      recursivelyExpanded,
       parseCache,
     });
     rows.push(row);
@@ -148,6 +152,7 @@ export async function collectVisibleRows(rootValue, options = {}) {
         path: child.path,
         value: child.value,
         depth: depth + 1,
+        withinRecursiveExpansion: recursivelyExpanded,
       });
 
       if (rows.length >= maxRows) {

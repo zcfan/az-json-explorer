@@ -39,11 +39,18 @@ Parsing a new root resets both values.
 - Toggles a cached parsed string between `parsed` and `raw`.
 - Fails if there is no parsed value for the path.
 
+`copy-node`:
+
+- Resolves a node by its visible path only when the user invokes a copy action.
+- Supports value, raw string contents, JavaScript string literal, and JSON string literal formats.
+- Returns clipboard text, never the parsed container itself. Object and array values are formatted as two-space JSON.
+
 `collect-visible-rows`:
 
 - Uses `collectVisibleRows` and returns display rows only.
 - Adds summary fields such as `displayValue`, `canParseAsJson`, `hasParsed`, and `copyPath`.
-- Accepts `expansionMode`, `expandedKeys`, and `collapsedKeys`; only the set relevant to the active mode shapes expansion.
+- Accepts `expansionMode`, `expandedKeys`, `recursiveExpandedKeys`, and `collapsedKeys`.
+- Recursive subtree roots and collapsed exceptions stay compact and request-scoped.
 - Enforces `maxRows` before display summaries cross to the UI and reports truncation through `truncated`.
 
 `search-tree`:
@@ -61,6 +68,7 @@ Nested parse actions must resolve through already parsed string ancestors. For e
 - Keep worker responses serializable.
 - Keep parse failures as structured responses, not thrown worker errors.
 - Keep expansion state request-scoped; the worker must not retain UI expansion mode or exceptions.
+- Only produce full copied value text in direct response to `copy-node`; never add it to retained row summaries.
 - Keep automatic-expansion sizing in the worker and bound it with `nodeCountLimit`; source bytes are not a reliable proxy for expanded row work.
 - Row `copyPath` must be computed in the worker from the same parse cache that shapes visible rows.
 

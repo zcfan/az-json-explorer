@@ -18,14 +18,15 @@ The project uses Node's built-in test runner. There is no test build step.
 | --- | --- |
 | `test/pageJsonDetection.test.mjs` | Conservative raw JSON page takeover rules. |
 | `test/path.test.mjs` | Display and copy-path formatting, including parse-aware `JSON.parse(...)` wrapping. |
+| `test/clipboard.test.mjs` | Value, JavaScript string literal, and JSON string literal clipboard formatting. |
 | `test/parseCache.test.mjs` | Parsed string cache, raw/parsed toggling, error preservation. |
 | `test/treeModel.test.mjs` | Child paths, node kinds, visible row flattening, row caps. |
 | `test/treeStats.test.mjs` | Bounded fully-expanded node counting for automatic expansion. |
 | `test/textSearch.test.mjs` | Chunked long-string search and truncation. |
 | `test/treeSearch.test.mjs` | Tree-wide key and primitive value search. |
 | `test/searchHighlight.test.mjs` | UI search highlight segmentation and row flags. |
-| `test/expansionState.test.mjs` | Explicit/all expansion transitions, collapsed exceptions, parsed-node reopening, and search reveal. |
-| `test/jsonWorker.test.mjs` | Worker parse, retained root, nested parse, visible rows, search messages. |
+| `test/expansionState.test.mjs` | Explicit/all/recursive expansion transitions, collapsed exceptions, parsed-node reopening, and search reveal. |
+| `test/jsonWorker.test.mjs` | Worker parse, retained root, nested parse, copy text, visible rows, search messages. |
 | `test/projectFiles.test.mjs` | Manifest, entrypoint, layout, syntax, and browser-surface invariants. |
 
 ## When To Add Tests
@@ -43,4 +44,4 @@ Use Chrome's unpacked extension flow when a change affects actual browser behavi
 3. Load this repository folder.
 4. Open a raw JSON URL or use the popup's standalone viewer.
 
-Check expansion, virtual scrolling, `Parse as JSON`, parsed/raw toggle, search, and copy path for interaction changes.
+Check expansion, virtual scrolling, `Parse as JSON`, parsed/raw toggle, search, and every applicable key context-menu action for interaction changes.

@@ -139,3 +139,26 @@ test('all mode expands parsed string containers without parsing raw strings', as
     ],
   );
 });
+
+test('recursive roots expand only their subtree in explicit mode', async () => {
+  const value = {
+    open: { deep: { value: 1 } },
+    closed: { hidden: 2 },
+  };
+
+  const rows = await collectVisibleRows(value, {
+    expandedKeys: new Set([pathKey([])]),
+    recursiveExpandedKeys: new Set([pathKey(['open'])]),
+  });
+
+  assert.deepEqual(
+    rows.map((row) => [row.pathKey, row.expanded, row.recursivelyExpanded]),
+    [
+      [pathKey([]), true, false],
+      [pathKey(['open']), true, true],
+      [pathKey(['open', 'deep']), true, true],
+      [pathKey(['open', 'deep', 'value']), false, true],
+      [pathKey(['closed']), false, false],
+    ],
+  );
+});
