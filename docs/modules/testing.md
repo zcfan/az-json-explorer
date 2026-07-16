@@ -27,6 +27,9 @@ The project uses Node's built-in test runner. There is no test build step.
 | `test/searchHighlight.test.mjs` | UI search highlight segmentation and row flags. |
 | `test/expansionState.test.mjs` | Explicit/all/recursive expansion transitions, collapsed exceptions, parsed-node reopening, and search reveal. |
 | `test/jsonWorker.test.mjs` | Worker parse, retained root, nested parse, copy text, visible rows, search messages. |
+| `test/externalLaunch.test.mjs` | Public launch validation, limits, rate limiting, claim, timeout, and tab failures. |
+| `test/pageLaunchBridge.test.mjs` | Webpage discovery, trusted-click gating, and bridge errors. |
+| `test/integrationClient.test.mjs` | Shared webpage/extension helper transports and error behavior. |
 | `test/projectFiles.test.mjs` | Manifest, entrypoint, layout, syntax, and browser-surface invariants. |
 
 ## When To Add Tests

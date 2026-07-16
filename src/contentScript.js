@@ -1,11 +1,23 @@
 (async () => {
+  const [{ installPageLaunchBridge }, { detectJsonPageSource, extractLikelyRawJsonText }] =
+    await Promise.all([
+      import(chrome.runtime.getURL('src/core/pageLaunchBridge.js')),
+      import(chrome.runtime.getURL('src/core/pageJsonDetection.js')),
+    ]);
+
+  if (!window.__azJsonExplorerBridgeInstalled) {
+    installPageLaunchBridge({
+      windowObject: window,
+      documentObject: document,
+      sendRequest: (request) => chrome.runtime.sendMessage(request),
+    });
+    window.__azJsonExplorerBridgeInstalled = true;
+  }
+
   if (window.__jsonToolsMounted) {
     return;
   }
 
-  const { detectJsonPageSource, extractLikelyRawJsonText } = await import(
-    chrome.runtime.getURL('src/core/pageJsonDetection.js')
-  );
   const pageSource = detectJsonPageSource(document, window.location);
   if (!pageSource) {
     return;

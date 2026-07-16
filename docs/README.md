@@ -4,6 +4,10 @@ These docs explain the long-lived module boundaries. One-off build plans live un
 
 Release automation and credential setup are documented in [`chrome-web-store-release.md`](chrome-web-store-release.md).
 
+Public webpage and extension integration is documented in
+[`English`](integrations/open-in-az-json-explorer.md) and
+[`简体中文`](integrations/open-in-az-json-explorer.zh-CN.md).
+
 ## Module Map
 
 | Module | Start Here | Owns |

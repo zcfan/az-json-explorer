@@ -17,6 +17,69 @@ test('manifest is valid MV3 JSON and exposes viewer resources to content pages',
   assert.ok(manifest.web_accessible_resources[0].resources.includes('src/worker/*.js'));
 });
 
+test('manifest exposes external launch messaging without adding permissions', async () => {
+  const manifest = JSON.parse(await readFile(new URL('../manifest.json', import.meta.url), 'utf8'));
+  const background = await readFile(new URL('../src/background.js', import.meta.url), 'utf8');
+
+  assert.deepEqual(manifest.background, {
+    service_worker: 'src/background.js',
+    type: 'module',
+  });
+  assert.deepEqual(manifest.externally_connectable, { ids: ['*'] });
+  assert.equal(manifest.permissions, undefined);
+  assert.match(background, /createLaunchBroker/);
+  assert.match(background, /chrome\.runtime\.onMessageExternal\.addListener/);
+  assert.match(background, /chrome\.tabs\.create/);
+  assert.match(background, /getURL\('src\/viewer\.html'\)/);
+  assert.match(background, /\?launch=/);
+});
+
+test('content script installs the webpage launch bridge before page detection can exit', async () => {
+  const contentScript = await readFile(new URL('../src/contentScript.js', import.meta.url), 'utf8');
+
+  assert.match(contentScript, /pageLaunchBridge\.js/);
+  assert.match(contentScript, /installPageLaunchBridge/);
+  assert.match(contentScript, /sendRequest:\s*\(request\)\s*=>\s*chrome\.runtime\.sendMessage\(request\)/);
+  assert.ok(
+    contentScript.indexOf('installPageLaunchBridge({') <
+      contentScript.indexOf('const pageSource = detectJsonPageSource'),
+    'the bridge must be installed on non-JSON pages too',
+  );
+});
+
+test('standalone viewer claims external launch payloads without putting JSON in the URL', async () => {
+  const viewer = await readFile(new URL('../src/viewer.js', import.meta.url), 'utf8');
+
+  assert.match(viewer, /params\.get\('launch'\)/);
+  assert.match(viewer, /INTERNAL_LAUNCH_CLAIM_TYPE/);
+  assert.match(viewer, /chrome\.runtime\.sendMessage/);
+  assert.match(viewer, /history\.replaceState/);
+  assert.match(viewer, /app\.parseText\(response\.payload\.jsonText\)/);
+  assert.match(viewer, /response\.payload\.sourceLabel/);
+  assert.match(viewer, /else if \(launchId\)/);
+  assert.doesNotMatch(viewer, /[?&]json(?:Text)?=/);
+});
+
+test('public docs expose copyable webpage and extension integration paths', async () => {
+  const readme = await readFile(new URL('../README.md', import.meta.url), 'utf8');
+  const integration = await readFile(
+    new URL('../docs/integrations/open-in-az-json-explorer.md', import.meta.url),
+    'utf8',
+  );
+  const helper = await readFile(
+    new URL('../integrations/az-json-explorer-client.js', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(readme, /Open in AZ JSON Explorer/);
+  assert.match(integration, /createAzJsonExplorerClient/);
+  assert.match(integration, /isAvailable\(\)/);
+  assert.match(integration, /openText/);
+  assert.match(integration, /runtime\.sendMessage/);
+  assert.match(integration, /USER_GESTURE_REQUIRED/);
+  assert.match(helper, /logkfmmknmmkpflgamhddeaedneaankj/);
+});
+
 test('visible extension surfaces use the product name', async () => {
   const popup = await readFile(new URL('../src/popup.html', import.meta.url), 'utf8');
   const viewerHtml = await readFile(new URL('../src/viewer.html', import.meta.url), 'utf8');
@@ -145,8 +208,12 @@ test('standalone viewer shows an open-file performance banner', async () => {
 
 test('browser entry modules pass syntax checks', () => {
   const files = [
+    'integrations/az-json-explorer-client.js',
+    'src/background.js',
     'src/contentScript.js',
     'src/core/clipboard.js',
+    'src/core/externalLaunch.js',
+    'src/core/pageLaunchBridge.js',
     'src/viewer.js',
     'src/ui/expansionState.js',
     'src/ui/viewerApp.js',
