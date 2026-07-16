@@ -1,0 +1,43 @@
+docs/modules/core-tree-model.md
+  s_4543417fb26d62::t_556305a1cbfc75 47,65
+docs/modules/testing.md
+  s_4543417fb26d62::t_b6b5a7ecce9405 21,28-29,47
+docs/modules/worker-protocol.md
+  s_4543417fb26d62::t_df51933343eb83 42-47,52-53,71
+src/core/clipboard.js
+  s_4543417fb26d62::t_e62c385ddf6484 1-43
+src/core/treeModel.js
+  s_4543417fb26d62::t_8930e7ebc3bfb6 70,79-80,94,111,119,124,133,155
+src/ui/expansionState.js
+  s_4543417fb26d62::t_ef13b5ddb3c8fa 9,13-21,23-24,34,43,53,56-63,65,71-99
+src/ui/viewerApp.js
+  s_4543417fb26d62::t_35532483e30815 19,68,154,156-160,195,197-205,310-313,318-333,483,664-671,682,687,691,694,698,709-747,753-755
+src/worker/jsonWorker.js
+  s_4543417fb26d62::t_c57cba0f55929a 5-9,90-147,177,314-317,334
+test/clipboard.test.mjs
+  s_4543417fb26d62::t_646874e0db1a02 1-21
+test/expansionState.test.mjs
+  s_4543417fb26d62::t_5053bb32e19aac 9,62-77
+test/jsonWorker.test.mjs
+  s_4543417fb26d62::t_7d96fef332c0b4 318-428
+test/treeModel.test.mjs
+  s_4543417fb26d62::t_b07a1cb22f1906 142-164
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "2c69f2fae187bbe669c973cc0a1f03d373fa4717",
+  "prompts": {},
+  "sessions": {
+    "s_4543417fb26d62": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f6907-15c8-7ed1-bf55-bab0abf55ef0",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
