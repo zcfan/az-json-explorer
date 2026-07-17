@@ -1,0 +1,35 @@
+docs/modules/search.md
+  s_c0cec3bd301d8b::t_c4cc3edf327016 5,45-46,52-53
+docs/modules/worker-protocol.md
+  s_c0cec3bd301d8b::t_17be654a6de9eb 58-59
+src/core/inputShortcuts.js
+  s_c0cec3bd301d8b::t_c57930ffc39d26 42-55
+src/core/treeSearch.js
+  s_c0cec3bd301d8b::t_2424daf9f43a40 40-51,97,189,192,196,200
+src/ui/viewerApp.js
+  s_c0cec3bd301d8b::t_e49fbe7de2753c 5,286-295
+src/worker/jsonWorker.js
+  s_c0cec3bd301d8b::t_6a248128aa1707 366
+test/inputShortcuts.test.mjs
+  s_c0cec3bd301d8b::t_23f07f01812a12 7,48-57
+test/jsonWorker.test.mjs
+  s_c0cec3bd301d8b::t_b655995aab4c87 141-179
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "6a793824a759741195253349c7bb3644b84ed005",
+  "prompts": {},
+  "sessions": {
+    "s_c0cec3bd301d8b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f6f20-bb33-7692-aa6b-b8589d22495e",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
