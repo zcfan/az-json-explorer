@@ -1,0 +1,23 @@
+docs/modules/search.md
+  s_c0cec3bd301d8b::t_47154ca866f02f 54
+src/ui/viewerApp.js
+  s_c0cec3bd301d8b::t_4679cf9d1fcb3a 449,474,510-521,789,792,810
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "0c6f0f9c9499852ff47c8378ae539a24ba1e6a71",
+  "prompts": {},
+  "sessions": {
+    "s_c0cec3bd301d8b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f6f20-bb33-7692-aa6b-b8589d22495e",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
