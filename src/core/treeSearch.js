@@ -37,6 +37,18 @@ function primitiveToSearchText(value) {
   return null;
 }
 
+function getEffectiveValue(value, path, parseCache) {
+  if (
+    typeof value === 'string' &&
+    parseCache?.hasParsed(path) &&
+    parseCache.getDisplayMode(path) === 'parsed'
+  ) {
+    return parseCache.getParsed(path);
+  }
+
+  return value;
+}
+
 function collectInlineTextMatches({
   text,
   query,
@@ -82,6 +94,7 @@ export async function searchJsonTree(rootValue, query, options = {}) {
   );
   const stringChunkSize = Math.max(1, options.stringChunkSize ?? DEFAULT_STRING_CHUNK_SIZE);
   const yieldEvery = Math.max(1, options.yieldEvery ?? DEFAULT_YIELD_EVERY);
+  const parseCache = options.parseCache ?? null;
   const matches = [];
   let searchedNodes = 0;
   let truncated = false;
@@ -173,17 +186,18 @@ export async function searchJsonTree(rootValue, query, options = {}) {
 
   while (stack.length > 0 && matches.length < maxResults) {
     const current = stack.pop();
+    const effectiveValue = getEffectiveValue(current.value, current.path, parseCache);
     searchedNodes += 1;
 
-    if (!searchKeyText(current.key, current.path, current.value)) {
+    if (!searchKeyText(current.key, current.path, effectiveValue)) {
       break;
     }
 
-    if (!(await searchValueText(current.value, current.path))) {
+    if (!(await searchValueText(effectiveValue, current.path))) {
       break;
     }
 
-    const children = getChildNodes(current.value, current.path);
+    const children = getChildNodes(effectiveValue, current.path);
     for (let index = children.length - 1; index >= 0; index -= 1) {
       stack.push(children[index]);
     }

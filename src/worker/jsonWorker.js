@@ -363,6 +363,7 @@ export async function handleWorkerMessage(message) {
         maxResults: message.maxResults,
         longStringThreshold: message.longStringThreshold,
         stringChunkSize: message.stringChunkSize,
+        parseCache: createParseCacheAdapter(),
       }),
     };
   }

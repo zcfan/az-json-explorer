@@ -55,7 +55,8 @@ Parsing a new root resets both values.
 
 `search-tree`:
 
-- Searches the retained raw parsed root.
+- Searches the retained tree after applying parsed-string display state.
+- For parsed display mode, searches parsed descendants instead of the original string text.
 - Returns path-aware matches and truncation state.
 
 ## Important Detail: Visible Path Resolution

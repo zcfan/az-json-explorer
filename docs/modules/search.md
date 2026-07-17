@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Search finds text in keys and primitive values without blocking on very large strings. Worker search returns path-aware matches; UI search highlights only visible rows.
+Search finds text in keys and primitive values without blocking on very large strings. Worker search returns path-aware matches from the currently displayed tree; UI search highlights only visible rows.
 
 ## Key Files
 
@@ -42,12 +42,15 @@ Search finds text in keys and primitive values without blocking on very large st
 
 `viewerApp` uses those flags to highlight keys, values, current rows, and search preview text.
 
+When the search input is focused, `Enter` selects the next result and `Shift+Enter` selects the previous result.
+
 ## Contracts
 
 - Search runs in the worker.
 - Search results should remain capped; do not return unlimited matches.
 - Long string search must keep chunk-overlap behavior.
-- Search paths currently follow the retained raw parsed root, not parsed-string display descendants.
+- Parsed-string nodes in parsed display mode contribute their parsed descendants, not their original string text.
+- Parsed-string nodes in raw display mode remain searchable as their original string value.
 
 ## Verification
 

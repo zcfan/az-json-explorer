@@ -138,6 +138,45 @@ test('worker searches the retained parsed tree after root parsing', async () => 
   assert.equal(searchResponse.result.matches[0].source, 'value');
 });
 
+test('worker searches a parsed string subtree instead of its raw string value', async () => {
+  const worker = new Worker(new URL('../src/worker/jsonWorker.js', import.meta.url), {
+    type: 'module',
+  });
+  const send = (message) =>
+    new Promise((resolve, reject) => {
+      worker.once('message', resolve);
+      worker.once('error', reject);
+      worker.postMessage(message);
+    });
+
+  try {
+    await send({
+      id: 'parse-root-for-parsed-search',
+      type: 'parse-root',
+      text: JSON.stringify({ payload: JSON.stringify({ nested: { target: 'found' } }) }),
+    });
+    await send({
+      id: 'parse-string-for-parsed-search',
+      type: 'parse-string',
+      path: ['payload'],
+    });
+
+    const response = await send({
+      id: 'search-parsed-string-subtree',
+      type: 'search-tree',
+      query: 'target',
+    });
+
+    assert.equal(response.ok, true);
+    assert.deepEqual(
+      response.result.matches.map((match) => [match.path, match.source]),
+      [[['payload', 'nested', 'target'], 'key']],
+    );
+  } finally {
+    await worker.terminate();
+  }
+});
+
 test('worker collects visible row summaries from the retained root without cloning containers', async () => {
   const worker = new Worker(new URL('../src/worker/jsonWorker.js', import.meta.url), {
     type: 'module',

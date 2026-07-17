@@ -2,6 +2,7 @@ import { formatJsonText } from '../core/jsonFormat.js';
 import {
   getParseShortcutLabel,
   getPasteShortcutLabel,
+  getSearchNavigationDelta,
   isParseShortcut,
   isSearchShortcut,
   shouldRedirectPaste,
@@ -280,6 +281,16 @@ class JsonViewerApp {
 
     this.elements.searchInput.addEventListener('input', () => {
       this.scheduleSearch();
+    });
+
+    this.elements.searchInput.addEventListener('keydown', (event) => {
+      const delta = getSearchNavigationDelta(event);
+      if (delta === 0) {
+        return;
+      }
+
+      event.preventDefault();
+      this.selectSearchResult(delta);
     });
 
     this.elements.searchPrevButton.addEventListener('click', () => {

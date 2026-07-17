@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   getParseShortcutLabel,
   getPasteShortcutLabel,
+  getSearchNavigationDelta,
   isParseShortcut,
   isSearchShortcut,
   shouldRedirectPaste,
@@ -42,6 +43,16 @@ test('search shortcut matches the platform equivalent of browser find', () => {
     isSearchShortcut({ key: 'f', ctrlKey: true, shiftKey: true }, 'Windows'),
     false,
   );
+});
+
+test('Enter navigates search results forward and Shift+Enter navigates backward', () => {
+  assert.equal(getSearchNavigationDelta({ key: 'Enter' }), 1);
+  assert.equal(getSearchNavigationDelta({ key: 'Enter', shiftKey: true }), -1);
+  assert.equal(getSearchNavigationDelta({ key: 'Enter', metaKey: true }), 0);
+  assert.equal(getSearchNavigationDelta({ key: 'Enter', ctrlKey: true }), 0);
+  assert.equal(getSearchNavigationDelta({ key: 'Enter', altKey: true }), 0);
+  assert.equal(getSearchNavigationDelta({ key: 'Enter', isComposing: true }), 0);
+  assert.equal(getSearchNavigationDelta({ key: 'NumpadEnter' }), 0);
 });
 
 test('paste redirects unless its real target is an input or textarea', () => {

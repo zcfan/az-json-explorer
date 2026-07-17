@@ -39,6 +39,20 @@ export function isSearchShortcut(event, platform = getRuntimePlatform()) {
   );
 }
 
+export function getSearchNavigationDelta(event) {
+  if (
+    event.key !== 'Enter' ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.altKey ||
+    event.isComposing
+  ) {
+    return 0;
+  }
+
+  return event.shiftKey ? -1 : 1;
+}
+
 export function shouldRedirectPaste(target) {
   const tagName = String(target?.tagName || '').toLowerCase();
   return tagName !== 'input' && tagName !== 'textarea';
