@@ -446,7 +446,7 @@ class JsonViewerApp {
 
     this.hasParsedRoot = true;
     this.expansion = createInitialExpansionState(response.nodeCount, pathKey([]));
-    await this.refreshRows();
+    await this.refreshRowsAndSearch();
   }
 
   async parseFile(file, sourceLabel = '') {
@@ -471,7 +471,7 @@ class JsonViewerApp {
 
     this.hasParsedRoot = true;
     this.expansion = createInitialExpansionState(response.nodeCount, pathKey([]));
-    await this.refreshRows();
+    await this.refreshRowsAndSearch();
   }
 
   async refreshRows(options = {}) {
@@ -505,6 +505,18 @@ class JsonViewerApp {
     this.elements.spacer.style.height = `${this.rows.length * ROW_HEIGHT}px`;
     this.renderVisibleRows();
     this.setStatus(this.createStatusText());
+  }
+
+  async refreshRowsAndSearch() {
+    const query = this.elements.searchInput.value.trim();
+    if (query) {
+      this.clearSearchResults('Searching...');
+    }
+
+    await this.refreshRows();
+    if (query) {
+      await this.runFullTextSearch(query);
+    }
   }
 
   createStatusText() {
@@ -774,11 +786,11 @@ class JsonViewerApp {
     if (response.ok) {
       this.expansion = ensureExpanded(this.expansion, row.pathKey);
       this.clearError();
+      await this.refreshRowsAndSearch();
     } else {
       this.showError(response.error);
+      await this.refreshRows();
     }
-
-    await this.refreshRows();
   }
 
   async toggleParsedDisplay(row) {
@@ -795,7 +807,7 @@ class JsonViewerApp {
       this.expansion = ensureExpanded(this.expansion, row.pathKey);
     }
 
-    await this.refreshRows();
+    await this.refreshRowsAndSearch();
   }
 
   scheduleSearch() {

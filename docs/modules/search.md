@@ -51,6 +51,7 @@ When the search input is focused, `Enter` selects the next result and `Shift+Ent
 - Long string search must keep chunk-overlap behavior.
 - Parsed-string nodes in parsed display mode contribute their parsed descendants, not their original string text.
 - Parsed-string nodes in raw display mode remain searchable as their original string value.
+- Loading a new root, parsing a string node, or toggling parsed/raw display reruns a non-empty query so cached matches stay aligned with the visible tree.
 
 ## Verification
 
