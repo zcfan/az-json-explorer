@@ -61,6 +61,26 @@ npm run release:chrome
 
 The command stops on test, packaging, authentication, upload, or submission failures. A successful submission may still remain under Chrome Web Store review before it becomes public.
 
+## Replace a version that is pending review
+
+Chrome Web Store supports cancelling a `PENDING_REVIEW` submission and submitting a newer package. There is no atomic replace operation; cancel the active submission first, then upload and publish the newer version.
+
+For this project, the shortest safe sequence is:
+
+1. Confirm the submitted revision is `PENDING_REVIEW` in the Developer Dashboard or with [`fetchStatus`](https://developer.chrome.com/docs/webstore/api/reference/rest/v2/publishers.items/fetchStatus).
+2. In the dashboard, choose **Cancel review**, or call API V2 with an empty request body:
+
+   ```bash
+   curl -H "Authorization: Bearer $CWS_ACCESS_TOKEN" -X POST \
+     "https://chromewebstore.googleapis.com/v2/publishers/$CWS_PUBLISHER_ID/items/$CWS_EXTENSION_ID:cancelSubmission"
+   ```
+
+3. Confirm cancellation succeeded; the dashboard returns the submission to draft. Increment the manifest and package versions, commit the release, then run `npm run release:chrome` to upload and submit the replacement.
+
+For example, cancel `0.1.6`, then submit `0.1.7`. Uploading an update without a higher manifest version fails. Cancellation is limited to six times per publisher per day, so do not retry it blindly.
+
+Official references: [Cancel a review](https://developer.chrome.com/docs/webstore/cancel-review), [`cancelSubmission` API V2](https://developer.chrome.com/docs/webstore/api/reference/rest/v2/publishers.items/cancelSubmission), and [Chrome Web Store API upload/publish flow](https://developer.chrome.com/docs/webstore/using-api).
+
 ## Short-lived token alternative
 
 The script also accepts `CWS_ACCESS_TOKEN` instead of a JSON credential file. This is useful when another CI authentication step already produces a short-lived token with the `https://www.googleapis.com/auth/chromewebstore` scope:
