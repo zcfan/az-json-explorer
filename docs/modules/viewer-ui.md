@@ -25,6 +25,7 @@ The viewer UI is the main-thread coordinator. It owns DOM rendering, user intera
 - Render token for stale async row responses.
 - Search query timer, matches, and selected match.
 - Context menu state for the selected row and applicable copy/expansion actions.
+- Full-string dialog path, bounded page offsets, history, and stale-request token.
 
 ## Rendering Model
 
@@ -55,6 +56,8 @@ This is why row height and row DOM layout must remain stable.
 - `cmd+f` on macOS or `ctrl+f` on Windows/Linux focuses the viewer search input instead of opening browser find.
 - Row context menu: right-click anywhere on a non-root row to copy its value or `row.copyPath`.
 - String rows also expose JavaScript literal and JSON literal copy formats.
+- Truncated string rows expose `View all`. The centered modal can be resized symmetrically from every edge or corner, reads one bounded page from the worker, soft-wraps without changing whitespace, automatically changes pages at scroll boundaries, and provides Copy all.
+- The modal renders each real line break as a numbered logical row. Soft-wrapped fragments remain inside the same numbered row, and alternating logical rows use subtle background stripes so real and visual line boundaries stay distinguishable.
 - Expandable rows expose `Expand recursively`, which opens only that subtree and keeps the 100,000-row cap.
 - Recursive expansion never parses raw strings; already parsed string subtrees participate when displayed as parsed.
 - Standalone performance hint: the close button hides it immediately and stores a local dismissed preference; direct-page warnings ignore that preference and remain non-dismissible.
@@ -63,6 +66,8 @@ This is why row height and row DOM layout must remain stable.
 
 - Do not parse large JSON on the main thread.
 - Do not keep the full parsed root in `JsonViewerApp`.
+- Do not attach complete long strings to rows or keep them in the dialog after it closes.
+- Full-string text must use `textContent` and preserve consecutive spaces, tabs, and line breaks; wrapping is visual only.
 - Base automatic expansion on bounded row count, not source byte size; row summaries and worker-to-UI transfer are the relevant costs.
 - Keep controls tied to worker responses; the UI should not invent row data.
 - Close transient context menus on scroll, outside click, and Escape.

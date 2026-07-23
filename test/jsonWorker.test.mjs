@@ -225,6 +225,198 @@ test('worker collects visible row summaries from the retained root without cloni
   assert.equal('effectiveValue' in rowsResponse.rows[0], false);
 });
 
+test('worker marks truncated string summaries without returning the complete value', async () => {
+  const worker = new Worker(new URL('../src/worker/jsonWorker.js', import.meta.url), {
+    type: 'module',
+  });
+  const send = (message) =>
+    new Promise((resolve, reject) => {
+      worker.once('message', resolve);
+      worker.once('error', reject);
+      worker.postMessage(message);
+    });
+
+  try {
+    await send({
+      id: 'parse-root-for-long-string-summary',
+      type: 'parse-root',
+      text: JSON.stringify({
+        short: 'kept whole',
+        fits: 'y'.repeat(238),
+        long: 'x'.repeat(1000),
+      }),
+    });
+
+    const response = await send({
+      id: 'collect-long-string-summary',
+      type: 'collect-visible-rows',
+      expandedKeys: [pathKey([])],
+      maxRows: 10,
+    });
+    const shortRow = response.rows.find((row) => row.key === 'short');
+    const fittingRow = response.rows.find((row) => row.key === 'fits');
+    const longRow = response.rows.find((row) => row.key === 'long');
+
+    assert.equal(shortRow.valueTruncated, false);
+    assert.equal(shortRow.valueLength, 10);
+    assert.equal(fittingRow.valueTruncated, false);
+    assert.equal(fittingRow.displayValue.length, 240);
+    assert.equal(longRow.valueTruncated, true);
+    assert.equal(longRow.valueLength, 1000);
+    assert.ok(longRow.displayValue.length <= 240);
+    assert.equal('value' in longRow, false);
+    assert.equal('text' in longRow, false);
+  } finally {
+    await worker.terminate();
+  }
+});
+
+test('worker reads an exact string range by path without normalizing whitespace', async () => {
+  const worker = new Worker(new URL('../src/worker/jsonWorker.js', import.meta.url), {
+    type: 'module',
+  });
+  const send = (message) =>
+    new Promise((resolve, reject) => {
+      worker.once('message', resolve);
+      worker.once('error', reject);
+      worker.postMessage(message);
+    });
+  const value = `  alpha  \n${'x'.repeat(20)}😀omega`;
+
+  try {
+    await send({
+      id: 'parse-root-for-string-range',
+      type: 'parse-root',
+      text: JSON.stringify({ value }),
+    });
+
+    const first = await send({
+      id: 'read-string-range-first',
+      type: 'read-string-range',
+      path: ['value'],
+      offset: 0,
+      length: 10,
+    });
+    const second = await send({
+      id: 'read-string-range-second',
+      type: 'read-string-range',
+      path: ['value'],
+      offset: first.nextOffset,
+      length: 100,
+    });
+
+    assert.deepEqual(first, {
+      id: 'read-string-range-first',
+      type: 'read-string-range-result',
+      ok: true,
+      path: ['value'],
+      text: '  alpha  \n',
+      offset: 0,
+      nextOffset: 10,
+      totalLength: value.length,
+      hasPrevious: false,
+      hasNext: true,
+    });
+    assert.equal(second.text, value.slice(10));
+    assert.equal(second.offset, 10);
+    assert.equal(second.nextOffset, value.length);
+    assert.equal(second.hasPrevious, true);
+    assert.equal(second.hasNext, false);
+  } finally {
+    await worker.terminate();
+  }
+});
+
+test('worker string ranges do not split surrogate pairs or CRLF', async () => {
+  const worker = new Worker(new URL('../src/worker/jsonWorker.js', import.meta.url), {
+    type: 'module',
+  });
+  const send = (message) =>
+    new Promise((resolve, reject) => {
+      worker.once('message', resolve);
+      worker.once('error', reject);
+      worker.postMessage(message);
+    });
+  const value = 'A😀B\r\nC';
+
+  try {
+    await send({
+      id: 'parse-root-for-string-boundaries',
+      type: 'parse-root',
+      text: JSON.stringify({ value }),
+    });
+
+    const emoji = await send({
+      id: 'read-emoji-range',
+      type: 'read-string-range',
+      path: ['value'],
+      offset: 1,
+      length: 1,
+    });
+    const lineBreak = await send({
+      id: 'read-crlf-range',
+      type: 'read-string-range',
+      path: ['value'],
+      offset: 4,
+      length: 1,
+    });
+
+    assert.equal(emoji.text, '😀');
+    assert.equal(emoji.offset, 1);
+    assert.equal(emoji.nextOffset, 3);
+    assert.equal(lineBreak.text, '\r\n');
+    assert.equal(lineBreak.offset, 4);
+    assert.equal(lineBreak.nextOffset, 6);
+  } finally {
+    await worker.terminate();
+  }
+});
+
+test('worker caps a string page by line breaks as well as character count', async () => {
+  const worker = new Worker(new URL('../src/worker/jsonWorker.js', import.meta.url), {
+    type: 'module',
+  });
+  const send = (message) =>
+    new Promise((resolve, reject) => {
+      worker.once('message', resolve);
+      worker.once('error', reject);
+      worker.postMessage(message);
+    });
+  const lineDenseValue = `${'line\n'.repeat(2500)}tail`;
+  const wideValue = 'x'.repeat(300 * 1024);
+
+  try {
+    await send({
+      id: 'parse-root-for-line-bounded-page',
+      type: 'parse-root',
+      text: JSON.stringify({ lineDenseValue, wideValue }),
+    });
+
+    const lineDenseResponse = await send({
+      id: 'read-line-bounded-page',
+      type: 'read-string-range',
+      path: ['lineDenseValue'],
+      offset: 0,
+      length: lineDenseValue.length,
+    });
+    const wideResponse = await send({
+      id: 'read-character-bounded-page',
+      type: 'read-string-range',
+      path: ['wideValue'],
+      offset: 0,
+      length: wideValue.length,
+    });
+
+    assert.equal(lineDenseResponse.text.match(/\n/g)?.length, 2000);
+    assert.equal(lineDenseResponse.hasNext, true);
+    assert.equal(lineDenseResponse.nextOffset, lineDenseResponse.text.length);
+    assert.equal(wideResponse.text.length, 256 * 1024);
+    assert.equal(wideResponse.hasNext, true);
+  } finally {
+    await worker.terminate();
+  }
+});
+
 test('worker parses string values inside already parsed string containers', async () => {
   const worker = new Worker(new URL('../src/worker/jsonWorker.js', import.meta.url), {
     type: 'module',
@@ -239,6 +431,7 @@ test('worker parses string values inside already parsed string containers', asyn
 
   let parseResponse;
   let firstParseResponse;
+  let nestedStringReadResponse;
   let secondParseResponse;
   let rowsResponse;
 
@@ -261,6 +454,14 @@ test('worker parses string values inside already parsed string containers', asyn
       id: 'parse-payload',
       type: 'parse-string',
       path: ['payload'],
+    });
+
+    nestedStringReadResponse = await send({
+      id: 'read-extra-inside-parsed-payload',
+      type: 'read-string-range',
+      path: ['payload', 'items', 0, 'extra'],
+      offset: 0,
+      length: 100,
     });
 
     secondParseResponse = await send({
@@ -287,6 +488,8 @@ test('worker parses string values inside already parsed string containers', asyn
 
   assert.equal(parseResponse.ok, true);
   assert.equal(firstParseResponse.ok, true);
+  assert.equal(nestedStringReadResponse.ok, true);
+  assert.equal(nestedStringReadResponse.text, '{"deep":true}');
   assert.equal(secondParseResponse.ok, true);
 
   assert.equal(rowsResponse.ok, true);

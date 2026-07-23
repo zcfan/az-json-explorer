@@ -12,6 +12,7 @@ import {
   isStandalonePerformanceHintDismissed,
 } from '../core/standalonePerformanceHint.js';
 import { formatPath, pathKey } from '../core/treeModel.js';
+import { resizeDialogRect } from './dialogResize.js';
 import {
   createAllExpansionState,
   createExplicitExpansionState,
@@ -29,6 +30,7 @@ const MAX_VISIBLE_ROWS = 100000;
 const AUTO_EXPAND_MAX_ROWS = 5000;
 const MAX_SEARCH_RESULTS = 500;
 const SEARCH_DEBOUNCE_MS = 250;
+const STRING_DIALOG_PAGE_LENGTH = 128 * 1024;
 const SAMPLE_JSON = JSON.stringify(
   {
     name: 'AZ JSON Explorer sample',
@@ -67,6 +69,8 @@ class JsonViewerApp {
     this.searchResults = [];
     this.selectedSearchIndex = -1;
     this.contextMenuRow = null;
+    this.stringDialogState = null;
+    this.stringDialogRequestToken = 0;
   }
 
   mount() {
@@ -159,6 +163,36 @@ class JsonViewerApp {
         <div class="jt-context-menu-separator" role="separator"></div>
         <button class="jt-context-menu-item" data-action="expand-recursively" type="button" role="menuitem">Expand recursively</button>
       </div>
+      <dialog class="jt-string-dialog" aria-label="String value">
+        <div class="jt-string-dialog-shell">
+          <header class="jt-string-dialog-header">
+            <span class="jt-string-dialog-path"></span>
+            <button
+              class="jt-string-dialog-close"
+              data-action="string-dialog-close"
+              type="button"
+              aria-label="Close full string value"
+            >×</button>
+          </header>
+          <div
+            class="jt-string-dialog-text"
+            tabindex="0"
+            role="region"
+            aria-label="Full string value with line numbers"
+          ></div>
+          <footer class="jt-string-dialog-footer">
+            <button class="jt-button jt-button-secondary" data-action="string-dialog-copy-all" type="button">Copy all</button>
+          </footer>
+        </div>
+        <div class="jt-string-dialog-resize-handle" data-resize-edge="n" aria-hidden="true"></div>
+        <div class="jt-string-dialog-resize-handle" data-resize-edge="ne" aria-hidden="true"></div>
+        <div class="jt-string-dialog-resize-handle" data-resize-edge="e" aria-hidden="true"></div>
+        <div class="jt-string-dialog-resize-handle" data-resize-edge="se" aria-hidden="true"></div>
+        <div class="jt-string-dialog-resize-handle" data-resize-edge="s" aria-hidden="true"></div>
+        <div class="jt-string-dialog-resize-handle" data-resize-edge="sw" aria-hidden="true"></div>
+        <div class="jt-string-dialog-resize-handle" data-resize-edge="w" aria-hidden="true"></div>
+        <div class="jt-string-dialog-resize-handle" data-resize-edge="nw" aria-hidden="true"></div>
+      </dialog>
     `;
     fragment.append(shell);
     return fragment;
@@ -202,6 +236,18 @@ class JsonViewerApp {
       ),
       contextMenuSeparator: this.shadow.querySelector('.jt-context-menu-separator'),
       expandRecursivelyButton: this.shadow.querySelector('[data-action="expand-recursively"]'),
+      stringDialog: this.shadow.querySelector('.jt-string-dialog'),
+      stringDialogPath: this.shadow.querySelector('.jt-string-dialog-path'),
+      stringDialogText: this.shadow.querySelector('.jt-string-dialog-text'),
+      stringDialogCopyAllButton: this.shadow.querySelector(
+        '[data-action="string-dialog-copy-all"]',
+      ),
+      stringDialogCloseButton: this.shadow.querySelector(
+        '[data-action="string-dialog-close"]',
+      ),
+      stringDialogResizeHandles: this.shadow.querySelectorAll(
+        '.jt-string-dialog-resize-handle',
+      ),
     };
 
     this.elements.source.textContent = this.options.sourceLabel || '';
@@ -231,6 +277,10 @@ class JsonViewerApp {
     });
 
     this.host.ownerDocument.addEventListener('keydown', (event) => {
+      if (this.elements.stringDialog.open) {
+        return;
+      }
+
       if (!isSearchShortcut(event)) {
         return;
       }
@@ -336,6 +386,28 @@ class JsonViewerApp {
       this.expandContextMenuRowRecursively();
     });
 
+    this.elements.stringDialogText.addEventListener('scroll', () => {
+      this.handleStringDialogScroll();
+    });
+
+    this.elements.stringDialogCopyAllButton.addEventListener('click', () => {
+      this.copyFullStringDialogValue();
+    });
+
+    this.elements.stringDialogCloseButton.addEventListener('click', () => {
+      this.elements.stringDialog.close();
+    });
+
+    for (const handle of this.elements.stringDialogResizeHandles) {
+      handle.addEventListener('pointerdown', (event) => {
+        this.beginStringDialogResize(event, handle.dataset.resizeEdge);
+      });
+    }
+
+    this.elements.stringDialog.addEventListener('close', () => {
+      this.clearStringDialog();
+    });
+
     this.shadow.addEventListener('click', (event) => {
       if (this.elements.contextMenu.hidden) {
         return;
@@ -426,6 +498,7 @@ class JsonViewerApp {
 
   async parseText(text) {
     const rawText = String(text || '');
+    this.closeStringDialog();
     this.clearSearchResults();
     this.clearError();
     this.setStatus('Parsing in worker...');
@@ -450,6 +523,7 @@ class JsonViewerApp {
   }
 
   async parseFile(file, sourceLabel = '') {
+    this.closeStringDialog();
     this.clearSearchResults();
     this.clearError();
     this.setSourceLabel(sourceLabel || file.name || 'Local file');
@@ -643,6 +717,18 @@ class JsonViewerApp {
     });
     element.append(value);
 
+    if (row.valueTruncated) {
+      const viewAllButton = document.createElement('button');
+      viewAllButton.className = 'jt-view-all-button';
+      viewAllButton.type = 'button';
+      viewAllButton.textContent = 'View all';
+      viewAllButton.addEventListener('click', (event) => {
+        event.stopPropagation();
+        this.openStringDialog(row);
+      });
+      element.append(viewAllButton);
+    }
+
     if (row.parseError) {
       const error = document.createElement('span');
       error.className = 'jt-inline-error';
@@ -677,6 +763,293 @@ class JsonViewerApp {
 
   formatRowValue(row) {
     return row.displayValue;
+  }
+
+  async openStringDialog(row) {
+    this.stringDialogState = {
+      path: [...row.path],
+      offset: 0,
+      nextOffset: 0,
+      lineNumber: 1,
+      nextLineNumber: 1,
+      totalLength: row.valueLength,
+      hasNext: false,
+      history: [],
+      loading: true,
+    };
+    this.elements.stringDialogPath.textContent =
+      `${formatPath(row.path)} · length ${row.valueLength.toLocaleString()}`;
+    this.elements.stringDialogText.textContent = '';
+    this.elements.stringDialogCopyAllButton.disabled = true;
+    this.elements.stringDialogCopyAllButton.textContent = 'Copy all';
+    this.elements.stringDialogCopyAllButton.title = '';
+
+    if (!this.elements.stringDialog.open) {
+      this.elements.stringDialog.showModal();
+    }
+
+    await this.loadStringDialogPage(0, 1);
+  }
+
+  async loadStringDialogPage(offset, lineNumber, position = 'start') {
+    const state = this.stringDialogState;
+    if (!state) {
+      return;
+    }
+
+    state.loading = true;
+    const token = ++this.stringDialogRequestToken;
+
+    try {
+      const response = await this.requestWorker('read-string-range', {
+        path: state.path,
+        offset,
+        length: STRING_DIALOG_PAGE_LENGTH,
+      });
+      if (
+        token !== this.stringDialogRequestToken ||
+        state !== this.stringDialogState ||
+        !this.elements.stringDialog.open
+      ) {
+        return;
+      }
+
+      if (!response.ok) {
+        this.elements.stringDialogText.textContent =
+          response.error || 'Unable to read string.';
+        state.loading = false;
+        return;
+      }
+
+      state.offset = response.offset;
+      state.nextOffset = response.nextOffset;
+      state.lineNumber = lineNumber;
+      state.nextLineNumber = this.renderStringDialogLines(
+        response.text,
+        lineNumber,
+        response.hasNext,
+      );
+      state.totalLength = response.totalLength;
+      state.hasNext = response.hasNext;
+      const maxScrollTop = Math.max(
+        0,
+        this.elements.stringDialogText.scrollHeight -
+          this.elements.stringDialogText.clientHeight,
+      );
+      if (position === 'end') {
+        this.elements.stringDialogText.scrollTop = Math.max(0, maxScrollTop - 1);
+      } else {
+        this.elements.stringDialogText.scrollTop =
+          state.history.length > 0 && maxScrollTop > 0 ? 1 : 0;
+      }
+      this.elements.stringDialogCopyAllButton.disabled = false;
+      requestAnimationFrame(() => {
+        if (state === this.stringDialogState) {
+          state.loading = false;
+        }
+      });
+    } catch (error) {
+      if (token !== this.stringDialogRequestToken || state !== this.stringDialogState) {
+        return;
+      }
+
+      const message = error instanceof Error ? error.message : String(error);
+      this.elements.stringDialogText.textContent = `Unable to read string: ${message}`;
+      state.loading = false;
+    }
+  }
+
+  renderStringDialogLines(text, firstLineNumber, hasNext) {
+    const lines = text.split(/\r\n|[\n\r\u2028\u2029]/);
+    const lineBreakCount = lines.length - 1;
+    if (hasNext && lineBreakCount > 0 && lines.at(-1) === '') {
+      lines.pop();
+    }
+
+    const fragment = document.createDocumentFragment();
+    const lastLineNumber = firstLineNumber + Math.max(0, lines.length - 1);
+    this.elements.stringDialogText.style.setProperty(
+      '--jt-line-number-digits',
+      Math.max(2, String(lastLineNumber).length),
+    );
+
+    lines.forEach((line, index) => {
+      const row = document.createElement('div');
+      row.className = 'jt-string-dialog-line';
+
+      const number = document.createElement('span');
+      number.className = 'jt-string-dialog-line-number';
+      number.setAttribute('aria-hidden', 'true');
+      number.textContent = String(firstLineNumber + index);
+
+      const content = document.createElement('span');
+      content.className = 'jt-string-dialog-line-text';
+      content.textContent = line;
+
+      row.append(number, content);
+      fragment.append(row);
+    });
+
+    this.elements.stringDialogText.replaceChildren(fragment);
+    return firstLineNumber + lineBreakCount;
+  }
+
+  handleStringDialogScroll() {
+    const state = this.stringDialogState;
+    const viewport = this.elements.stringDialogText;
+    if (!state || state.loading || viewport.scrollHeight <= viewport.clientHeight) {
+      return;
+    }
+
+    if (
+      state.hasNext &&
+      viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - 1
+    ) {
+      this.showNextStringDialogPage();
+      return;
+    }
+
+    if (state.history.length > 0 && viewport.scrollTop <= 0) {
+      this.showPreviousStringDialogPage();
+    }
+  }
+
+  showNextStringDialogPage() {
+    const state = this.stringDialogState;
+    if (!state?.hasNext) {
+      return;
+    }
+
+    state.history.push({
+      offset: state.offset,
+      lineNumber: state.lineNumber,
+    });
+    this.loadStringDialogPage(state.nextOffset, state.nextLineNumber, 'start');
+  }
+
+  showPreviousStringDialogPage() {
+    const state = this.stringDialogState;
+    const page = state?.history.pop();
+    if (!page) {
+      return;
+    }
+
+    this.loadStringDialogPage(page.offset, page.lineNumber, 'end');
+  }
+
+  beginStringDialogResize(event, edge) {
+    if (event.button !== 0) {
+      return;
+    }
+
+    event.preventDefault();
+    const dialog = this.elements.stringDialog;
+    const handle = event.currentTarget;
+    const rect = dialog.getBoundingClientRect();
+    const startRect = {
+      left: rect.left,
+      top: rect.top,
+      right: rect.right,
+      bottom: rect.bottom,
+    };
+    const startX = event.clientX;
+    const startY = event.clientY;
+
+    dialog.style.width = `${rect.width}px`;
+    dialog.style.height = `${rect.height}px`;
+    dialog.classList.add('jt-string-dialog-resizing');
+    handle.setPointerCapture(event.pointerId);
+
+    const resize = (moveEvent) => {
+      const resized = resizeDialogRect(startRect, edge, {
+        deltaX: moveEvent.clientX - startX,
+        deltaY: moveEvent.clientY - startY,
+        bounds: {
+          left: 8,
+          top: 8,
+          right: window.innerWidth - 8,
+          bottom: window.innerHeight - 8,
+        },
+        minWidth: Math.min(360, window.innerWidth - 16),
+        minHeight: Math.min(240, window.innerHeight - 16),
+      });
+      dialog.style.width = `${resized.width}px`;
+      dialog.style.height = `${resized.height}px`;
+    };
+
+    const finish = () => {
+      dialog.classList.remove('jt-string-dialog-resizing');
+      handle.removeEventListener('pointermove', resize);
+      handle.removeEventListener('pointerup', finish);
+      handle.removeEventListener('pointercancel', finish);
+      handle.removeEventListener('lostpointercapture', finish);
+    };
+
+    handle.addEventListener('pointermove', resize);
+    handle.addEventListener('pointerup', finish);
+    handle.addEventListener('pointercancel', finish);
+    handle.addEventListener('lostpointercapture', finish);
+  }
+
+  async copyFullStringDialogValue() {
+    const state = this.stringDialogState;
+    if (!state) {
+      return;
+    }
+
+    this.elements.stringDialogCopyAllButton.disabled = true;
+    try {
+      const response = await this.requestWorker('copy-node', {
+        path: state.path,
+        format: 'value',
+      });
+      if (state !== this.stringDialogState) {
+        return;
+      }
+
+      if (!response.ok) {
+        this.elements.stringDialogCopyAllButton.textContent = 'Copy failed';
+        this.elements.stringDialogCopyAllButton.title =
+          response.error || 'Unable to copy full value.';
+        return;
+      }
+
+      await navigator.clipboard.writeText(response.text);
+      if (state === this.stringDialogState) {
+        this.elements.stringDialogCopyAllButton.textContent = 'Copied';
+      }
+    } catch (error) {
+      if (state !== this.stringDialogState) {
+        return;
+      }
+
+      const message = error instanceof Error ? error.message : String(error);
+      this.elements.stringDialogCopyAllButton.textContent = 'Copy failed';
+      this.elements.stringDialogCopyAllButton.title = message;
+    } finally {
+      if (state === this.stringDialogState) {
+        this.elements.stringDialogCopyAllButton.disabled = false;
+      }
+    }
+  }
+
+  closeStringDialog() {
+    if (this.elements.stringDialog.open) {
+      this.elements.stringDialog.close();
+      return;
+    }
+
+    this.clearStringDialog();
+  }
+
+  clearStringDialog() {
+    this.stringDialogRequestToken += 1;
+    this.stringDialogState = null;
+    this.elements.stringDialogPath.textContent = '';
+    this.elements.stringDialogText.textContent = '';
+    this.elements.stringDialogCopyAllButton.disabled = true;
+    this.elements.stringDialogCopyAllButton.textContent = 'Copy all';
+    this.elements.stringDialogCopyAllButton.title = '';
   }
 
   openRowContextMenu(event, row) {

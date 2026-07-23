@@ -45,10 +45,17 @@ Parsing a new root resets both values.
 - Supports value, JavaScript string literal, and JSON string literal formats.
 - Returns clipboard text, never the parsed container itself. Object and array values are formatted as two-space JSON.
 
+`read-string-range`:
+
+- Resolves a string through the current parse-aware visible path only after the user opens `View all`.
+- Accepts UTF-16 `offset` and `length` and returns the exact source slice plus `nextOffset`, `totalLength`, and paging state.
+- Caps each response at 256 KiB and 2,000 line breaks so a newline-dense string cannot create an unbounded DOM page.
+- Extends page edges when necessary to avoid splitting a surrogate pair or CRLF.
+
 `collect-visible-rows`:
 
 - Uses `collectVisibleRows` and returns display rows only.
-- Adds summary fields such as `displayValue`, `canParseAsJson`, `hasParsed`, and `copyPath`.
+- Adds summary fields such as `displayValue`, `valueTruncated`, `valueLength`, `canParseAsJson`, `hasParsed`, and `copyPath`.
 - Accepts `expansionMode`, `expandedKeys`, `recursiveExpandedKeys`, and `collapsedKeys`.
 - Recursive subtree roots and collapsed exceptions stay compact and request-scoped.
 - Enforces `maxRows` before display summaries cross to the UI and reports truncation through `truncated`.
@@ -69,7 +76,7 @@ Nested parse actions must resolve through already parsed string ancestors. For e
 - Keep worker responses serializable.
 - Keep parse failures as structured responses, not thrown worker errors.
 - Keep expansion state request-scoped; the worker must not retain UI expansion mode or exceptions.
-- Only produce full copied value text in direct response to `copy-node`; never add it to retained row summaries.
+- Only produce full copied value text in direct response to `copy-node`; `read-string-range` stays bounded and neither path adds full text to retained row summaries.
 - Keep automatic-expansion sizing in the worker and bound it with `nodeCountLimit`; source bytes are not a reliable proxy for expanded row work.
 - Row `copyPath` must be computed in the worker from the same parse cache that shapes visible rows.
 

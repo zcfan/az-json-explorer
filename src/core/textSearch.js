@@ -17,7 +17,7 @@ function createPreview(text, index, length, context) {
   const end = Math.min(text.length, index + length + context);
   const prefix = start > 0 ? '...' : '';
   const suffix = end < text.length ? '...' : '';
-  return `${prefix}${text.slice(start, end)}${suffix}`.replace(/\s+/g, ' ');
+  return `${prefix}${text.slice(start, end)}${suffix}`;
 }
 
 export async function findTextMatches(text, query, options = {}) {

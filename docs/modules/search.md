@@ -21,6 +21,7 @@ Search finds text in keys and primitive values without blocking on very large st
 - overlap: query length minus one, so boundary-spanning matches are found
 - preview context: 42 chars by default
 - `maxResults` caps output and reports truncation
+- previews preserve source whitespace instead of normalizing it for display
 
 `searchJsonTree(rootValue, query, options)` walks the parsed tree:
 

@@ -126,6 +126,49 @@ test('viewer layout constrains the virtual tree to a scroll viewport', async () 
   assert.match(css, /\.jt-tree\s*\{[^}]*(?:^|\n)\s*min-height:\s*0;/s);
 });
 
+test('viewer preserves consecutive whitespace in string values', async () => {
+  const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
+
+  assert.match(css, /\.jt-effective-string\s*\{[^}]*white-space:\s*pre;/s);
+  assert.match(css, /\.jt-search-preview\s*\{[^}]*white-space:\s*break-spaces;/s);
+});
+
+test('viewer exposes a paged full-string dialog for truncated values', async () => {
+  const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
+
+  assert.match(viewer, /<dialog class="jt-string-dialog"/);
+  assert.match(viewer, /class="jt-string-dialog-text"[^>]*aria-label="Full string value with line numbers"/);
+  assert.match(viewer, /data-action="string-dialog-copy-all"/);
+  assert.doesNotMatch(viewer, />Full string value<\/strong>/);
+  assert.doesNotMatch(viewer, /class="jt-string-dialog-status"/);
+  assert.doesNotMatch(viewer, /data-action="string-dialog-previous"/);
+  assert.doesNotMatch(viewer, /data-action="string-dialog-next"/);
+  assert.doesNotMatch(viewer, />Close<\/button>/);
+  assert.equal(viewer.match(/class="jt-string-dialog-resize-handle"/g)?.length, 8);
+  assert.match(viewer, /beginStringDialogResize\(event, handle\.dataset\.resizeEdge\)/);
+  assert.match(viewer, /if \(row\.valueTruncated\)/);
+  assert.match(viewer, /textContent = 'View all'/);
+  assert.match(viewer, /this\.requestWorker\('read-string-range'/);
+  assert.match(viewer, /handleStringDialogScroll\(\)/);
+  assert.match(viewer, /renderStringDialogLines\(\s*response\.text,/);
+  assert.match(viewer, /className = 'jt-string-dialog-line-number'/);
+  assert.match(viewer, /className = 'jt-string-dialog-line-text'/);
+  assert.match(css, /\.jt-string-dialog-line-text\s*\{[^}]*white-space:\s*break-spaces;/s);
+  assert.match(css, /\.jt-string-dialog-line-text\s*\{[^}]*overflow-wrap:\s*anywhere;/s);
+  assert.match(css, /\.jt-string-dialog-line:nth-child\(odd\)/);
+  assert.match(css, /\.jt-string-dialog-line:nth-child\(even\)/);
+  assert.match(css, /\.jt-string-dialog\s*\{[^}]*resize:\s*none;/s);
+  assert.match(css, /\.jt-string-dialog\s*\{[^}]*inset:\s*0;/s);
+  assert.match(css, /\.jt-string-dialog\s*\{[^}]*margin:\s*auto;/s);
+  assert.match(css, /\.jt-string-dialog-footer\s*\{[^}]*padding-right:\s*12px;/s);
+  assert.doesNotMatch(viewer, /dialog\.style\.(?:left|top)/);
+  assert.match(css, /\[data-resize-edge="n"\][^{]*\{[^}]*cursor:\s*ns-resize;/s);
+  assert.match(css, /\[data-resize-edge="e"\][^{]*\{[^}]*cursor:\s*ew-resize;/s);
+  assert.match(css, /\[data-resize-edge="nw"\][^{]*\{[^}]*cursor:\s*nwse-resize;/s);
+  assert.match(css, /\[data-resize-edge="ne"\][^{]*\{[^}]*cursor:\s*nesw-resize;/s);
+});
+
 test('viewer supports one-way manual JSON input without echoing file content', async () => {
   const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
 

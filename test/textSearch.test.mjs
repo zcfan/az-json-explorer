@@ -39,6 +39,19 @@ test('finds matches that cross chunk boundaries', async () => {
   );
 });
 
+test('preserves whitespace in match previews', async () => {
+  const text = 'before  \n\t target  after';
+
+  const result = await findTextMatches(text, 'target', {
+    caseSensitive: true,
+    chunkSize: 8,
+    context: 20,
+    maxResults: 10,
+  });
+
+  assert.equal(result.matches[0].preview, text);
+});
+
 test('caps match results and reports truncation', async () => {
   const text = 'hit '.repeat(20);
 

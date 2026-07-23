@@ -10,6 +10,9 @@ import {
 
 let retainedRootValue;
 let retainedParseCache = new Map();
+const MAX_DISPLAY_VALUE_LENGTH = 240;
+const MAX_STRING_RANGE_LENGTH = 256 * 1024;
+const MAX_STRING_RANGE_LINE_BREAKS = 2000;
 
 function parseJson(text) {
   return JSON.parse(text);
@@ -40,10 +43,40 @@ function summarizeContainer(value) {
   return formatJsonValue(value);
 }
 
+function summarizeString(value) {
+  const completeValueBudget = MAX_DISPLAY_VALUE_LENGTH - 2;
+  const truncatedValueBudget = MAX_DISPLAY_VALUE_LENGTH - 5;
+  const encodedCharacters = [];
+  let encodedLength = 0;
+  let consumedLength = 0;
+
+  for (const character of value) {
+    const encodedCharacter = JSON.stringify(character).slice(1, -1);
+    if (encodedLength + encodedCharacter.length > completeValueBudget) {
+      break;
+    }
+
+    encodedCharacters.push(encodedCharacter);
+    encodedLength += encodedCharacter.length;
+    consumedLength += character.length;
+  }
+
+  const valueTruncated = consumedLength < value.length;
+  while (valueTruncated && encodedLength > truncatedValueBudget) {
+    encodedLength -= encodedCharacters.pop().length;
+  }
+
+  const escaped = encodedCharacters.join('');
+  return {
+    displayValue: valueTruncated ? `"${escaped}..."` : `"${escaped}"`,
+    valueTruncated,
+    valueLength: value.length,
+  };
+}
+
 function formatJsonValue(value) {
   if (typeof value === 'string') {
-    const quoted = JSON.stringify(value);
-    return quoted.length > 240 ? `${quoted.slice(0, 237)}...` : quoted;
+    return summarizeString(value).displayValue;
   }
 
   if (Array.isArray(value)) {
@@ -143,6 +176,123 @@ function createCopyNodeResult(message) {
   };
 }
 
+function isHighSurrogate(code) {
+  return code >= 0xd800 && code <= 0xdbff;
+}
+
+function isLowSurrogate(code) {
+  return code >= 0xdc00 && code <= 0xdfff;
+}
+
+function normalizeStringRangeStart(value, requestedOffset) {
+  let offset = Math.max(0, Math.min(value.length, requestedOffset));
+
+  if (
+    offset > 0 &&
+    offset < value.length &&
+    isHighSurrogate(value.charCodeAt(offset - 1)) &&
+    isLowSurrogate(value.charCodeAt(offset))
+  ) {
+    offset -= 1;
+  }
+
+  if (offset > 0 && value[offset - 1] === '\r' && value[offset] === '\n') {
+    offset -= 1;
+  }
+
+  return offset;
+}
+
+function extendStringRangeEnd(value, requestedEnd) {
+  let end = Math.max(0, Math.min(value.length, requestedEnd));
+
+  if (
+    end > 0 &&
+    end < value.length &&
+    isHighSurrogate(value.charCodeAt(end - 1)) &&
+    isLowSurrogate(value.charCodeAt(end))
+  ) {
+    end += 1;
+  }
+
+  if (end > 0 && end < value.length && value[end - 1] === '\r' && value[end] === '\n') {
+    end += 1;
+  }
+
+  return end;
+}
+
+function limitStringRangeByLineBreaks(value, offset, requestedEnd) {
+  let lineBreaks = 0;
+
+  for (let index = offset; index < requestedEnd; index += 1) {
+    const character = value[index];
+    if (character === '\r' && value[index + 1] === '\n') {
+      lineBreaks += 1;
+      index += 1;
+    } else if (
+      character === '\r' ||
+      character === '\n' ||
+      character === '\u2028' ||
+      character === '\u2029'
+    ) {
+      lineBreaks += 1;
+    }
+
+    if (lineBreaks >= MAX_STRING_RANGE_LINE_BREAKS) {
+      return index + 1;
+    }
+  }
+
+  return requestedEnd;
+}
+
+function createReadStringRangeResult(message) {
+  if (retainedRootValue === undefined) {
+    return {
+      id: message.id,
+      type: 'read-string-range-result',
+      ok: false,
+      path: message.path,
+      error: 'No parsed JSON is available to read.',
+    };
+  }
+
+  const value = getVisibleValueAtPath(retainedRootValue, message.path);
+  if (typeof value !== 'string') {
+    return {
+      id: message.id,
+      type: 'read-string-range-result',
+      ok: false,
+      path: message.path,
+      error: `Value at ${formatPath(message.path)} is not a string.`,
+    };
+  }
+
+  const requestedOffset = Number.isFinite(message.offset) ? Math.trunc(message.offset) : 0;
+  const requestedLength = Number.isFinite(message.length)
+    ? Math.trunc(message.length)
+    : MAX_STRING_RANGE_LENGTH;
+  const offset = normalizeStringRangeStart(value, requestedOffset);
+  const length = Math.max(1, Math.min(MAX_STRING_RANGE_LENGTH, requestedLength));
+  const requestedEnd = Math.min(value.length, offset + length);
+  const lineBoundedEnd = limitStringRangeByLineBreaks(value, offset, requestedEnd);
+  const nextOffset = extendStringRangeEnd(value, lineBoundedEnd);
+
+  return {
+    id: message.id,
+    type: 'read-string-range-result',
+    ok: true,
+    path: message.path,
+    text: value.slice(offset, nextOffset),
+    offset,
+    nextOffset,
+    totalLength: value.length,
+    hasPrevious: offset > 0,
+    hasNext: nextOffset < value.length,
+  };
+}
+
 function createParseCacheAdapter() {
   return {
     hasParsed(path) {
@@ -161,6 +311,17 @@ function createParseCacheAdapter() {
 }
 
 function createDisplayRow(row, parseCache) {
+  const valueSummary =
+    row.parsed || typeof row.value !== 'string'
+      ? {
+          displayValue: row.parsed
+            ? summarizeContainer(row.effectiveValue)
+            : formatJsonValue(row.value),
+          valueTruncated: false,
+          valueLength: null,
+        }
+      : summarizeString(row.value);
+
   return {
     key: row.key,
     path: row.path,
@@ -177,7 +338,7 @@ function createDisplayRow(row, parseCache) {
     hasParsed: parseCache.hasParsed(row.path),
     canParseAsJson: typeof row.value === 'string' && canParseStringAsJson(row.value),
     parseError: row.parseError,
-    displayValue: row.parsed ? summarizeContainer(row.effectiveValue) : formatJsonValue(row.value),
+    ...valueSummary,
   };
 }
 
@@ -311,6 +472,10 @@ export async function handleWorkerMessage(message) {
 
   if (message?.type === 'copy-node') {
     return createCopyNodeResult(message);
+  }
+
+  if (message?.type === 'read-string-range') {
+    return createReadStringRangeResult(message);
   }
 
   if (message?.type === 'collect-visible-rows') {

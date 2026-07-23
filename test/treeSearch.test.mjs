@@ -51,6 +51,20 @@ test('searches inside long strings with chunk boundaries', async () => {
   );
 });
 
+test('preserves whitespace in short value previews', async () => {
+  const value = {
+    text: 'before  \n\t target  after',
+  };
+
+  const result = await searchJsonTree(value, 'target', {
+    caseSensitive: true,
+    longStringThreshold: 100,
+    maxResults: 10,
+  });
+
+  assert.equal(result.matches[0].preview, value.text);
+});
+
 test('caps tree search results and reports truncation', async () => {
   const value = {
     records: Array.from({ length: 20 }, (_, index) => ({ name: `hit-${index}` })),
