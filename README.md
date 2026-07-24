@@ -2,6 +2,8 @@
 
 Fast Chrome MV3 JSON viewer for developers who inspect API responses, logs, fixtures, and local JSON files.
 
+[Install AZ JSON Explorer from the Chrome Web Store →](https://chromewebstore.google.com/detail/az-json-explorer/logkfmmknmmkpflgamhddeaedneaankj)
+
 AZ JSON Explorer focuses on two problems that make JSON tools feel slow or awkward:
 
 - Large JSON should stay responsive while parsing, searching, expanding, and scrolling.
