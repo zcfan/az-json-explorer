@@ -92,8 +92,12 @@ test('worker records only successful user parses and lists history without sourc
   });
   const send = (message) =>
     new Promise((resolve, reject) => {
-      worker.once('message', resolve);
-      worker.once('error', reject);
+      const onError = (error) => reject(error);
+      worker.once('message', (response) => {
+        worker.off('error', onError);
+        resolve(response);
+      });
+      worker.once('error', onError);
       worker.postMessage(message);
     });
 
@@ -246,14 +250,18 @@ test('worker restores a saved history session and parsed string cache', async ()
   }
 });
 
-test('history is ordered by latest view and cleanup keeps only the latest N records', async () => {
+test('history reorders only after active-record engagement and cleanup keeps the latest N records', async () => {
   const worker = new Worker(new URL('../src/worker/jsonWorker.js', import.meta.url), {
     type: 'module',
   });
   const send = (message) =>
     new Promise((resolve, reject) => {
-      worker.once('message', resolve);
-      worker.once('error', reject);
+      const onError = (error) => reject(error);
+      worker.once('message', (response) => {
+        worker.off('error', onError);
+        resolve(response);
+      });
+      worker.once('error', onError);
       worker.postMessage(message);
     });
 
@@ -296,6 +304,22 @@ test('history is ordered by latest view and cleanup keeps only the latest N reco
     });
     assert.deepEqual(
       reordered.items.map((item) => item.title),
+      ['Third', 'Second', 'First'],
+    );
+
+    const markedViewed = await send({
+      id: 'history-mark-first-viewed',
+      type: 'mark-history-viewed',
+      historyId: created[0].historyId,
+    });
+    const reorderedAfterInteraction = await send({
+      id: 'history-order-after-interaction',
+      type: 'list-history',
+      limit: 10,
+    });
+    assert.equal(markedViewed.ok, true);
+    assert.deepEqual(
+      reorderedAfterInteraction.items.map((item) => item.title),
       ['First', 'Third', 'Second'],
     );
 

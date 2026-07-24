@@ -47,6 +47,16 @@ const MAX_SEARCH_RESULTS = 500;
 const SEARCH_DEBOUNCE_MS = 250;
 const HISTORY_SESSION_SAVE_DEBOUNCE_MS = 300;
 const HISTORY_PAGE_SIZE = 50;
+const HISTORY_ENGAGEMENT_SELECTOR = [
+  '.jt-tabs',
+  '.jt-view-controls',
+  '.jt-status',
+  '.jt-search-preview',
+  '.jt-error',
+  '.jt-tree',
+  '.jt-string-view',
+  '.jt-context-menu',
+].join(',');
 const STRING_VIEW_PAGE_LENGTH = 128 * 1024;
 const SAMPLE_JSON = JSON.stringify(
   {
@@ -74,6 +84,12 @@ function formatHistorySize(size) {
 
 function formatHistoryTime(timestamp) {
   return new Date(timestamp).toLocaleString();
+}
+
+function isHistoryEngagementClick(event) {
+  return event
+    .composedPath()
+    .some((node) => node?.matches?.(HISTORY_ENGAGEMENT_SELECTOR));
 }
 
 export function mountJsonViewer(host, options = {}) {
@@ -109,6 +125,7 @@ class JsonViewerApp {
     this.stringViewRequestToken = 0;
     this.parsingViewTabIds = new Set();
     this.currentHistoryId = null;
+    this.pendingHistoryViewId = null;
     this.historySessionTimer = 0;
     this.historyItems = [];
     this.historyCursor = null;
@@ -246,14 +263,14 @@ class JsonViewerApp {
         <div class="jt-history-list" role="list"></div>
         <div class="jt-history-empty">No history yet.</div>
         <button class="jt-button jt-button-secondary jt-history-more" data-action="load-more-history" type="button" hidden>Load more</button>
-        <div class="jt-history-retention">
+        <form class="jt-history-retention">
           <label>
             Keep latest
             <input class="jt-history-keep-count" data-action="history-keep-count" type="number" min="0" step="1" value="10">
             records
           </label>
-          <button class="jt-button jt-history-clean-button" data-action="cleanup-history" type="button">Clean history</button>
-        </div>
+          <button class="jt-button jt-history-clean-button" data-action="cleanup-history" type="submit">Clean history</button>
+        </form>
       </aside>
     `;
     fragment.append(shell);
@@ -280,6 +297,7 @@ class JsonViewerApp {
       historyList: this.shadow.querySelector('.jt-history-list'),
       historyEmpty: this.shadow.querySelector('.jt-history-empty'),
       historyMoreButton: this.shadow.querySelector('[data-action="load-more-history"]'),
+      historyRetention: this.shadow.querySelector('.jt-history-retention'),
       historyKeepCount: this.shadow.querySelector('[data-action="history-keep-count"]'),
       historyCleanupButton: this.shadow.querySelector('[data-action="cleanup-history"]'),
       viewControls: this.shadow.querySelector('.jt-view-controls'),
@@ -328,6 +346,12 @@ class JsonViewerApp {
   }
 
   bindEvents() {
+    this.shadow.addEventListener('click', (event) => {
+      if (isHistoryEngagementClick(event)) {
+        this.markCurrentHistoryViewed();
+      }
+    });
+
     this.elements.performanceBannerClose.addEventListener('click', () => {
       this.dismissStandalonePerformanceBanner();
     });
@@ -392,8 +416,19 @@ class JsonViewerApp {
       this.loadHistoryPage();
     });
 
-    this.elements.historyCleanupButton.addEventListener('click', () => {
-      this.cleanupHistory();
+    this.elements.historyRetention.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (!this.elements.historyCleanupButton.disabled) {
+        this.cleanupHistory();
+      }
+    });
+    this.elements.historyKeepCount.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter') {
+        return;
+      }
+
+      event.preventDefault();
+      this.elements.historyRetention.requestSubmit();
     });
 
     this.elements.historyResizer.addEventListener('pointerdown', (event) => {
@@ -759,6 +794,7 @@ class JsonViewerApp {
     this.resetViewTabs();
     this.hasParsedRoot = true;
     this.currentHistoryId = response.historyId;
+    this.pendingHistoryViewId = response.historyId;
     this.setSourceLabel(response.title);
     const initialExpansion = createInitialExpansionState(
       response.nodeCount,
@@ -775,6 +811,28 @@ class JsonViewerApp {
     this.renderTabs();
     await this.showActiveView();
     await this.loadHistoryPage({ reset: true });
+  }
+
+  async markCurrentHistoryViewed() {
+    const historyId = this.pendingHistoryViewId;
+    if (!historyId || historyId !== this.currentHistoryId) {
+      return;
+    }
+
+    this.pendingHistoryViewId = null;
+    const response = await this.requestWorker('mark-history-viewed', {
+      historyId,
+    });
+    if (!response.ok) {
+      if (historyId === this.currentHistoryId) {
+        this.pendingHistoryViewId = historyId;
+      }
+      return;
+    }
+
+    if (historyId === this.currentHistoryId) {
+      await this.loadHistoryPage({ reset: true });
+    }
   }
 
   async cleanupHistory() {
@@ -798,6 +856,7 @@ class JsonViewerApp {
 
       if (!response.activeHistoryRetained) {
         this.currentHistoryId = null;
+        this.pendingHistoryViewId = null;
       }
       this.setStatus(
         `Cleaned ${response.deletedCount.toLocaleString()} history record${
@@ -859,6 +918,7 @@ class JsonViewerApp {
     const rawText = String(text || '');
     await this.flushHistorySessionSave();
     this.currentHistoryId = null;
+    this.pendingHistoryViewId = null;
     this.resetViewTabs();
     this.clearSearchResults();
     this.clearError();
@@ -895,6 +955,7 @@ class JsonViewerApp {
   async parseFile(file, sourceLabel = '', options = {}) {
     await this.flushHistorySessionSave();
     this.currentHistoryId = null;
+    this.pendingHistoryViewId = null;
     this.resetViewTabs();
     this.clearSearchResults();
     this.clearError();

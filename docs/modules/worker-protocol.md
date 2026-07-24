@@ -31,7 +31,7 @@ Two object stores keep large and frequently updated data separate:
 - `parse-history-contents`: the original text or file Blob, written once.
 - `parse-history-entries`: title, source type, byte size, bounded source preview, timestamps, and the lightweight viewer-session snapshot.
 
-This lets tab or search-query changes update metadata without rewriting a large JSON source. History listing is ordered by `lastViewedAt` and cursor-paged; list responses contain only the bounded preview, never source content. Creating or successfully opening a record updates its viewed time, while background session saves do not affect ordering.
+This lets tab or search-query changes update metadata without rewriting a large JSON source. History listing is ordered by `lastViewedAt` and cursor-paged; list responses contain only the bounded preview, never source content. Creating a record or explicitly marking the active record as engaged updates its viewed time, while opening and background session saves do not affect ordering.
 
 ## Message Types
 
@@ -57,7 +57,12 @@ This lets tab or search-query changes update metadata without rewriting a large 
 
 - Reads the selected source inside the worker, parses it as the new retained root, and returns root summary plus the saved lightweight session.
 - Replays saved parsed-string paths in path-depth order without activating global display modes.
-- Updates `lastViewedAt` after a successful reopen so the item becomes the newest history entry.
+- Does not update `lastViewedAt` or reorder the history list.
+
+`mark-history-viewed`:
+
+- Updates `lastViewedAt` only for the currently active history record.
+- The UI sends this once after the first click in the restored record's tabs or content workspace, not when the history item itself is selected.
 
 `cleanup-history`:
 

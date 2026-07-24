@@ -184,9 +184,16 @@ test('viewer exposes isolated tree and paged string tabs instead of a modal', as
   );
   assert.match(
     css,
-    /\.jt-tabs\s*\{[^}]*border-bottom:\s*0;/s,
+    /\.jt-loader:has\(\+\s*\.jt-tabs:not\(\[hidden\]\)\)\s*\{[^}]*border-bottom:\s*0;/s,
   );
-  assert.match(css, /\.jt-tab\s*\{[^}]*border-bottom:\s*1px solid #cbd5e1;/s);
+  assert.match(
+    css,
+    /\.jt-tabs::after\s*\{[^}]*bottom:\s*0;[^}]*height:\s*1px;[^}]*background:\s*#cbd5e1;/s,
+  );
+  assert.match(
+    css,
+    /\.jt-tab\s*\{[^}]*position:\s*relative;[^}]*z-index:\s*1;[^}]*border-bottom:\s*1px solid #cbd5e1;/s,
+  );
   assert.match(css, /\.jt-tab-active\s*\{[^}]*border-bottom-color:\s*#eef2f7;/s);
   assert.match(viewer, /const mode = document\.createElement\('button'\)/);
   assert.match(viewer, /mode\.addEventListener\('click',[\s\S]*toggleIsolatedTabMode/);
@@ -227,6 +234,10 @@ test('viewer supports one-way manual JSON input without echoing file content', a
 test('viewer exposes a paged right-side parse history without refilling manual input', async () => {
   const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
   const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
+  const openHistoryMethod = viewer.slice(
+    viewer.indexOf('async openHistoryEntry('),
+    viewer.indexOf('async markCurrentHistoryViewed('),
+  );
 
   assert.match(
     viewer,
@@ -273,10 +284,33 @@ test('viewer exposes a paged right-side parse history without refilling manual i
   );
   assert.match(
     viewer,
-    /class="jt-history-retention"[\s\S]*Keep latest[\s\S]*data-action="history-keep-count"[^>]*value="10"[\s\S]*records[\s\S]*data-action="cleanup-history"[^>]*>Clean history<\/button>/,
+    /<form class="jt-history-retention">[\s\S]*Keep latest[\s\S]*data-action="history-keep-count"[^>]*value="10"[\s\S]*records[\s\S]*data-action="cleanup-history"[^>]*type="submit"[^>]*>Clean history<\/button>[\s\S]*<\/form>/,
+  );
+  assert.match(
+    viewer,
+    /historyRetention\.addEventListener\('submit',[\s\S]*preventDefault\(\)[\s\S]*cleanupHistory\(\)/,
+  );
+  assert.match(
+    viewer,
+    /historyKeepCount\.addEventListener\('keydown',[\s\S]*event\.key !== 'Enter'[\s\S]*preventDefault\(\)[\s\S]*historyRetention\.requestSubmit\(\)/,
+  );
+  assert.doesNotMatch(
+    viewer,
+    /historyCleanupButton\.addEventListener\('click'/,
   );
   assert.match(viewer, /requestWorker\('list-history',\s*\{[\s\S]*cursor:[\s\S]*limit:/);
   assert.match(viewer, /requestWorker\('open-history',\s*\{[\s\S]*historyId,/);
+  assert.match(viewer, /const HISTORY_ENGAGEMENT_SELECTOR =/);
+  assert.match(
+    viewer,
+    /this\.shadow\.addEventListener\('click',[\s\S]*isHistoryEngagementClick[\s\S]*markCurrentHistoryViewed/,
+  );
+  assert.match(openHistoryMethod, /this\.pendingHistoryViewId = response\.historyId/);
+  assert.doesNotMatch(openHistoryMethod, /mark-history-viewed/);
+  assert.match(
+    viewer,
+    /requestWorker\('mark-history-viewed',\s*\{\s*historyId,/,
+  );
   assert.match(viewer, /requestWorker\('save-history-session',\s*\{/);
   assert.match(
     viewer,

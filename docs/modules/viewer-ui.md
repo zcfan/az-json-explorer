@@ -56,8 +56,8 @@ This is why row height and row DOM layout must remain stable.
 - The history panel's left divider is pointer-draggable from 240px to 720px while preserving viewer space where the viewport allows it.
 - Clicking a history item asks the worker to restore it directly into the viewer; it never refills or replaces the manual-input textarea.
 - Each history item renders three lines: its source title, a bounded beginning-of-content preview, and size/last-viewed metadata.
-- History is ordered by most recently viewed time. Successfully reopening an item moves it to the top.
-- The panel footer defaults to `Keep latest 10 records`; it shares a right-aligned row with `Clean history` when space permits and wraps responsively when narrow. Cleaning explicitly deletes every older entry and its stored source content. No cleanup runs automatically.
+- History is ordered by most recently engaged time. Selecting an item only restores it; the first subsequent click in the tabs, viewer controls/status, or active content area updates its timestamp and moves it to the top.
+- The panel footer defaults to `Keep latest 10 records`; it shares a right-aligned row with `Clean history` when space permits and wraps responsively when narrow. Clicking the button or pressing Enter in the count input submits the same cleanup action. Cleaning explicitly deletes every older entry and its stored source content. No cleanup runs automatically.
 - Explicit grid-row anchors keep the panel aligned with the loader when the optional performance banner is dismissed.
 - The tab strip sits above the expansion/search row. Expansion controls align left; search controls share that row and align right.
 - New roots with at most 5,000 fully expanded rows open in `all` mode; larger roots open with only the root expanded.

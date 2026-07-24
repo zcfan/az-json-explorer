@@ -190,6 +190,10 @@
   background: #eef2f7;
 }
 
+.jt-loader:has(+ .jt-tabs:not([hidden])) {
+  border-bottom: 0;
+}
+
 .jt-button,
 .jt-file-button,
 .jt-parse-button,
@@ -494,6 +498,7 @@
 }
 
 .jt-tabs {
+  position: relative;
   grid-row: 4;
   display: flex;
   align-items: flex-end;
@@ -501,8 +506,18 @@
   overflow-x: auto;
   min-width: 0;
   padding: 5px 8px 0;
-  border-bottom: 0;
   background: #eef2f7;
+}
+
+.jt-tabs::after {
+  position: absolute;
+  z-index: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  background: #cbd5e1;
+  content: "";
 }
 
 .jt-tabs[hidden] {
@@ -510,6 +525,8 @@
 }
 
 .jt-tab {
+  position: relative;
+  z-index: 1;
   display: flex;
   min-width: 88px;
   max-width: 320px;

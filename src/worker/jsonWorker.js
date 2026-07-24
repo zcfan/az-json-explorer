@@ -661,7 +661,6 @@ async function createOpenHistoryResult(message) {
     retainedParseCache = new Map();
     retainedHistoryId = record.id;
     restoreParsedPaths(record.session?.parsedPaths);
-    const viewedItem = await historyStore.markViewed(record.id);
 
     const response = {
       id: message.id,
@@ -670,7 +669,7 @@ async function createOpenHistoryResult(message) {
       historyId: record.id,
       title: record.title,
       sourceType: record.sourceType,
-      lastViewedAt: viewedItem?.lastViewedAt,
+      lastViewedAt: record.lastViewedAt,
       root: createRootSummary(value),
       session: record.session || null,
     };
@@ -754,6 +753,37 @@ export async function handleWorkerMessage(message) {
 
   if (message?.type === 'open-history') {
     return createOpenHistoryResult(message);
+  }
+
+  if (message?.type === 'mark-history-viewed') {
+    const historyId = message.historyId || retainedHistoryId;
+    if (!historyId || historyId !== retainedHistoryId) {
+      return {
+        id: message.id,
+        type: 'mark-history-viewed-result',
+        ok: false,
+        error: 'The history entry is not active.',
+      };
+    }
+
+    try {
+      const item = await historyStore.markViewed(historyId);
+      return {
+        id: message.id,
+        type: 'mark-history-viewed-result',
+        ok: Boolean(item),
+        historyId,
+        ...(item ? { item } : { error: 'History entry was not found.' }),
+      };
+    } catch (error) {
+      return {
+        id: message.id,
+        type: 'mark-history-viewed-result',
+        ok: false,
+        historyId,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
   }
 
   if (message?.type === 'cleanup-history') {
