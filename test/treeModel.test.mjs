@@ -54,6 +54,25 @@ test('collects only visible rows based on expansion state', async () => {
   );
 });
 
+test('collects an isolated subtree while preserving canonical paths', async () => {
+  const value = { users: [{ name: 'Ada' }, { name: 'Grace' }], active: true };
+  const isolatedRoot = value.users;
+  const rootPath = ['users'];
+  const rows = await collectVisibleRows(isolatedRoot, {
+    rootPath,
+    expandedKeys: new Set([pathKey(rootPath)]),
+  });
+
+  assert.deepEqual(
+    rows.map((row) => [row.depth, row.key, row.path, row.pathKey]),
+    [
+      [0, '$', ['users'], pathKey(['users'])],
+      [1, 0, ['users', 0], pathKey(['users', 0])],
+      [1, 1, ['users', 1], pathKey(['users', 1])],
+    ],
+  );
+});
+
 test('uses cached parsed string as expandable children without losing raw string row', async () => {
   const value = { payload: '{"items":[1,2]}' };
   const cache = new ParseCache();

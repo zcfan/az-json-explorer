@@ -12,7 +12,6 @@ import {
   isStandalonePerformanceHintDismissed,
 } from '../core/standalonePerformanceHint.js';
 import { formatPath, pathKey } from '../core/treeModel.js';
-import { resizeDialogRect } from './dialogResize.js';
 import {
   createAllExpansionState,
   createExplicitExpansionState,
@@ -23,6 +22,15 @@ import {
   toggleExpansion,
 } from './expansionState.js';
 import { getRowSearchState, splitHighlightedText } from './searchHighlight.js';
+import { createStringSearchSegments } from './stringSearchHighlight.js';
+import {
+  activateViewTabParsedMode,
+  closeViewTab,
+  createViewTabsState,
+  getIsolationViewType,
+  openIsolatedView,
+  setViewTabPathMode,
+} from './viewTabs.js';
 
 const ROW_HEIGHT = 28;
 const OVERSCAN_ROWS = 14;
@@ -30,7 +38,7 @@ const MAX_VISIBLE_ROWS = 100000;
 const AUTO_EXPAND_MAX_ROWS = 5000;
 const MAX_SEARCH_RESULTS = 500;
 const SEARCH_DEBOUNCE_MS = 250;
-const STRING_DIALOG_PAGE_LENGTH = 128 * 1024;
+const STRING_VIEW_PAGE_LENGTH = 128 * 1024;
 const SAMPLE_JSON = JSON.stringify(
   {
     name: 'AZ JSON Explorer sample',
@@ -68,9 +76,15 @@ class JsonViewerApp {
     this.searchToken = 0;
     this.searchResults = [];
     this.selectedSearchIndex = -1;
+    this.searchResultsTruncated = false;
+    this.searchResultsReady = false;
     this.contextMenuRow = null;
-    this.stringDialogState = null;
-    this.stringDialogRequestToken = 0;
+    this.viewTabs = createViewTabsState();
+    this.treeViewStates = new Map();
+    this.tabSearchStates = new Map();
+    this.stringViewState = null;
+    this.stringViewRequestToken = 0;
+    this.parsingViewTabIds = new Set();
   }
 
   mount() {
@@ -132,11 +146,15 @@ class JsonViewerApp {
           <button class="jt-button jt-button-secondary" data-action="load-sample" type="button">Sample</button>
         </div>
       </section>
+      <nav class="jt-tabs" role="tablist" aria-label="Open JSON views" hidden></nav>
       <section class="jt-view-controls">
         <div class="jt-expansion-controls">
           <button class="jt-button jt-button-secondary" data-action="collapse-all" type="button">Collapse</button>
           <button class="jt-button jt-button-secondary" data-action="expand-root" type="button">Expand root</button>
           <button class="jt-button jt-button-secondary" data-action="expand-all" type="button">Expand all</button>
+        </div>
+        <div class="jt-string-controls" hidden>
+          <button class="jt-button jt-copy-all-button" data-action="string-view-copy-all" type="button">Copy all</button>
         </div>
         <div class="jt-search-controls">
           <label class="jt-search">
@@ -155,44 +173,23 @@ class JsonViewerApp {
         <div class="jt-spacer"></div>
         <div class="jt-row-layer"></div>
       </section>
+      <section class="jt-string-view" aria-label="String value" hidden>
+        <div
+          class="jt-string-view-text"
+          tabindex="0"
+          role="region"
+          aria-label="Full string value with line numbers"
+        ></div>
+      </section>
       <div class="jt-context-menu" role="menu" hidden>
         <button class="jt-context-menu-item" data-action="copy-value" type="button" role="menuitem">Copy value</button>
         <button class="jt-context-menu-item" data-action="copy-path" type="button" role="menuitem">Copy path</button>
         <button class="jt-context-menu-item" data-action="copy-javascript-string-literal" type="button" role="menuitem">Copy string as JavaScript literal</button>
         <button class="jt-context-menu-item" data-action="copy-json-string-literal" type="button" role="menuitem">Copy string as JSON literal</button>
+        <button class="jt-context-menu-item" data-action="open-isolated-view" type="button" role="menuitem">View in isolated view</button>
         <div class="jt-context-menu-separator" role="separator"></div>
         <button class="jt-context-menu-item" data-action="expand-recursively" type="button" role="menuitem">Expand recursively</button>
       </div>
-      <dialog class="jt-string-dialog" aria-label="String value">
-        <div class="jt-string-dialog-shell">
-          <header class="jt-string-dialog-header">
-            <span class="jt-string-dialog-path"></span>
-            <button
-              class="jt-string-dialog-close"
-              data-action="string-dialog-close"
-              type="button"
-              aria-label="Close full string value"
-            >×</button>
-          </header>
-          <div
-            class="jt-string-dialog-text"
-            tabindex="0"
-            role="region"
-            aria-label="Full string value with line numbers"
-          ></div>
-          <footer class="jt-string-dialog-footer">
-            <button class="jt-button jt-button-secondary" data-action="string-dialog-copy-all" type="button">Copy all</button>
-          </footer>
-        </div>
-        <div class="jt-string-dialog-resize-handle" data-resize-edge="n" aria-hidden="true"></div>
-        <div class="jt-string-dialog-resize-handle" data-resize-edge="ne" aria-hidden="true"></div>
-        <div class="jt-string-dialog-resize-handle" data-resize-edge="e" aria-hidden="true"></div>
-        <div class="jt-string-dialog-resize-handle" data-resize-edge="se" aria-hidden="true"></div>
-        <div class="jt-string-dialog-resize-handle" data-resize-edge="s" aria-hidden="true"></div>
-        <div class="jt-string-dialog-resize-handle" data-resize-edge="sw" aria-hidden="true"></div>
-        <div class="jt-string-dialog-resize-handle" data-resize-edge="w" aria-hidden="true"></div>
-        <div class="jt-string-dialog-resize-handle" data-resize-edge="nw" aria-hidden="true"></div>
-      </dialog>
     `;
     fragment.append(shell);
     return fragment;
@@ -211,11 +208,15 @@ class JsonViewerApp {
       parseManualButton: this.shadow.querySelector('[data-action="parse-manual"]'),
       formatManualButton: this.shadow.querySelector('[data-action="format-manual"]'),
       fileInput: this.shadow.querySelector('.jt-file-input'),
+      viewControls: this.shadow.querySelector('.jt-view-controls'),
+      expansionControls: this.shadow.querySelector('.jt-expansion-controls'),
+      stringControls: this.shadow.querySelector('.jt-string-controls'),
       searchInput: this.shadow.querySelector('.jt-search-input'),
       searchPrevButton: this.shadow.querySelector('[data-action="search-prev"]'),
       searchNextButton: this.shadow.querySelector('[data-action="search-next"]'),
       searchCount: this.shadow.querySelector('.jt-search-count'),
       searchPreview: this.shadow.querySelector('.jt-search-preview'),
+      tabs: this.shadow.querySelector('.jt-tabs'),
       status: this.shadow.querySelector('.jt-status'),
       error: this.shadow.querySelector('.jt-error'),
       tree: this.shadow.querySelector('.jt-tree'),
@@ -226,6 +227,7 @@ class JsonViewerApp {
       expandRootButton: this.shadow.querySelector('[data-action="expand-root"]'),
       expandAllButton: this.shadow.querySelector('[data-action="expand-all"]'),
       contextMenu: this.shadow.querySelector('.jt-context-menu'),
+      openIsolatedViewButton: this.shadow.querySelector('[data-action="open-isolated-view"]'),
       copyValueButton: this.shadow.querySelector('[data-action="copy-value"]'),
       copyPathButton: this.shadow.querySelector('[data-action="copy-path"]'),
       copyJavaScriptStringLiteralButton: this.shadow.querySelector(
@@ -236,17 +238,10 @@ class JsonViewerApp {
       ),
       contextMenuSeparator: this.shadow.querySelector('.jt-context-menu-separator'),
       expandRecursivelyButton: this.shadow.querySelector('[data-action="expand-recursively"]'),
-      stringDialog: this.shadow.querySelector('.jt-string-dialog'),
-      stringDialogPath: this.shadow.querySelector('.jt-string-dialog-path'),
-      stringDialogText: this.shadow.querySelector('.jt-string-dialog-text'),
-      stringDialogCopyAllButton: this.shadow.querySelector(
-        '[data-action="string-dialog-copy-all"]',
-      ),
-      stringDialogCloseButton: this.shadow.querySelector(
-        '[data-action="string-dialog-close"]',
-      ),
-      stringDialogResizeHandles: this.shadow.querySelectorAll(
-        '.jt-string-dialog-resize-handle',
+      stringView: this.shadow.querySelector('.jt-string-view'),
+      stringViewText: this.shadow.querySelector('.jt-string-view-text'),
+      stringViewCopyAllButton: this.shadow.querySelector(
+        '[data-action="string-view-copy-all"]',
       ),
     };
 
@@ -277,10 +272,6 @@ class JsonViewerApp {
     });
 
     this.host.ownerDocument.addEventListener('keydown', (event) => {
-      if (this.elements.stringDialog.open) {
-        return;
-      }
-
       if (!isSearchShortcut(event)) {
         return;
       }
@@ -357,7 +348,7 @@ class JsonViewerApp {
     });
 
     this.elements.expandRootButton.addEventListener('click', () => {
-      this.expansion = createExplicitExpansionState([pathKey([])]);
+      this.expansion = createExplicitExpansionState([pathKey(this.getActiveTab().path)]);
       this.refreshRows();
     });
 
@@ -386,26 +377,20 @@ class JsonViewerApp {
       this.expandContextMenuRowRecursively();
     });
 
-    this.elements.stringDialogText.addEventListener('scroll', () => {
-      this.handleStringDialogScroll();
+    this.elements.openIsolatedViewButton.addEventListener('click', () => {
+      const row = this.contextMenuRow;
+      this.closeContextMenu();
+      if (row) {
+        this.openRowInIsolatedView(row);
+      }
     });
 
-    this.elements.stringDialogCopyAllButton.addEventListener('click', () => {
-      this.copyFullStringDialogValue();
+    this.elements.stringViewText.addEventListener('scroll', () => {
+      this.handleStringViewScroll();
     });
 
-    this.elements.stringDialogCloseButton.addEventListener('click', () => {
-      this.elements.stringDialog.close();
-    });
-
-    for (const handle of this.elements.stringDialogResizeHandles) {
-      handle.addEventListener('pointerdown', (event) => {
-        this.beginStringDialogResize(event, handle.dataset.resizeEdge);
-      });
-    }
-
-    this.elements.stringDialog.addEventListener('close', () => {
-      this.clearStringDialog();
+    this.elements.stringViewCopyAllButton.addEventListener('click', () => {
+      this.copyFullStringViewValue();
     });
 
     this.shadow.addEventListener('click', (event) => {
@@ -498,7 +483,7 @@ class JsonViewerApp {
 
   async parseText(text) {
     const rawText = String(text || '');
-    this.closeStringDialog();
+    this.resetViewTabs();
     this.clearSearchResults();
     this.clearError();
     this.setStatus('Parsing in worker...');
@@ -523,7 +508,7 @@ class JsonViewerApp {
   }
 
   async parseFile(file, sourceLabel = '') {
-    this.closeStringDialog();
+    this.resetViewTabs();
     this.clearSearchResults();
     this.clearError();
     this.setSourceLabel(sourceLabel || file.name || 'Local file');
@@ -553,9 +538,13 @@ class JsonViewerApp {
       return;
     }
 
+    const activeTabId = this.viewTabs.activeTabId;
     const token = ++this.renderToken;
     this.setStatus(options.pendingStatus || 'Preparing visible rows...');
     const response = await this.requestWorker('collect-visible-rows', {
+      rootPath: this.getActiveTab().path,
+      rootMode: this.getActiveTab().mode,
+      displayModeOverrides: this.getActiveTab().displayModeOverrides,
       expansionMode: this.expansion.mode,
       expandedKeys: Array.from(this.expansion.expandedKeys),
       collapsedKeys: Array.from(this.expansion.collapsedKeys),
@@ -564,7 +553,7 @@ class JsonViewerApp {
       yieldEvery: 500,
     });
 
-    if (token !== this.renderToken) {
+    if (token !== this.renderToken || activeTabId !== this.viewTabs.activeTabId) {
       return;
     }
 
@@ -629,9 +618,7 @@ class JsonViewerApp {
       .join(' ');
     element.style.transform = `translateY(${index * ROW_HEIGHT}px)`;
     element.title = formatPath(row.path);
-    if (row.key !== '$') {
-      element.addEventListener('contextmenu', (event) => this.openRowContextMenu(event, row));
-    }
+    element.addEventListener('contextmenu', (event) => this.openRowContextMenu(event, row));
     if (row.expandable) {
       element.addEventListener('click', (event) => {
         const clickedEmptyArea =
@@ -701,12 +688,22 @@ class JsonViewerApp {
     }
 
     if (row.hasParsed) {
+      const activeTab = this.getActiveTab();
       const badge = document.createElement('button');
       badge.className = row.parsed ? 'jt-badge jt-badge-parsed' : 'jt-badge jt-badge-raw';
       badge.type = 'button';
       badge.textContent = row.parsed ? 'parsed' : 'raw';
-      badge.title = row.parsed ? 'Show original string' : 'Show cached parsed value';
-      badge.addEventListener('click', () => this.toggleParsedDisplay(row));
+      const nextModeLabel = row.parsed ? 'original string' : 'cached parsed value';
+      badge.title = activeTab.closable
+        ? `Show ${nextModeLabel} in this tab`
+        : `Show ${nextModeLabel}`;
+      badge.addEventListener('click', () => {
+        if (activeTab.closable) {
+          this.toggleTabParsedDisplay(row);
+        } else {
+          this.toggleParsedDisplay(row);
+        }
+      });
       element.append(badge);
     }
 
@@ -724,7 +721,7 @@ class JsonViewerApp {
       viewAllButton.textContent = 'View all';
       viewAllButton.addEventListener('click', (event) => {
         event.stopPropagation();
-        this.openStringDialog(row);
+        this.openRowInIsolatedView(row);
       });
       element.append(viewAllButton);
     }
@@ -765,57 +762,59 @@ class JsonViewerApp {
     return row.displayValue;
   }
 
-  async openStringDialog(row) {
-    this.stringDialogState = {
-      path: [...row.path],
+  async openStringView(tab) {
+    this.stringViewState = {
+      tabId: tab.id,
+      path: [...tab.path],
+      mode: tab.mode,
+      displayModeOverrides: tab.displayModeOverrides,
       offset: 0,
       nextOffset: 0,
       lineNumber: 1,
       nextLineNumber: 1,
-      totalLength: row.valueLength,
+      totalLength: tab.valueLength,
       hasNext: false,
       history: [],
+      pageText: '',
+      pageHasNext: false,
       loading: true,
     };
-    this.elements.stringDialogPath.textContent =
-      `${formatPath(row.path)} · length ${row.valueLength.toLocaleString()}`;
-    this.elements.stringDialogText.textContent = '';
-    this.elements.stringDialogCopyAllButton.disabled = true;
-    this.elements.stringDialogCopyAllButton.textContent = 'Copy all';
-    this.elements.stringDialogCopyAllButton.title = '';
+    this.elements.stringViewText.textContent = '';
+    this.elements.stringViewCopyAllButton.disabled = true;
+    this.elements.stringViewCopyAllButton.textContent = 'Copy all';
+    this.elements.stringViewCopyAllButton.title = '';
+    this.setStatus(`${tab.title} · length ${tab.valueLength.toLocaleString()}`);
 
-    if (!this.elements.stringDialog.open) {
-      this.elements.stringDialog.showModal();
-    }
-
-    await this.loadStringDialogPage(0, 1);
+    await this.loadStringViewPage(0, 1);
   }
 
-  async loadStringDialogPage(offset, lineNumber, position = 'start') {
-    const state = this.stringDialogState;
+  async loadStringViewPage(offset, lineNumber, position = 'start') {
+    const state = this.stringViewState;
     if (!state) {
       return;
     }
 
     state.loading = true;
-    const token = ++this.stringDialogRequestToken;
+    const token = ++this.stringViewRequestToken;
 
     try {
       const response = await this.requestWorker('read-string-range', {
         path: state.path,
+        displayModeOverrides: state.displayModeOverrides,
+        effective: state.mode === 'parsed',
         offset,
-        length: STRING_DIALOG_PAGE_LENGTH,
+        length: STRING_VIEW_PAGE_LENGTH,
       });
       if (
-        token !== this.stringDialogRequestToken ||
-        state !== this.stringDialogState ||
-        !this.elements.stringDialog.open
+        token !== this.stringViewRequestToken ||
+        state !== this.stringViewState ||
+        state.tabId !== this.viewTabs.activeTabId
       ) {
         return;
       }
 
       if (!response.ok) {
-        this.elements.stringDialogText.textContent =
+        this.elements.stringViewText.textContent =
           response.error || 'Unable to read string.';
         state.loading = false;
         return;
@@ -824,7 +823,9 @@ class JsonViewerApp {
       state.offset = response.offset;
       state.nextOffset = response.nextOffset;
       state.lineNumber = lineNumber;
-      state.nextLineNumber = this.renderStringDialogLines(
+      state.pageText = response.text;
+      state.pageHasNext = response.hasNext;
+      state.nextLineNumber = this.renderStringViewLines(
         response.text,
         lineNumber,
         response.hasNext,
@@ -833,70 +834,117 @@ class JsonViewerApp {
       state.hasNext = response.hasNext;
       const maxScrollTop = Math.max(
         0,
-        this.elements.stringDialogText.scrollHeight -
-          this.elements.stringDialogText.clientHeight,
+        this.elements.stringViewText.scrollHeight -
+          this.elements.stringViewText.clientHeight,
       );
       if (position === 'end') {
-        this.elements.stringDialogText.scrollTop = Math.max(0, maxScrollTop - 1);
+        this.elements.stringViewText.scrollTop = Math.max(0, maxScrollTop - 1);
       } else {
-        this.elements.stringDialogText.scrollTop =
+        this.elements.stringViewText.scrollTop =
           state.history.length > 0 && maxScrollTop > 0 ? 1 : 0;
       }
-      this.elements.stringDialogCopyAllButton.disabled = false;
+      this.elements.stringViewCopyAllButton.disabled = false;
       requestAnimationFrame(() => {
-        if (state === this.stringDialogState) {
+        if (state === this.stringViewState) {
           state.loading = false;
         }
       });
     } catch (error) {
-      if (token !== this.stringDialogRequestToken || state !== this.stringDialogState) {
+      if (token !== this.stringViewRequestToken || state !== this.stringViewState) {
         return;
       }
 
       const message = error instanceof Error ? error.message : String(error);
-      this.elements.stringDialogText.textContent = `Unable to read string: ${message}`;
+      this.elements.stringViewText.textContent = `Unable to read string: ${message}`;
       state.loading = false;
     }
   }
 
-  renderStringDialogLines(text, firstLineNumber, hasNext) {
-    const lines = text.split(/\r\n|[\n\r\u2028\u2029]/);
+  renderStringViewLines(text, firstLineNumber, hasNext) {
+    const lines = [];
+    const lineBreakPattern = /\r\n|[\n\r\u2028\u2029]/g;
+    let lineStart = 0;
+    let lineBreak;
+
+    while ((lineBreak = lineBreakPattern.exec(text)) !== null) {
+      lines.push({
+        text: text.slice(lineStart, lineBreak.index),
+        offset: lineStart,
+      });
+      lineStart = lineBreak.index + lineBreak[0].length;
+    }
+    lines.push({
+      text: text.slice(lineStart),
+      offset: lineStart,
+    });
+
     const lineBreakCount = lines.length - 1;
-    if (hasNext && lineBreakCount > 0 && lines.at(-1) === '') {
+    if (hasNext && lineBreakCount > 0 && lines.at(-1).text === '') {
       lines.pop();
     }
 
     const fragment = document.createDocumentFragment();
     const lastLineNumber = firstLineNumber + Math.max(0, lines.length - 1);
-    this.elements.stringDialogText.style.setProperty(
+    this.elements.stringViewText.style.setProperty(
       '--jt-line-number-digits',
       Math.max(2, String(lastLineNumber).length),
     );
 
     lines.forEach((line, index) => {
       const row = document.createElement('div');
-      row.className = 'jt-string-dialog-line';
+      row.className = 'jt-string-view-line';
 
       const number = document.createElement('span');
-      number.className = 'jt-string-dialog-line-number';
+      number.className = 'jt-string-view-line-number';
       number.setAttribute('aria-hidden', 'true');
       number.textContent = String(firstLineNumber + index);
 
       const content = document.createElement('span');
-      content.className = 'jt-string-dialog-line-text';
-      content.textContent = line;
+      content.className = 'jt-string-view-line-text';
+      const absoluteOffset = (this.stringViewState?.offset || 0) + line.offset;
+      const segments = createStringSearchSegments(
+        line.text,
+        absoluteOffset,
+        this.searchResults,
+        this.selectedSearchIndex,
+      );
+      for (const segment of segments) {
+        const child = document.createElement(segment.highlighted ? 'mark' : 'span');
+        if (segment.highlighted) {
+          child.className = segment.current
+            ? 'jt-search-mark jt-string-search-current'
+            : 'jt-search-mark';
+        }
+        child.textContent = segment.text;
+        content.append(child);
+      }
 
       row.append(number, content);
       fragment.append(row);
     });
 
-    this.elements.stringDialogText.replaceChildren(fragment);
+    this.elements.stringViewText.replaceChildren(fragment);
     return firstLineNumber + lineBreakCount;
   }
 
-  handleStringDialogScroll() {
-    const state = this.stringDialogState;
-    const viewport = this.elements.stringDialogText;
+  rerenderStringViewPage() {
+    const state = this.stringViewState;
+    if (!state) {
+      return;
+    }
+
+    const scrollTop = this.elements.stringViewText.scrollTop;
+    state.nextLineNumber = this.renderStringViewLines(
+      state.pageText,
+      state.lineNumber,
+      state.pageHasNext,
+    );
+    this.elements.stringViewText.scrollTop = scrollTop;
+  }
+
+  handleStringViewScroll() {
+    const state = this.stringViewState;
+    const viewport = this.elements.stringViewText;
     if (!state || state.loading || viewport.scrollHeight <= viewport.clientHeight) {
       return;
     }
@@ -905,17 +953,17 @@ class JsonViewerApp {
       state.hasNext &&
       viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - 1
     ) {
-      this.showNextStringDialogPage();
+      this.showNextStringViewPage();
       return;
     }
 
     if (state.history.length > 0 && viewport.scrollTop <= 0) {
-      this.showPreviousStringDialogPage();
+      this.showPreviousStringViewPage();
     }
   }
 
-  showNextStringDialogPage() {
-    const state = this.stringDialogState;
+  showNextStringViewPage() {
+    const state = this.stringViewState;
     if (!state?.hasNext) {
       return;
     }
@@ -924,132 +972,324 @@ class JsonViewerApp {
       offset: state.offset,
       lineNumber: state.lineNumber,
     });
-    this.loadStringDialogPage(state.nextOffset, state.nextLineNumber, 'start');
+    this.loadStringViewPage(state.nextOffset, state.nextLineNumber, 'start');
   }
 
-  showPreviousStringDialogPage() {
-    const state = this.stringDialogState;
+  showPreviousStringViewPage() {
+    const state = this.stringViewState;
     const page = state?.history.pop();
     if (!page) {
       return;
     }
 
-    this.loadStringDialogPage(page.offset, page.lineNumber, 'end');
+    this.loadStringViewPage(page.offset, page.lineNumber, 'end');
   }
 
-  beginStringDialogResize(event, edge) {
-    if (event.button !== 0) {
-      return;
-    }
-
-    event.preventDefault();
-    const dialog = this.elements.stringDialog;
-    const handle = event.currentTarget;
-    const rect = dialog.getBoundingClientRect();
-    const startRect = {
-      left: rect.left,
-      top: rect.top,
-      right: rect.right,
-      bottom: rect.bottom,
-    };
-    const startX = event.clientX;
-    const startY = event.clientY;
-
-    dialog.style.width = `${rect.width}px`;
-    dialog.style.height = `${rect.height}px`;
-    dialog.classList.add('jt-string-dialog-resizing');
-    handle.setPointerCapture(event.pointerId);
-
-    const resize = (moveEvent) => {
-      const resized = resizeDialogRect(startRect, edge, {
-        deltaX: moveEvent.clientX - startX,
-        deltaY: moveEvent.clientY - startY,
-        bounds: {
-          left: 8,
-          top: 8,
-          right: window.innerWidth - 8,
-          bottom: window.innerHeight - 8,
-        },
-        minWidth: Math.min(360, window.innerWidth - 16),
-        minHeight: Math.min(240, window.innerHeight - 16),
-      });
-      dialog.style.width = `${resized.width}px`;
-      dialog.style.height = `${resized.height}px`;
-    };
-
-    const finish = () => {
-      dialog.classList.remove('jt-string-dialog-resizing');
-      handle.removeEventListener('pointermove', resize);
-      handle.removeEventListener('pointerup', finish);
-      handle.removeEventListener('pointercancel', finish);
-      handle.removeEventListener('lostpointercapture', finish);
-    };
-
-    handle.addEventListener('pointermove', resize);
-    handle.addEventListener('pointerup', finish);
-    handle.addEventListener('pointercancel', finish);
-    handle.addEventListener('lostpointercapture', finish);
-  }
-
-  async copyFullStringDialogValue() {
-    const state = this.stringDialogState;
+  async copyFullStringViewValue() {
+    const state = this.stringViewState;
     if (!state) {
       return;
     }
 
-    this.elements.stringDialogCopyAllButton.disabled = true;
+    this.elements.stringViewCopyAllButton.disabled = true;
     try {
       const response = await this.requestWorker('copy-node', {
         path: state.path,
-        format: 'value',
+        displayModeOverrides: state.displayModeOverrides,
+        format: state.mode === 'parsed' ? 'value' : 'raw-string',
       });
-      if (state !== this.stringDialogState) {
+      if (state !== this.stringViewState) {
         return;
       }
 
       if (!response.ok) {
-        this.elements.stringDialogCopyAllButton.textContent = 'Copy failed';
-        this.elements.stringDialogCopyAllButton.title =
+        this.elements.stringViewCopyAllButton.textContent = 'Copy failed';
+        this.elements.stringViewCopyAllButton.title =
           response.error || 'Unable to copy full value.';
         return;
       }
 
       await navigator.clipboard.writeText(response.text);
-      if (state === this.stringDialogState) {
-        this.elements.stringDialogCopyAllButton.textContent = 'Copied';
+      if (state === this.stringViewState) {
+        this.elements.stringViewCopyAllButton.textContent = 'Copied';
       }
     } catch (error) {
-      if (state !== this.stringDialogState) {
+      if (state !== this.stringViewState) {
         return;
       }
 
       const message = error instanceof Error ? error.message : String(error);
-      this.elements.stringDialogCopyAllButton.textContent = 'Copy failed';
-      this.elements.stringDialogCopyAllButton.title = message;
+      this.elements.stringViewCopyAllButton.textContent = 'Copy failed';
+      this.elements.stringViewCopyAllButton.title = message;
     } finally {
-      if (state === this.stringDialogState) {
-        this.elements.stringDialogCopyAllButton.disabled = false;
+      if (state === this.stringViewState) {
+        this.elements.stringViewCopyAllButton.disabled = false;
       }
     }
   }
 
-  closeStringDialog() {
-    if (this.elements.stringDialog.open) {
-      this.elements.stringDialog.close();
+  clearStringView() {
+    this.stringViewRequestToken += 1;
+    this.stringViewState = null;
+    this.elements.stringViewText.textContent = '';
+    this.elements.stringViewCopyAllButton.disabled = true;
+    this.elements.stringViewCopyAllButton.textContent = 'Copy all';
+    this.elements.stringViewCopyAllButton.title = '';
+  }
+
+  getActiveTab() {
+    return (
+      this.viewTabs.tabs.find((tab) => tab.id === this.viewTabs.activeTabId) ||
+      this.viewTabs.tabs[0]
+    );
+  }
+
+  resetViewTabs() {
+    this.clearStringView();
+    this.parsingViewTabIds.clear();
+    this.viewTabs = createViewTabsState();
+    this.treeViewStates.clear();
+    this.tabSearchStates.clear();
+    this.renderTabs();
+    this.elements.viewControls.hidden = false;
+    this.elements.expansionControls.hidden = false;
+    this.elements.stringControls.hidden = true;
+    this.elements.tree.hidden = false;
+    this.elements.stringView.hidden = true;
+  }
+
+  saveActiveViewState() {
+    const tab = this.getActiveTab();
+    this.tabSearchStates.set(tab.id, {
+      query: this.elements.searchInput.value,
+      results: [...this.searchResults],
+      selectedIndex: this.selectedSearchIndex,
+      truncated: this.searchResultsTruncated,
+      ready: this.searchResultsReady,
+    });
+
+    if (tab.type !== 'tree') {
       return;
     }
 
-    this.clearStringDialog();
+    this.treeViewStates.set(tab.id, {
+      expansion: this.expansion,
+      scrollTop: this.elements.tree.scrollTop,
+    });
   }
 
-  clearStringDialog() {
-    this.stringDialogRequestToken += 1;
-    this.stringDialogState = null;
-    this.elements.stringDialogPath.textContent = '';
-    this.elements.stringDialogText.textContent = '';
-    this.elements.stringDialogCopyAllButton.disabled = true;
-    this.elements.stringDialogCopyAllButton.textContent = 'Copy all';
-    this.elements.stringDialogCopyAllButton.title = '';
+  renderTabs() {
+    const fragment = document.createDocumentFragment();
+    this.elements.tabs.hidden = this.viewTabs.tabs.length < 2;
+
+    for (const tab of this.viewTabs.tabs) {
+      const isActive = tab.id === this.viewTabs.activeTabId;
+      const item = document.createElement('div');
+      item.className = `jt-tab${isActive ? ' jt-tab-active' : ''}`;
+      item.setAttribute('role', 'presentation');
+      item.title = tab.title;
+
+      const select = document.createElement('button');
+      select.className = 'jt-tab-select';
+      select.type = 'button';
+      select.disabled = isActive;
+      select.setAttribute('role', 'tab');
+      select.setAttribute('aria-selected', String(isActive));
+      select.addEventListener('click', () => this.activateViewTab(tab.id));
+
+      const title = document.createElement('span');
+      title.className = 'jt-tab-title';
+      const titleText = document.createElement('span');
+      titleText.className = 'jt-tab-title-text';
+      titleText.textContent = tab.title;
+      title.append(titleText);
+      select.append(title);
+      item.append(select);
+
+      if (tab.mode) {
+        const mode = document.createElement('button');
+        mode.className = `jt-tab-mode jt-badge jt-badge-${tab.mode}`;
+        mode.type = 'button';
+        mode.disabled = this.parsingViewTabIds.has(tab.id);
+        mode.textContent = tab.mode;
+        mode.setAttribute(
+          'aria-label',
+          `Show ${tab.mode === 'parsed' ? 'raw' : 'parsed'} value in this tab`,
+        );
+        mode.title = `Show ${tab.mode === 'parsed' ? 'raw' : 'parsed'} value in this tab`;
+        mode.addEventListener('click', () => this.toggleIsolatedTabMode(tab.id));
+        item.append(mode);
+      }
+
+      if (tab.closable) {
+        const close = document.createElement('button');
+        close.className = 'jt-tab-close';
+        close.type = 'button';
+        close.textContent = '×';
+        close.setAttribute('aria-label', `Close ${tab.title}`);
+        close.addEventListener('click', () => this.closeViewTab(tab.id));
+        item.append(close);
+      }
+
+      fragment.append(item);
+    }
+
+    this.elements.tabs.replaceChildren(fragment);
+  }
+
+  async activateViewTab(tabId) {
+    if (tabId === this.viewTabs.activeTabId) {
+      return;
+    }
+
+    this.saveActiveViewState();
+    this.viewTabs = { ...this.viewTabs, activeTabId: tabId };
+    this.renderTabs();
+    await this.showActiveView();
+  }
+
+  async toggleIsolatedTabMode(tabId) {
+    const tab = this.viewTabs.tabs.find((candidate) => candidate.id === tabId);
+    if (!tab?.mode || this.parsingViewTabIds.has(tabId)) {
+      return;
+    }
+
+    const isActive = tab.id === this.viewTabs.activeTabId;
+    if (isActive) {
+      this.saveActiveViewState();
+    }
+
+    if (tab.mode === 'raw' && !tab.parsedType) {
+      this.parsingViewTabIds.add(tabId);
+      this.renderTabs();
+      if (tab.id === this.viewTabs.activeTabId) {
+        this.setStatus(`Parsing ${tab.title} for this tab...`);
+      }
+
+      try {
+        const response = await this.requestWorker('parse-string', {
+          path: tab.path,
+          displayModeOverrides: tab.displayModeOverrides,
+          activateDisplay: false,
+        });
+        if (!response.ok) {
+          this.showError(response.error);
+          if (tab.id === this.viewTabs.activeTabId) {
+            this.setStatus(`${tab.title} remains in raw mode.`);
+          }
+          return;
+        }
+
+        this.viewTabs = activateViewTabParsedMode(
+          this.viewTabs,
+          tab.id,
+          response.parsedKind,
+        );
+        this.clearError();
+        if (tab.id === this.viewTabs.activeTabId) {
+          await this.showActiveView();
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        this.showError(`Parse failed: ${message}`);
+        if (tab.id === this.viewTabs.activeTabId) {
+          this.setStatus(`${tab.title} remains in raw mode.`);
+        }
+      } finally {
+        this.parsingViewTabIds.delete(tabId);
+        this.renderTabs();
+      }
+      return;
+    }
+
+    const nextMode = tab.mode === 'parsed' ? 'raw' : 'parsed';
+    this.viewTabs = setViewTabPathMode(this.viewTabs, tab.id, tab.path, nextMode);
+    this.renderTabs();
+    if (isActive) {
+      await this.showActiveView();
+    }
+  }
+
+  async showActiveView() {
+    const tab = this.getActiveTab();
+    const search = this.tabSearchStates.get(tab.id);
+    this.closeContextMenu();
+    this.clearSearchResults();
+    this.elements.searchInput.value = search?.query || '';
+    this.searchResults = [...(search?.results || [])];
+    this.selectedSearchIndex = search?.selectedIndex ?? -1;
+    this.searchResultsTruncated = search?.truncated ?? false;
+    this.searchResultsReady = search?.ready ?? false;
+
+    if (tab.type === 'string') {
+      this.renderToken += 1;
+      this.elements.viewControls.hidden = false;
+      this.elements.expansionControls.hidden = true;
+      this.elements.stringControls.hidden = false;
+      this.elements.tree.hidden = true;
+      this.elements.stringView.hidden = false;
+      await this.openStringView(tab);
+      if (tab.id !== this.viewTabs.activeTabId) {
+        return;
+      }
+
+      if (search?.ready) {
+        await this.updateSearchUi(search.truncated, {
+          reveal: this.selectedSearchIndex >= 0,
+        });
+      } else if (search?.query) {
+        this.scheduleSearch();
+      }
+      return;
+    }
+
+    this.clearStringView();
+    this.elements.viewControls.hidden = false;
+    this.elements.expansionControls.hidden = false;
+    this.elements.stringControls.hidden = true;
+    this.elements.tree.hidden = false;
+    this.elements.stringView.hidden = true;
+    const state = this.treeViewStates.get(tab.id);
+    this.expansion =
+      state?.expansion || createExplicitExpansionState([pathKey(tab.path)]);
+    this.elements.tree.scrollTop = 0;
+    await this.refreshRows();
+    if (tab.id !== this.viewTabs.activeTabId) {
+      return;
+    }
+
+    if (state) {
+      this.elements.tree.scrollTop = state.scrollTop;
+      this.renderVisibleRows();
+    }
+
+    if (search?.ready) {
+      await this.updateSearchUi(search.truncated, { reveal: false });
+    } else if (search?.query) {
+      this.scheduleSearch();
+    }
+  }
+
+  async openRowInIsolatedView(row) {
+    if (!getIsolationViewType(row, this.getActiveTab().path)) {
+      return;
+    }
+
+    this.saveActiveViewState();
+    this.viewTabs = openIsolatedView(this.viewTabs, row, this.getActiveTab().path);
+    this.renderTabs();
+    await this.showActiveView();
+  }
+
+  async closeViewTab(tabId) {
+    const wasActive = tabId === this.viewTabs.activeTabId;
+    this.viewTabs = closeViewTab(this.viewTabs, tabId);
+    this.treeViewStates.delete(tabId);
+    this.tabSearchStates.delete(tabId);
+    this.renderTabs();
+    if (wasActive) {
+      await this.showActiveView();
+    }
   }
 
   openRowContextMenu(event, row) {
@@ -1060,6 +1300,8 @@ class JsonViewerApp {
     const isString = row.kind === 'string';
     this.elements.copyJavaScriptStringLiteralButton.hidden = !isString;
     this.elements.copyJsonStringLiteralButton.hidden = !isString;
+    this.elements.openIsolatedViewButton.hidden =
+      getIsolationViewType(row, this.getActiveTab().path) === null;
     this.elements.contextMenuSeparator.hidden = !row.expandable;
     this.elements.expandRecursivelyButton.hidden = !row.expandable;
 
@@ -1111,6 +1353,7 @@ class JsonViewerApp {
     try {
       const response = await this.requestWorker('copy-node', {
         path: row.path,
+        displayModeOverrides: this.getActiveTab().displayModeOverrides,
         format,
       });
       if (!response.ok) {
@@ -1154,6 +1397,7 @@ class JsonViewerApp {
     this.setStatus(`Parsing string at ${formatPath(row.path)}...`);
     const response = await this.requestWorker('parse-string', {
       path: row.path,
+      displayModeOverrides: this.getActiveTab().displayModeOverrides,
     });
 
     if (response.ok) {
@@ -1183,6 +1427,41 @@ class JsonViewerApp {
     await this.refreshRowsAndSearch();
   }
 
+  async toggleTabParsedDisplay(row) {
+    const tab = this.getActiveTab();
+    if (!tab.closable) {
+      return;
+    }
+
+    const isViewRoot = pathKey(row.path) === pathKey(tab.path);
+    if (isViewRoot && tab.type === 'tree') {
+      this.saveActiveViewState();
+    }
+
+    const nextMode = row.parsed ? 'raw' : 'parsed';
+    const nextState = setViewTabPathMode(
+      this.viewTabs,
+      tab.id,
+      row.path,
+      nextMode,
+    );
+    if (nextState === this.viewTabs) {
+      return;
+    }
+
+    this.viewTabs = nextState;
+    this.renderTabs();
+    if (isViewRoot) {
+      await this.showActiveView();
+      return;
+    }
+
+    if (nextMode === 'parsed') {
+      this.expansion = ensureExpanded(this.expansion, row.pathKey);
+    }
+    await this.refreshRowsAndSearch();
+  }
+
   scheduleSearch() {
     window.clearTimeout(this.searchTimer);
     const query = this.elements.searchInput.value.trim();
@@ -1197,7 +1476,7 @@ class JsonViewerApp {
       return;
     }
 
-    this.elements.searchCount.textContent = 'Searching...';
+    this.clearSearchResults('Searching...');
     this.searchTimer = window.setTimeout(() => {
       this.runFullTextSearch(query);
     }, SEARCH_DEBOUNCE_MS);
@@ -1205,12 +1484,29 @@ class JsonViewerApp {
 
   async runFullTextSearch(query) {
     const token = ++this.searchToken;
-    const response = await this.requestWorker('search-tree', {
-      query,
-      maxResults: MAX_SEARCH_RESULTS,
-    });
+    const tab = this.getActiveTab();
+    const response =
+      tab.type === 'string'
+        ? await this.requestWorker('search-string', {
+            query,
+            maxResults: MAX_SEARCH_RESULTS,
+            path: tab.path,
+            effective: tab.mode === 'parsed',
+            displayModeOverrides: tab.displayModeOverrides,
+          })
+        : await this.requestWorker('search-tree', {
+            query,
+            maxResults: MAX_SEARCH_RESULTS,
+            rootPath: tab.path,
+            rootMode: tab.mode,
+            displayModeOverrides: tab.displayModeOverrides,
+          });
 
-    if (token !== this.searchToken || this.elements.searchInput.value.trim() !== query) {
+    if (
+      token !== this.searchToken ||
+      tab.id !== this.viewTabs.activeTabId ||
+      this.elements.searchInput.value.trim() !== query
+    ) {
       return;
     }
 
@@ -1221,6 +1517,8 @@ class JsonViewerApp {
 
     this.searchResults = response.result.matches;
     this.selectedSearchIndex = this.searchResults.length > 0 ? 0 : -1;
+    this.searchResultsTruncated = response.result.truncated;
+    this.searchResultsReady = true;
     await this.updateSearchUi(response.result.truncated, { reveal: true });
   }
 
@@ -1229,11 +1527,18 @@ class JsonViewerApp {
     this.searchToken += 1;
     this.searchResults = [];
     this.selectedSearchIndex = -1;
+    this.searchResultsTruncated = false;
+    this.searchResultsReady = false;
     this.elements.searchCount.textContent = message;
     this.elements.searchPrevButton.disabled = true;
     this.elements.searchNextButton.disabled = true;
     this.elements.searchPreview.hidden = true;
     this.elements.searchPreview.textContent = '';
+    if (this.getActiveTab()?.type === 'string') {
+      this.rerenderStringViewPage();
+    } else {
+      this.renderVisibleRows();
+    }
   }
 
   async selectSearchResult(delta) {
@@ -1244,10 +1549,11 @@ class JsonViewerApp {
     const nextIndex =
       (this.selectedSearchIndex + delta + this.searchResults.length) % this.searchResults.length;
     this.selectedSearchIndex = nextIndex;
-    await this.updateSearchUi(this.searchResults.length >= MAX_SEARCH_RESULTS, { reveal: true });
+    await this.updateSearchUi(this.searchResultsTruncated, { reveal: true });
   }
 
   async updateSearchUi(truncated = false, options = {}) {
+    this.searchResultsTruncated = truncated;
     const total = this.searchResults.length;
     const selected = this.selectedSearchIndex;
     const suffix = truncated ? '+' : '';
@@ -1267,13 +1573,36 @@ class JsonViewerApp {
     this.elements.searchPreview.textContent = `${match.pathLabel} ${match.source}: ${match.preview}`;
 
     if (options.reveal) {
-      await this.revealSearchMatch(match);
+      if (this.getActiveTab().type === 'string') {
+        await this.revealStringSearchMatch(match);
+      } else {
+        await this.revealSearchMatch(match);
+      }
     }
   }
 
+  async revealStringSearchMatch(match) {
+    const state = this.stringViewState;
+    if (!state || !Number.isFinite(match.valueIndex)) {
+      return;
+    }
+
+    const offset = Math.max(match.lineStart || 0, match.valueIndex - 8 * 1024);
+    await this.loadStringViewPage(offset, match.lineNumber || 1);
+    if (state !== this.stringViewState) {
+      return;
+    }
+
+    this.elements.stringViewText
+      .querySelector('.jt-string-search-current')
+      ?.scrollIntoView({ block: 'center' });
+  }
+
   async revealSearchMatch(match) {
-    const ancestorPathKeys = Array.from({ length: match.path.length }, (_, index) =>
-      pathKey(match.path.slice(0, index)),
+    const rootDepth = this.getActiveTab().path.length;
+    const ancestorPathKeys = Array.from(
+      { length: Math.max(0, match.path.length - rootDepth) },
+      (_, index) => pathKey(match.path.slice(0, rootDepth + index)),
     );
     this.expansion = revealExpansionPaths(this.expansion, ancestorPathKeys);
 

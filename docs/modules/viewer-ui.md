@@ -7,12 +7,15 @@ The viewer UI is the main-thread coordinator. It owns DOM rendering, user intera
 ## Key Files
 
 - `src/ui/viewerApp.js`
+- `src/ui/viewTabs.js`
 - `src/ui/styles.css`
 - `src/ui/searchHighlight.js`
 - `src/core/standalonePerformanceHint.js`
 - `src/viewer.js`
 - `test/projectFiles.test.mjs`
+- `test/viewTabs.test.mjs`
 - `test/searchHighlight.test.mjs`
+- `test/stringSearchHighlight.test.mjs`
 - `test/standalonePerformanceHint.test.mjs`
 
 ## State Owned By `JsonViewerApp`
@@ -23,9 +26,11 @@ The viewer UI is the main-thread coordinator. It owns DOM rendering, user intera
 - Expansion mode plus explicit keys, compact recursive subtree roots, and collapsed exceptions.
 - Initial expansion selected from the worker's bounded fully-expanded row count.
 - Render token for stale async row responses.
-- Search query timer, matches, and selected match.
+- Search query timer, matches, selected match, completion state, and truncation state.
 - Context menu state for the selected row and applicable copy/expansion actions.
-- Full-string dialog path, bounded page offsets, history, and stale-request token.
+- Permanent whole-document tab plus closable isolated tree/string tabs.
+- Per-tree-tab expansion and scroll state, plus per-tab search state for both tree and string views.
+- Active full-string tab path, bounded page offsets, history, and stale-request token.
 
 ## Rendering Model
 
@@ -44,20 +49,29 @@ This is why row height and row DOM layout must remain stable.
 - `Parse input`: sends textarea text to `parse-root`; `cmd+enter` on macOS or `ctrl+enter` on Windows/Linux triggers it while the manual textarea has focus.
 - `Open file`: sends a File directly to `parse-root`.
 - `Sample`: loads the inline sample JSON.
-- The expansion controls sit below the manual-input actions and align left; search controls share that row and align right.
+- The tab strip sits above the expansion/search row. Expansion controls align left; search controls share that row and align right.
 - New roots with at most 5,000 fully expanded rows open in `all` mode; larger roots open with only the root expanded.
 - `Collapse`, `Expand root`, and `Expand all`: replace the expansion mode and refresh rows from the worker.
 - Clicking an expandable row's chevron, indentation, or trailing blank area expands or collapses it; clicking or selecting row text does not.
 - `Expand all` shows `Expanding all...` while the worker prepares rows and keeps the 100,000-row truncation message on completion.
 - `Expand all` never parses raw strings; already-parsed strings participate when their display mode is `parsed`.
 - `Parse as JSON`: sends `parse-string` with the row path.
-- `parsed` or `raw` badge: toggles cached parsed display.
+- In the whole-document view, a row `parsed` or `raw` badge toggles the cached source display mode.
 - Search: debounced worker search, result reveal, row highlighting.
 - `cmd+f` on macOS or `ctrl+f` on Windows/Linux focuses the viewer search input instead of opening browser find.
-- Row context menu: right-click anywhere on a non-root row to copy its value or `row.copyPath`.
+- Row context menu: right-click any row, including the view root, to copy its value or `row.copyPath`.
 - String rows also expose JavaScript literal and JSON literal copy formats.
-- Truncated string rows expose `View all`. The centered modal can be resized symmetrically from every edge or corner, reads one bounded page from the worker, soft-wraps without changing whitespace, automatically changes pages at scroll boundaries, and provides Copy all.
-- The modal renders each real line break as a numbered logical row. Soft-wrapped fragments remain inside the same numbered row, and alternating logical rows use subtle background stripes so real and visual line boundaries stay distinguishable.
+- Non-root object, array, and string rows expose `View in isolated view`; number, boolean, null, and view-root rows do not.
+- The whole-document `$` tab is permanent. The tab strip appears only with at least one isolated tab, and long titles elide from the beginning so the most specific path suffix remains visible.
+- An active tab's title area is noninteractive and has no tab-level hover treatment; only its mode badge and close button remain interactive.
+- Collapse, expand-root, and expand-all are scoped to the active tree tab. Search is scoped to every active tab; tree and string tabs independently retain their query, match list, and current-match state. Completed searches restore immediately, while searches interrupted by a tab switch restart when that tab becomes active again.
+- Opening the same path repeatedly creates distinct tabs with ` (1)`, ` (2)`, and later suffixes.
+- A raw JSON string opens as a paged read-only string tab; the same row in parsed mode opens as a structured tree tab.
+- The isolated tab badge and its in-view row badges switch `raw`/`parsed` through tab-local display overrides. Clicking `raw` before a parsed cache exists parses on demand without changing the whole-document view or other tabs.
+- Truncated string rows expose `View all`, which opens the same read-only string tab as the context-menu action.
+- The string tab replaces the tree expansion buttons with a blue-accented Copy all action in the shared control row, reads one bounded page from the worker, soft-wraps without changing whitespace, and automatically changes pages at scroll boundaries.
+- String-tab search runs against the complete retained string in the worker, then loads the page containing the selected match and highlights all matches on that page without sending the full string to the UI.
+- The string tab renders each real line break as a numbered logical row. Soft-wrapped fragments remain inside the same numbered row, and alternating logical rows use subtle background stripes so real and visual line boundaries stay distinguishable.
 - Expandable rows expose `Expand recursively`, which opens only that subtree and keeps the 100,000-row cap.
 - Recursive expansion never parses raw strings; already parsed string subtrees participate when displayed as parsed.
 - Standalone performance hint: the close button hides it immediately and stores a local dismissed preference; direct-page warnings ignore that preference and remain non-dismissible.
@@ -66,7 +80,7 @@ This is why row height and row DOM layout must remain stable.
 
 - Do not parse large JSON on the main thread.
 - Do not keep the full parsed root in `JsonViewerApp`.
-- Do not attach complete long strings to rows or keep them in the dialog after it closes.
+- Do not attach complete long strings to rows or keep them after the string tab closes.
 - Full-string text must use `textContent` and preserve consecutive spaces, tabs, and line breaks; wrapping is visual only.
 - Base automatic expansion on bounded row count, not source byte size; row summaries and worker-to-UI transfer are the relevant costs.
 - Keep controls tied to worker responses; the UI should not invent row data.

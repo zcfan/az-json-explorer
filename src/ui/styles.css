@@ -11,7 +11,7 @@
 
 .jt-app {
   display: grid;
-  grid-template-rows: auto auto auto auto auto auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto auto auto auto auto auto minmax(0, 1fr);
   height: 100vh;
   min-height: 0;
   overflow: hidden;
@@ -89,11 +89,17 @@
 
 .jt-loader-actions,
 .jt-expansion-controls,
+.jt-string-controls,
 .jt-search-controls {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.jt-expansion-controls[hidden],
+.jt-string-controls[hidden] {
+  display: none;
 }
 
 .jt-view-controls {
@@ -164,8 +170,7 @@
 .jt-parse-button,
 .jt-badge,
 .jt-toggle,
-.jt-view-all-button,
-.jt-string-dialog-close {
+.jt-view-all-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -189,6 +194,20 @@
   border-color: #cbd5e1;
   color: #1f2937;
   background: #ffffff;
+}
+
+.jt-copy-all-button {
+  border-color: #93c5fd;
+  color: #1d4ed8;
+  background: #eff6ff;
+  font-weight: 600;
+}
+
+.jt-copy-all-button:hover,
+.jt-copy-all-button:focus-visible {
+  border-color: #60a5fa;
+  outline: none;
+  background: #dbeafe;
 }
 
 .jt-file-input {
@@ -230,6 +249,117 @@
   min-height: 0;
   background: #ffffff;
   font: 12px/28px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.jt-tabs {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  overflow-x: auto;
+  min-width: 0;
+  padding: 5px 8px 0;
+  border-bottom: 0;
+  background: #eef2f7;
+}
+
+.jt-tabs[hidden] {
+  display: none;
+}
+
+.jt-tab {
+  display: flex;
+  min-width: 88px;
+  max-width: 320px;
+  flex: 0 1 240px;
+  align-items: center;
+  border: 1px solid #cbd5e1;
+  border-bottom: 1px solid #cbd5e1;
+  border-radius: 7px 7px 0 0;
+  color: #475569;
+  background: #e2e8f0;
+}
+
+.jt-tab-active {
+  border-bottom-color: #eef2f7;
+  color: #111827;
+  background: #eef2f7;
+}
+
+.jt-tab-select,
+.jt-tab-close {
+  height: 29px;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.jt-tab-select {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 6px;
+  padding: 0 4px 0 10px;
+}
+
+.jt-tab-select:disabled {
+  cursor: default;
+}
+
+.jt-tab-title {
+  overflow: hidden;
+  min-width: 0;
+  flex: 1 1 auto;
+  direction: rtl;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jt-tab-title-text {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+.jt-tab-mode {
+  flex: 0 0 auto;
+  height: 20px;
+  margin-right: 0;
+  padding: 0 7px;
+}
+
+.jt-tab-close {
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  margin: 0 3px 0 1px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.jt-tab-close:hover,
+.jt-tab-close:focus-visible {
+  background: rgb(148 163 184 / 24%);
+}
+
+.jt-tab:not(.jt-tab-active):hover,
+.jt-tab:not(.jt-tab-active):focus-within {
+  background: rgb(148 163 184 / 18%);
+}
+
+.jt-tab:not(.jt-tab-active):focus-within {
+  outline: 1px solid #94a3b8;
+  outline-offset: -1px;
+}
+
+.jt-tab-select:focus-visible,
+.jt-tab-mode:focus-visible,
+.jt-tab-close:focus-visible {
+  outline: none;
 }
 
 .jt-spacer {
@@ -433,6 +563,11 @@
   font-weight: 800;
 }
 
+.jt-string-search-current {
+  outline: 2px solid #d97706;
+  outline-offset: 1px;
+}
+
 .jt-context-menu {
   position: fixed;
   z-index: 20;
@@ -479,84 +614,20 @@
   background: #e5e7eb;
 }
 
-.jt-string-dialog {
-  position: fixed;
-  inset: 0;
-  width: min(920px, calc(100vw - 32px));
-  height: min(720px, calc(100vh - 32px));
-  max-width: none;
-  max-height: none;
-  margin: auto;
-  overflow: hidden;
-  resize: none;
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  padding: 0;
-  color: #111827;
-  background: #ffffff;
-  box-shadow: 0 24px 70px rgb(15 23 42 / 28%);
-}
-
-.jt-string-dialog::backdrop {
-  background: rgb(15 23 42 / 46%);
-}
-
-.jt-string-dialog-shell {
+.jt-string-view {
+  grid-row: -2 / -1;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  height: 100%;
+  grid-template-rows: minmax(0, 1fr);
   min-height: 0;
-}
-
-.jt-string-dialog-header,
-.jt-string-dialog-footer {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 10px 12px;
+  overflow: hidden;
   background: #ffffff;
 }
 
-.jt-string-dialog-header {
-  justify-content: space-between;
-  border-bottom: 1px solid #e2e8f0;
+.jt-string-view[hidden] {
+  display: none;
 }
 
-.jt-string-dialog-footer {
-  justify-content: flex-end;
-  padding-right: 12px;
-  border-top: 1px solid #e2e8f0;
-}
-
-.jt-string-dialog-path {
-  overflow: hidden;
-  min-width: 0;
-  color: #64748b;
-  font: 12px/1.35 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.jt-string-dialog-close {
-  flex: 0 0 auto;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border-color: transparent;
-  color: #475569;
-  background: transparent;
-  font-size: 20px;
-  line-height: 1;
-}
-
-.jt-string-dialog-close:hover,
-.jt-string-dialog-close:focus-visible {
-  border-color: #cbd5e1;
-  outline: none;
-  background: #f1f5f9;
-}
-
-.jt-string-dialog-text {
+.jt-string-view-text {
   overflow: auto;
   min-height: 0;
   color: #111827;
@@ -564,21 +635,21 @@
   background: #f8fafc;
 }
 
-.jt-string-dialog-line {
+.jt-string-view-line {
   display: flex;
   min-width: 0;
   min-height: 1.5em;
 }
 
-.jt-string-dialog-line:nth-child(odd) {
+.jt-string-view-line:nth-child(odd) {
   background: #f8fafc;
 }
 
-.jt-string-dialog-line:nth-child(even) {
+.jt-string-view-line:nth-child(even) {
   background: #f3f6f9;
 }
 
-.jt-string-dialog-line-number {
+.jt-string-view-line-number {
   box-sizing: content-box;
   flex: 0 0 calc(var(--jt-line-number-digits, 2) * 1ch);
   align-self: stretch;
@@ -590,90 +661,13 @@
   user-select: none;
 }
 
-.jt-string-dialog-line-text {
+.jt-string-view-line-text {
   min-width: 0;
   flex: 1 1 auto;
   padding: 2px 16px 2px 12px;
   overflow-wrap: anywhere;
   tab-size: 4;
   white-space: break-spaces;
-}
-
-.jt-string-dialog-resize-handle {
-  position: absolute;
-  z-index: 4;
-  background: transparent;
-  touch-action: none;
-}
-
-.jt-string-dialog-resize-handle[data-resize-edge="n"] {
-  top: 0;
-  right: 12px;
-  left: 12px;
-  height: 6px;
-  cursor: ns-resize;
-}
-
-.jt-string-dialog-resize-handle[data-resize-edge="s"] {
-  right: 12px;
-  bottom: 0;
-  left: 12px;
-  height: 6px;
-  cursor: ns-resize;
-}
-
-.jt-string-dialog-resize-handle[data-resize-edge="e"] {
-  top: 12px;
-  right: 0;
-  bottom: 12px;
-  width: 6px;
-  cursor: ew-resize;
-}
-
-.jt-string-dialog-resize-handle[data-resize-edge="w"] {
-  top: 12px;
-  bottom: 12px;
-  left: 0;
-  width: 6px;
-  cursor: ew-resize;
-}
-
-.jt-string-dialog-resize-handle[data-resize-edge="nw"],
-.jt-string-dialog-resize-handle[data-resize-edge="se"] {
-  width: 12px;
-  height: 12px;
-  cursor: nwse-resize;
-}
-
-.jt-string-dialog-resize-handle[data-resize-edge="ne"],
-.jt-string-dialog-resize-handle[data-resize-edge="sw"] {
-  width: 12px;
-  height: 12px;
-  cursor: nesw-resize;
-}
-
-.jt-string-dialog-resize-handle[data-resize-edge="nw"],
-.jt-string-dialog-resize-handle[data-resize-edge="ne"] {
-  top: 0;
-}
-
-.jt-string-dialog-resize-handle[data-resize-edge="ne"],
-.jt-string-dialog-resize-handle[data-resize-edge="se"] {
-  right: 0;
-}
-
-.jt-string-dialog-resize-handle[data-resize-edge="se"],
-.jt-string-dialog-resize-handle[data-resize-edge="sw"] {
-  bottom: 0;
-}
-
-.jt-string-dialog-resize-handle[data-resize-edge="sw"],
-.jt-string-dialog-resize-handle[data-resize-edge="nw"] {
-  left: 0;
-}
-
-.jt-string-dialog-resizing {
-  user-select: none;
 }
 
 @media (max-width: 720px) {
@@ -689,6 +683,7 @@
 
   .jt-loader-actions,
   .jt-expansion-controls,
+  .jt-string-controls,
   .jt-search-controls {
     width: 100%;
   }

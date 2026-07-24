@@ -133,40 +133,73 @@ test('viewer preserves consecutive whitespace in string values', async () => {
   assert.match(css, /\.jt-search-preview\s*\{[^}]*white-space:\s*break-spaces;/s);
 });
 
-test('viewer exposes a paged full-string dialog for truncated values', async () => {
+test('viewer exposes isolated tree and paged string tabs instead of a modal', async () => {
   const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
   const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
 
-  assert.match(viewer, /<dialog class="jt-string-dialog"/);
-  assert.match(viewer, /class="jt-string-dialog-text"[^>]*aria-label="Full string value with line numbers"/);
-  assert.match(viewer, /data-action="string-dialog-copy-all"/);
-  assert.doesNotMatch(viewer, />Full string value<\/strong>/);
-  assert.doesNotMatch(viewer, /class="jt-string-dialog-status"/);
-  assert.doesNotMatch(viewer, /data-action="string-dialog-previous"/);
-  assert.doesNotMatch(viewer, /data-action="string-dialog-next"/);
-  assert.doesNotMatch(viewer, />Close<\/button>/);
-  assert.equal(viewer.match(/class="jt-string-dialog-resize-handle"/g)?.length, 8);
-  assert.match(viewer, /beginStringDialogResize\(event, handle\.dataset\.resizeEdge\)/);
+  assert.match(viewer, /class="jt-tabs"[^>]*role="tablist"[^>]*hidden/);
+  assert.match(viewer, /class="jt-string-view-text"[^>]*aria-label="Full string value with line numbers"/);
+  assert.match(viewer, /data-action="string-view-copy-all"/);
+  assert.match(viewer, /this\.viewTabs\.tabs\.length < 2/);
+  assert.match(viewer, /rootPath:\s*this\.getActiveTab\(\)\.path/);
+  assert.match(viewer, /this\.treeViewStates\.set\(tab\.id,\s*\{[\s\S]*expansion:\s*this\.expansion/);
+  assert.match(
+    viewer,
+    /this\.requestWorker\('search-tree',\s*\{[\s\S]*rootPath:\s*tab\.path/,
+  );
+  assert.match(viewer, /openRowInIsolatedView\(row\)/);
+  assert.match(viewer, /getIsolationViewType\(row,\s*this\.getActiveTab\(\)\.path\)/);
+  assert.doesNotMatch(viewer, /<dialog/);
+  assert.doesNotMatch(viewer, /showModal\(\)/);
+  assert.doesNotMatch(viewer, /beginStringDialogResize/);
   assert.match(viewer, /if \(row\.valueTruncated\)/);
   assert.match(viewer, /textContent = 'View all'/);
   assert.match(viewer, /this\.requestWorker\('read-string-range'/);
-  assert.match(viewer, /handleStringDialogScroll\(\)/);
-  assert.match(viewer, /renderStringDialogLines\(\s*response\.text,/);
-  assert.match(viewer, /className = 'jt-string-dialog-line-number'/);
-  assert.match(viewer, /className = 'jt-string-dialog-line-text'/);
-  assert.match(css, /\.jt-string-dialog-line-text\s*\{[^}]*white-space:\s*break-spaces;/s);
-  assert.match(css, /\.jt-string-dialog-line-text\s*\{[^}]*overflow-wrap:\s*anywhere;/s);
-  assert.match(css, /\.jt-string-dialog-line:nth-child\(odd\)/);
-  assert.match(css, /\.jt-string-dialog-line:nth-child\(even\)/);
-  assert.match(css, /\.jt-string-dialog\s*\{[^}]*resize:\s*none;/s);
-  assert.match(css, /\.jt-string-dialog\s*\{[^}]*inset:\s*0;/s);
-  assert.match(css, /\.jt-string-dialog\s*\{[^}]*margin:\s*auto;/s);
-  assert.match(css, /\.jt-string-dialog-footer\s*\{[^}]*padding-right:\s*12px;/s);
-  assert.doesNotMatch(viewer, /dialog\.style\.(?:left|top)/);
-  assert.match(css, /\[data-resize-edge="n"\][^{]*\{[^}]*cursor:\s*ns-resize;/s);
-  assert.match(css, /\[data-resize-edge="e"\][^{]*\{[^}]*cursor:\s*ew-resize;/s);
-  assert.match(css, /\[data-resize-edge="nw"\][^{]*\{[^}]*cursor:\s*nwse-resize;/s);
-  assert.match(css, /\[data-resize-edge="ne"\][^{]*\{[^}]*cursor:\s*nesw-resize;/s);
+  assert.match(viewer, /handleStringViewScroll\(\)/);
+  assert.match(viewer, /renderStringViewLines\(\s*response\.text,/);
+  assert.match(viewer, /className = 'jt-string-view-line-number'/);
+  assert.match(viewer, /className = 'jt-string-view-line-text'/);
+  assert.match(css, /\.jt-tab-title\s*\{[^}]*direction:\s*rtl;/s);
+  assert.match(css, /\.jt-tab-title\s*\{[^}]*text-overflow:\s*ellipsis;/s);
+  assert.doesNotMatch(css, /\.jt-tab-title\s*\{[^}]*unicode-bidi:\s*plaintext;/s);
+  assert.match(viewer, /titleText\.className = 'jt-tab-title-text'/);
+  assert.match(viewer, /titleText\.textContent = tab\.title/);
+  assert.match(
+    css,
+    /\.jt-tab-title-text\s*\{[^}]*direction:\s*ltr;[^}]*unicode-bidi:\s*isolate;/s,
+  );
+  assert.match(
+    css,
+    /\.jt-tab:not\(\.jt-tab-active\):hover,[\s\S]*\.jt-tab:not\(\.jt-tab-active\):focus-within\s*\{[^}]*background:/s,
+  );
+  assert.doesNotMatch(css, /\.jt-tab:hover/);
+  assert.doesNotMatch(css, /\.jt-tab-select:hover/);
+  assert.match(viewer, /const isActive = tab\.id === this\.viewTabs\.activeTabId/);
+  assert.match(viewer, /select\.disabled = isActive/);
+  assert.match(css, /\.jt-tab-select:disabled\s*\{[^}]*cursor:\s*default;/s);
+  assert.match(css, /\.jt-tab-close\s*\{[^}]*border-radius:\s*50%;/s);
+  assert.match(
+    css,
+    /\.jt-tab-close:hover,[\s\S]*\.jt-tab-close:focus-visible\s*\{[^}]*background:/s,
+  );
+  assert.match(
+    css,
+    /\.jt-tabs\s*\{[^}]*border-bottom:\s*0;/s,
+  );
+  assert.match(css, /\.jt-tab\s*\{[^}]*border-bottom:\s*1px solid #cbd5e1;/s);
+  assert.match(css, /\.jt-tab-active\s*\{[^}]*border-bottom-color:\s*#eef2f7;/s);
+  assert.match(viewer, /const mode = document\.createElement\('button'\)/);
+  assert.match(viewer, /mode\.addEventListener\('click',[\s\S]*toggleIsolatedTabMode/);
+  assert.match(
+    viewer,
+    /requestWorker\('parse-string',\s*\{[\s\S]*activateDisplay:\s*false/,
+  );
+  assert.match(viewer, /activateViewTabParsedMode/);
+  assert.match(viewer, /setViewTabPathMode/);
+  assert.match(css, /\.jt-string-view-line-text\s*\{[^}]*white-space:\s*break-spaces;/s);
+  assert.match(css, /\.jt-string-view-line-text\s*\{[^}]*overflow-wrap:\s*anywhere;/s);
+  assert.match(css, /\.jt-string-view-line:nth-child\(odd\)/);
+  assert.match(css, /\.jt-string-view-line:nth-child\(even\)/);
 });
 
 test('viewer supports one-way manual JSON input without echoing file content', async () => {
@@ -200,19 +233,82 @@ test('viewer redirects page paste and exposes the platform parse shortcut', asyn
   assert.match(viewer, /this\.parseManualInput\(\)/);
 });
 
-test('viewer places expansion and search controls below the loader and intercepts find', async () => {
+test('viewer places tabs above the expansion and search controls and intercepts find', async () => {
   const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
   const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
 
   assert.match(
     viewer,
-    /<\/section>\s*<section class="jt-view-controls">[\s\S]*class="jt-expansion-controls"[\s\S]*>Collapse<[\s\S]*>Expand root<[\s\S]*>Expand all<[\s\S]*class="jt-search-controls"[\s\S]*class="jt-search-input"[\s\S]*<\/section>\s*<div class="jt-status"/,
+    /<\/section>\s*<nav class="jt-tabs"[^>]*><\/nav>\s*<section class="jt-view-controls">[\s\S]*class="jt-expansion-controls"[\s\S]*>Collapse<[\s\S]*>Expand root<[\s\S]*>Expand all<[\s\S]*class="jt-search-controls"[\s\S]*class="jt-search-input"[\s\S]*<\/section>\s*<div class="jt-status"/,
   );
   assert.match(viewer, /isSearchShortcut/);
   assert.match(viewer, /ownerDocument\.addEventListener\('keydown'/);
   assert.match(viewer, /searchInput\.focus\(\)/);
   assert.match(css, /\.jt-view-controls\s*\{[^}]*justify-content:\s*space-between;/s);
   assert.match(css, /\.jt-search-controls\s*\{[^}]*margin-left:\s*auto;/s);
+});
+
+test('viewer saves and restores search progress independently for each tree tab', async () => {
+  const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
+
+  assert.match(
+    viewer,
+    /this\.tabSearchStates\.set\(tab\.id,\s*\{[\s\S]*query:\s*this\.elements\.searchInput\.value[\s\S]*results:\s*\[\.\.\.this\.searchResults\][\s\S]*selectedIndex:\s*this\.selectedSearchIndex[\s\S]*truncated:\s*this\.searchResultsTruncated[\s\S]*ready:\s*this\.searchResultsReady/,
+  );
+  assert.match(viewer, /const search = this\.tabSearchStates\.get\(tab\.id\)/);
+  assert.match(viewer, /this\.elements\.searchInput\.value = search\?\.query \|\| ''/);
+  assert.match(viewer, /this\.searchResults = \[\.\.\.\(search\?\.results \|\| \[\]\)\]/);
+  assert.match(viewer, /this\.selectedSearchIndex = search\?\.selectedIndex \?\? -1/);
+  assert.match(
+    viewer,
+    /await this\.refreshRows\(\);\s*if \(tab\.id !== this\.viewTabs\.activeTabId\) \{\s*return;/,
+  );
+  assert.match(
+    viewer,
+    /if \(search\?\.ready\)\s*\{[\s\S]*updateSearchUi\(search\.truncated,\s*\{\s*reveal:\s*false\s*\}\)/,
+  );
+  assert.match(viewer, /else if \(search\?\.query\)\s*\{[\s\S]*this\.scheduleSearch\(\)/);
+});
+
+test('paged string tabs search, highlight, and restore their own current match', async () => {
+  const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
+
+  assert.match(viewer, /this\.tabSearchStates = new Map\(\)/);
+  assert.match(
+    viewer,
+    /this\.tabSearchStates\.set\(tab\.id,\s*\{[\s\S]*query:[\s\S]*selectedIndex:[\s\S]*ready:/,
+  );
+  assert.match(viewer, /const search = this\.tabSearchStates\.get\(tab\.id\)/);
+  assert.match(
+    viewer,
+    /class="jt-expansion-controls"[\s\S]*class="jt-string-controls"[^>]*hidden[\s\S]*data-action="string-view-copy-all"[\s\S]*class="jt-search-controls"/,
+  );
+  assert.match(
+    viewer,
+    /tab\.type === 'string'[\s\S]*this\.elements\.expansionControls\.hidden = true[\s\S]*this\.elements\.stringControls\.hidden = false/,
+  );
+  assert.match(
+    viewer,
+    /this\.elements\.expansionControls\.hidden = false[\s\S]*this\.elements\.stringControls\.hidden = true/,
+  );
+  assert.match(
+    css,
+    /\.jt-expansion-controls\[hidden\],\s*\.jt-string-controls\[hidden\]\s*\{[^}]*display:\s*none;/s,
+  );
+  assert.match(
+    viewer,
+    /class="jt-button jt-copy-all-button"[^>]*data-action="string-view-copy-all"/,
+  );
+  assert.match(
+    css,
+    /\.jt-copy-all-button\s*\{[^}]*border-color:\s*#93c5fd;[^}]*color:\s*#1d4ed8;[^}]*background:\s*#eff6ff;/s,
+  );
+  assert.doesNotMatch(viewer, /class="jt-string-view-footer"/);
+  assert.doesNotMatch(css, /\.jt-string-view-footer\s*\{/);
+  assert.match(viewer, /this\.requestWorker\('search-string'/);
+  assert.match(viewer, /createStringSearchSegments\(/);
+  assert.match(css, /\.jt-string-search-current\s*\{/);
 });
 
 test('direct page previews pass file-like payloads instead of raw JSON text strings', async () => {
@@ -306,6 +402,14 @@ test('parse button is hidden after a string already has parsed cache', async () 
   assert.match(viewer, /if \(row\.canParseAsJson && !row\.hasParsed\)/);
 });
 
+test('an isolated view switches row mode through tab-local state', async () => {
+  const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
+
+  assert.match(viewer, /activeTab\.closable[\s\S]*toggleTabParsedDisplay\(row\)/);
+  assert.match(viewer, /setViewTabPathMode\([\s\S]*nextMode/);
+  assert.match(viewer, /toggleParsedDisplay\(row\)/);
+});
+
 test('viewer row context menu avoids duplicate string actions and works outside the key', async () => {
   const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
   const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
@@ -316,7 +420,10 @@ test('viewer row context menu avoids duplicate string actions and works outside 
   assert.match(viewer, /Copy string as JavaScript literal/);
   assert.match(viewer, /Copy string as JSON literal/);
   assert.match(viewer, /Expand recursively/);
+  assert.match(viewer, />View in isolated view<\/button>/);
+  assert.doesNotMatch(viewer, /在隔离视图中查看/);
   assert.match(viewer, /element\.addEventListener\('contextmenu'/);
+  assert.doesNotMatch(viewer, /if \(row\.key !== '\$'\) \{\s*element\.addEventListener\('contextmenu'/);
   assert.match(viewer, /openRowContextMenu/);
   assert.doesNotMatch(viewer, /key\.addEventListener\('contextmenu'/);
   assert.match(viewer, /row\.copyPath/);

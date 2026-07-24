@@ -1,7 +1,14 @@
 import { canParseStringAsJson } from '../core/parseCache.js';
-import { formatCopyPath, formatPath, pathKey, collectVisibleRows } from '../core/treeModel.js';
+import {
+  collectVisibleRows,
+  formatCopyPath,
+  formatPath,
+  getNodeKind,
+  pathKey,
+} from '../core/treeModel.js';
 import { searchJsonTree } from '../core/treeSearch.js';
 import { countJsonNodesUpTo } from '../core/treeStats.js';
+import { findTextMatches } from '../core/textSearch.js';
 import {
   formatJavaScriptStringLiteral,
   formatJsonStringLiteral,
@@ -99,13 +106,29 @@ function createRootSummary(value) {
   };
 }
 
-function getVisibleValueAtPath(rootValue, path) {
+function createDisplayModeOverrides(message) {
+  const overrides = new Map(
+    (message.displayModeOverrides || []).map((entry) => [
+      pathKey(entry.path),
+      entry.mode,
+    ]),
+  );
+  if (message.rootMode) {
+    overrides.set(pathKey(message.rootPath || []), message.rootMode);
+  }
+
+  return overrides;
+}
+
+function getVisibleValueAtPath(rootValue, path, displayModeOverrides = new Map()) {
   let value = rootValue;
   let currentPath = [];
 
   for (const segment of path) {
     const parsedEntry = retainedParseCache.get(pathKey(currentPath));
-    if (parsedEntry?.parsedValue !== undefined && parsedEntry.displayMode === 'parsed') {
+    const displayMode =
+      displayModeOverrides.get(pathKey(currentPath)) ?? parsedEntry?.displayMode;
+    if (parsedEntry?.parsedValue !== undefined && displayMode === 'parsed') {
       value = parsedEntry.parsedValue;
     }
 
@@ -120,10 +143,11 @@ function getVisibleValueAtPath(rootValue, path) {
   return value;
 }
 
-function getEffectiveValueAtPath(rootValue, path) {
-  const value = getVisibleValueAtPath(rootValue, path);
+function getEffectiveValueAtPath(rootValue, path, displayModeOverrides = new Map()) {
+  const value = getVisibleValueAtPath(rootValue, path, displayModeOverrides);
   const parsedEntry = retainedParseCache.get(pathKey(path));
-  return parsedEntry?.parsedValue !== undefined && parsedEntry.displayMode === 'parsed'
+  const displayMode = displayModeOverrides.get(pathKey(path)) ?? parsedEntry?.displayMode;
+  return parsedEntry?.parsedValue !== undefined && displayMode === 'parsed'
     ? parsedEntry.parsedValue
     : value;
 }
@@ -139,11 +163,32 @@ function createCopyNodeResult(message) {
     };
   }
 
-  const sourceValue = getVisibleValueAtPath(retainedRootValue, message.path);
-  const effectiveValue = getEffectiveValueAtPath(retainedRootValue, message.path);
+  const displayModeOverrides = createDisplayModeOverrides(message);
+  const sourceValue = getVisibleValueAtPath(
+    retainedRootValue,
+    message.path,
+    displayModeOverrides,
+  );
+  const effectiveValue = getEffectiveValueAtPath(
+    retainedRootValue,
+    message.path,
+    displayModeOverrides,
+  );
   let text;
 
-  if (message.format === 'value') {
+  if (message.format === 'raw-string') {
+    if (typeof sourceValue !== 'string') {
+      return {
+        id: message.id,
+        type: 'copy-node-result',
+        ok: false,
+        path: message.path,
+        error: `Value at ${formatPath(message.path)} is not a string.`,
+      };
+    }
+
+    text = sourceValue;
+  } else if (message.format === 'value') {
     text = formatValueForClipboard(effectiveValue);
   } else if (typeof sourceValue !== 'string') {
     return {
@@ -258,7 +303,10 @@ function createReadStringRangeResult(message) {
     };
   }
 
-  const value = getVisibleValueAtPath(retainedRootValue, message.path);
+  const displayModeOverrides = createDisplayModeOverrides(message);
+  const value = message.effective
+    ? getEffectiveValueAtPath(retainedRootValue, message.path, displayModeOverrides)
+    : getVisibleValueAtPath(retainedRootValue, message.path, displayModeOverrides);
   if (typeof value !== 'string') {
     return {
       id: message.id,
@@ -293,7 +341,90 @@ function createReadStringRangeResult(message) {
   };
 }
 
-function createParseCacheAdapter() {
+function addStringMatchLocations(value, matches, path) {
+  let scanIndex = 0;
+  let lineNumber = 1;
+  let lineStart = 0;
+
+  return matches.map((match) => {
+    while (scanIndex < match.index) {
+      const character = value[scanIndex];
+      if (character === '\r' && value[scanIndex + 1] === '\n') {
+        scanIndex += 2;
+        lineNumber += 1;
+        lineStart = scanIndex;
+      } else {
+        scanIndex += 1;
+        if (
+          character === '\r' ||
+          character === '\n' ||
+          character === '\u2028' ||
+          character === '\u2029'
+        ) {
+          lineNumber += 1;
+          lineStart = scanIndex;
+        }
+      }
+    }
+
+    return {
+      ...match,
+      path,
+      pathKey: pathKey(path),
+      pathLabel: formatPath(path),
+      source: 'value',
+      kind: 'string',
+      valueIndex: match.index,
+      lineNumber,
+      lineStart,
+    };
+  });
+}
+
+async function createSearchStringResult(message) {
+  if (retainedRootValue === undefined) {
+    return {
+      id: message.id,
+      type: 'search-string-result',
+      ok: false,
+      error: 'No parsed JSON is available to search.',
+    };
+  }
+
+  const path = message.path || [];
+  const displayModeOverrides = createDisplayModeOverrides(message);
+  const value = message.effective
+    ? getEffectiveValueAtPath(retainedRootValue, path, displayModeOverrides)
+    : getVisibleValueAtPath(retainedRootValue, path, displayModeOverrides);
+  if (typeof value !== 'string') {
+    return {
+      id: message.id,
+      type: 'search-string-result',
+      ok: false,
+      path,
+      error: `Value at ${formatPath(path)} is not a string.`,
+    };
+  }
+
+  const result = await findTextMatches(value, message.query, {
+    caseSensitive: message.caseSensitive,
+    maxResults: message.maxResults,
+    chunkSize: message.stringChunkSize,
+  });
+
+  return {
+    id: message.id,
+    type: 'search-string-result',
+    ok: true,
+    path,
+    result: {
+      ...result,
+      matches: addStringMatchLocations(value, result.matches, path),
+    },
+  };
+}
+
+function createParseCacheAdapter(displayModeOverrides = new Map()) {
   return {
     hasParsed(path) {
       return retainedParseCache.get(pathKey(path))?.parsedValue !== undefined;
@@ -302,7 +433,8 @@ function createParseCacheAdapter() {
       return retainedParseCache.get(pathKey(path))?.parsedValue;
     },
     getDisplayMode(path) {
-      return retainedParseCache.get(pathKey(path))?.displayMode ?? 'raw';
+      const key = pathKey(path);
+      return displayModeOverrides.get(key) ?? retainedParseCache.get(key)?.displayMode ?? 'raw';
     },
     getError(path) {
       return retainedParseCache.get(pathKey(path))?.error ?? null;
@@ -311,6 +443,7 @@ function createParseCacheAdapter() {
 }
 
 function createDisplayRow(row, parseCache) {
+  const parsedValue = parseCache.getParsed(row.path);
   const valueSummary =
     row.parsed || typeof row.value !== 'string'
       ? {
@@ -318,7 +451,7 @@ function createDisplayRow(row, parseCache) {
             ? summarizeContainer(row.effectiveValue)
             : formatJsonValue(row.value),
           valueTruncated: false,
-          valueLength: null,
+          valueLength: typeof row.value === 'string' ? row.value.length : null,
         }
       : summarizeString(row.value);
 
@@ -336,6 +469,7 @@ function createDisplayRow(row, parseCache) {
     recursivelyExpanded: row.recursivelyExpanded,
     parsed: row.parsed,
     hasParsed: parseCache.hasParsed(row.path),
+    parsedKind: parsedValue === undefined ? null : getNodeKind(parsedValue),
     canParseAsJson: typeof row.value === 'string' && canParseStringAsJson(row.value),
     parseError: row.parseError,
     ...valueSummary,
@@ -385,7 +519,11 @@ async function createParseResult(message, resultType, { retainRoot = false } = {
 }
 
 function createStringParseResult(message) {
-  const sourceValue = getVisibleValueAtPath(retainedRootValue, message.path);
+  const sourceValue = getVisibleValueAtPath(
+    retainedRootValue,
+    message.path,
+    createDisplayModeOverrides(message),
+  );
   const key = pathKey(message.path);
 
   if (typeof sourceValue !== 'string') {
@@ -405,9 +543,13 @@ function createStringParseResult(message) {
 
   try {
     const parsedValue = parseJson(sourceValue);
+    const displayMode =
+      message.activateDisplay === false
+        ? retainedParseCache.get(key)?.displayMode ?? 'raw'
+        : 'parsed';
     retainedParseCache.set(key, {
       parsedValue,
-      displayMode: 'parsed',
+      displayMode,
       error: null,
     });
     return {
@@ -415,20 +557,24 @@ function createStringParseResult(message) {
       type: 'parse-string-result',
       ok: true,
       path: message.path,
-      displayMode: 'parsed',
+      displayMode,
+      parsedKind: getNodeKind(parsedValue),
     };
   } catch (error) {
-    retainedParseCache.set(key, {
-      parsedValue: retainedParseCache.get(key)?.parsedValue,
-      displayMode: 'raw',
-      error: error instanceof Error ? error.message : String(error),
-    });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    if (message.activateDisplay !== false) {
+      retainedParseCache.set(key, {
+        parsedValue: retainedParseCache.get(key)?.parsedValue,
+        displayMode: 'raw',
+        error: errorMessage,
+      });
+    }
     return {
       id: message.id,
       type: 'parse-string-result',
       ok: false,
       path: message.path,
-      error: retainedParseCache.get(key).error,
+      error: errorMessage,
     };
   }
 }
@@ -478,6 +624,10 @@ export async function handleWorkerMessage(message) {
     return createReadStringRangeResult(message);
   }
 
+  if (message?.type === 'search-string') {
+    return createSearchStringResult(message);
+  }
+
   if (message?.type === 'collect-visible-rows') {
     if (retainedRootValue === undefined) {
       return {
@@ -489,14 +639,22 @@ export async function handleWorkerMessage(message) {
     }
 
     const maxRows = message.maxRows ?? Number.POSITIVE_INFINITY;
-    const parseCache = createParseCacheAdapter();
-    const rows = await collectVisibleRows(retainedRootValue, {
+    const rootPath = message.rootPath || [];
+    const displayModeOverrides = createDisplayModeOverrides(message);
+    const parseCache = createParseCacheAdapter(displayModeOverrides);
+    const rootValue = getVisibleValueAtPath(
+      retainedRootValue,
+      rootPath,
+      displayModeOverrides,
+    );
+    const rows = await collectVisibleRows(rootValue, {
       expansionMode: message.expansionMode ?? 'explicit',
       expandedKeys: new Set(message.expandedKeys || []),
       collapsedKeys: new Set(message.collapsedKeys || []),
       recursiveExpandedKeys: new Set(message.recursiveExpandedKeys || []),
       maxRows,
       parseCache,
+      rootPath,
       yieldEvery: message.yieldEvery ?? 500,
     });
 
@@ -523,13 +681,22 @@ export async function handleWorkerMessage(message) {
       id: message.id,
       type: 'search-tree-result',
       ok: true,
-      result: await searchJsonTree(retainedRootValue, message.query, {
-        caseSensitive: message.caseSensitive,
-        maxResults: message.maxResults,
-        longStringThreshold: message.longStringThreshold,
-        stringChunkSize: message.stringChunkSize,
-        parseCache: createParseCacheAdapter(),
-      }),
+      result: await searchJsonTree(
+        getVisibleValueAtPath(
+          retainedRootValue,
+          message.rootPath || [],
+          createDisplayModeOverrides(message),
+        ),
+        message.query,
+        {
+          caseSensitive: message.caseSensitive,
+          maxResults: message.maxResults,
+          longStringThreshold: message.longStringThreshold,
+          stringChunkSize: message.stringChunkSize,
+          parseCache: createParseCacheAdapter(createDisplayModeOverrides(message)),
+          rootPath: message.rootPath || [],
+        },
+      ),
     };
   }
 

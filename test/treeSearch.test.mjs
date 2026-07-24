@@ -51,6 +51,26 @@ test('searches inside long strings with chunk boundaries', async () => {
   );
 });
 
+test('searches an isolated subtree while preserving canonical paths', async () => {
+  const isolatedRoot = {
+    included: 'target',
+    nested: { includedToo: 'target' },
+  };
+
+  const result = await searchJsonTree(isolatedRoot, 'target', {
+    rootPath: ['scope'],
+    maxResults: 10,
+  });
+
+  assert.deepEqual(
+    result.matches.map((match) => match.path),
+    [
+      ['scope', 'included'],
+      ['scope', 'nested', 'includedToo'],
+    ],
+  );
+});
+
 test('preserves whitespace in short value previews', async () => {
   const value = {
     text: 'before  \n\t target  after',

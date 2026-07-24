@@ -95,6 +95,7 @@ export async function searchJsonTree(rootValue, query, options = {}) {
   const stringChunkSize = Math.max(1, options.stringChunkSize ?? DEFAULT_STRING_CHUNK_SIZE);
   const yieldEvery = Math.max(1, options.yieldEvery ?? DEFAULT_YIELD_EVERY);
   const parseCache = options.parseCache ?? null;
+  const rootPath = options.rootPath ?? [];
   const matches = [];
   let searchedNodes = 0;
   let truncated = false;
@@ -182,7 +183,7 @@ export async function searchJsonTree(rootValue, query, options = {}) {
     return matches.length < maxResults;
   }
 
-  const stack = [{ key: '$', path: [], value: rootValue }];
+  const stack = [{ key: '$', path: rootPath, value: rootValue }];
 
   while (stack.length > 0 && matches.length < maxResults) {
     const current = stack.pop();

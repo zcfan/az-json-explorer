@@ -25,8 +25,10 @@ The project uses Node's built-in test runner. There is no test build step.
 | `test/textSearch.test.mjs` | Chunked long-string search and truncation. |
 | `test/treeSearch.test.mjs` | Tree-wide key and primitive value search. |
 | `test/searchHighlight.test.mjs` | UI search highlight segmentation and row flags. |
+| `test/stringSearchHighlight.test.mjs` | Mapping full-string match offsets onto a bounded text page and its current match. |
 | `test/expansionState.test.mjs` | Explicit/all/recursive expansion transitions, collapsed exceptions, parsed-node reopening, and search reveal. |
 | `test/jsonWorker.test.mjs` | Worker parse, retained root, nested parse, copy text, visible rows, search messages. |
+| `test/viewTabs.test.mjs` | Permanent-root, isolation eligibility, raw/parsed modes, duplicate titles, and close selection. |
 | `test/externalLaunch.test.mjs` | Public launch validation, payload handoff, rate limiting, claim, timeout, and tab failures. |
 | `test/pageLaunchBridge.test.mjs` | Webpage discovery, trusted-click gating, and bridge errors. |
 | `test/integrationClient.test.mjs` | Shared webpage/extension transports, store-page fallback, and error behavior. |

@@ -101,6 +101,86 @@ test('worker parses nested string values with path echo', async () => {
   assert.deepEqual(response.value, { nested: [true] });
 });
 
+test('worker can cache parsed JSON for an isolated tab without changing the source display', async () => {
+  const worker = new Worker(new URL('../src/worker/jsonWorker.js', import.meta.url), {
+    type: 'module',
+  });
+  const send = (message) =>
+    new Promise((resolve, reject) => {
+      worker.once('message', resolve);
+      worker.once('error', reject);
+      worker.postMessage(message);
+    });
+
+  try {
+    await send({
+      id: 'parse-root-for-tab-only-parse',
+      type: 'parse-root',
+      text: JSON.stringify({ payload: '{"nested":true}' }),
+    });
+    const parseResponse = await send({
+      id: 'parse-for-tab-only',
+      type: 'parse-string',
+      path: ['payload'],
+      activateDisplay: false,
+    });
+    const rowsResponse = await send({
+      id: 'collect-source-after-tab-only-parse',
+      type: 'collect-visible-rows',
+      expandedKeys: [pathKey([])],
+      maxRows: 10,
+    });
+
+    assert.equal(parseResponse.ok, true);
+    assert.equal(parseResponse.displayMode, 'raw');
+    assert.equal(parseResponse.parsedKind, 'object');
+    const payloadRow = rowsResponse.rows.find((row) => row.pathKey === pathKey(['payload']));
+    assert.equal(payloadRow.hasParsed, true);
+    assert.equal(payloadRow.parsed, false);
+  } finally {
+    await worker.terminate();
+  }
+});
+
+test('an isolated tab parse failure does not add an error to the source row', async () => {
+  const worker = new Worker(new URL('../src/worker/jsonWorker.js', import.meta.url), {
+    type: 'module',
+  });
+  const send = (message) =>
+    new Promise((resolve, reject) => {
+      worker.once('message', resolve);
+      worker.once('error', reject);
+      worker.postMessage(message);
+    });
+
+  try {
+    await send({
+      id: 'parse-root-for-tab-only-error',
+      type: 'parse-root',
+      text: JSON.stringify({ payload: '{"nested":}' }),
+    });
+    const parseResponse = await send({
+      id: 'parse-error-for-tab-only',
+      type: 'parse-string',
+      path: ['payload'],
+      activateDisplay: false,
+    });
+    const rowsResponse = await send({
+      id: 'collect-source-after-tab-only-error',
+      type: 'collect-visible-rows',
+      expandedKeys: [pathKey([])],
+      maxRows: 10,
+    });
+
+    assert.equal(parseResponse.ok, false);
+    const payloadRow = rowsResponse.rows.find((row) => row.pathKey === pathKey(['payload']));
+    assert.equal(payloadRow.hasParsed, false);
+    assert.equal(payloadRow.parseError, null);
+  } finally {
+    await worker.terminate();
+  }
+});
+
 test('worker searches the retained parsed tree after root parsing', async () => {
   const worker = new Worker(new URL('../src/worker/jsonWorker.js', import.meta.url), {
     type: 'module',
@@ -177,6 +257,49 @@ test('worker searches a parsed string subtree instead of its raw string value', 
   }
 });
 
+test('worker searches one retained string and returns offsets with line locations', async () => {
+  const worker = new Worker(new URL('../src/worker/jsonWorker.js', import.meta.url), {
+    type: 'module',
+  });
+  const send = (message) =>
+    new Promise((resolve, reject) => {
+      worker.once('message', resolve);
+      worker.once('error', reject);
+      worker.postMessage(message);
+    });
+
+  try {
+    await send({
+      id: 'parse-root-for-string-search',
+      type: 'parse-root',
+      text: JSON.stringify({ message: 'first hit\nsecond hit' }),
+    });
+
+    const response = await send({
+      id: 'search-string-value',
+      type: 'search-string',
+      path: ['message'],
+      query: 'hit',
+      maxResults: 10,
+    });
+
+    assert.equal(response.ok, true);
+    assert.deepEqual(
+      response.result.matches.map((match) => ({
+        valueIndex: match.valueIndex,
+        lineNumber: match.lineNumber,
+        lineStart: match.lineStart,
+      })),
+      [
+        { valueIndex: 6, lineNumber: 1, lineStart: 0 },
+        { valueIndex: 17, lineNumber: 2, lineStart: 10 },
+      ],
+    );
+  } finally {
+    await worker.terminate();
+  }
+});
+
 test('worker collects visible row summaries from the retained root without cloning containers', async () => {
   const worker = new Worker(new URL('../src/worker/jsonWorker.js', import.meta.url), {
     type: 'module',
@@ -223,6 +346,259 @@ test('worker collects visible row summaries from the retained root without cloni
   );
   assert.equal('value' in rowsResponse.rows[0], false);
   assert.equal('effectiveValue' in rowsResponse.rows[0], false);
+});
+
+test('worker scopes visible rows and search to an isolated root path', async () => {
+  const worker = new Worker(new URL('../src/worker/jsonWorker.js', import.meta.url), {
+    type: 'module',
+  });
+  const send = (message) =>
+    new Promise((resolve, reject) => {
+      worker.once('message', resolve);
+      worker.once('error', reject);
+      worker.postMessage(message);
+    });
+
+  try {
+    await send({
+      id: 'parse-root-for-isolated-view',
+      type: 'parse-root',
+      text: JSON.stringify({
+        outside: 'target',
+        scope: { inside: 'target', nested: { value: 1 } },
+      }),
+    });
+
+    const rowsResponse = await send({
+      id: 'collect-isolated-rows',
+      type: 'collect-visible-rows',
+      rootPath: ['scope'],
+      expandedKeys: [pathKey(['scope'])],
+      maxRows: 10,
+    });
+    const searchResponse = await send({
+      id: 'search-isolated-tree',
+      type: 'search-tree',
+      rootPath: ['scope'],
+      query: 'target',
+      maxResults: 10,
+    });
+
+    assert.equal(rowsResponse.ok, true);
+    assert.deepEqual(
+      rowsResponse.rows.map((row) => [row.depth, row.key, row.path]),
+      [
+        [0, '$', ['scope']],
+        [1, 'inside', ['scope', 'inside']],
+        [1, 'nested', ['scope', 'nested']],
+      ],
+    );
+    assert.deepEqual(
+      searchResponse.result.matches.map((match) => match.path),
+      [['scope', 'inside']],
+    );
+  } finally {
+    await worker.terminate();
+  }
+});
+
+test('a parsed-string tab keeps its parsed root mode after the source row returns to raw', async () => {
+  const worker = new Worker(new URL('../src/worker/jsonWorker.js', import.meta.url), {
+    type: 'module',
+  });
+  const payloadText = '{"nested":{"value":1}}';
+  const send = (message) =>
+    new Promise((resolve, reject) => {
+      worker.once('message', resolve);
+      worker.once('error', reject);
+      worker.postMessage(message);
+    });
+
+  try {
+    await send({
+      id: 'parse-root-for-mode-snapshot',
+      type: 'parse-root',
+      text: JSON.stringify({ payload: payloadText }),
+    });
+    await send({
+      id: 'parse-string-for-mode-snapshot',
+      type: 'parse-string',
+      path: ['payload'],
+    });
+    await send({
+      id: 'return-source-row-to-raw',
+      type: 'toggle-parsed-display',
+      path: ['payload'],
+    });
+
+    const response = await send({
+      id: 'collect-parsed-mode-snapshot',
+      type: 'collect-visible-rows',
+      rootPath: ['payload'],
+      rootMode: 'parsed',
+      expandedKeys: [pathKey(['payload'])],
+      maxRows: 10,
+    });
+
+    assert.equal(response.ok, true);
+    assert.equal(response.rows[0].parsedKind, 'object');
+    assert.equal(response.rows[0].valueLength, payloadText.length);
+    assert.deepEqual(
+      response.rows.map((row) => [row.key, row.path, row.effectiveKind]),
+      [
+        ['$', ['payload'], 'object'],
+        ['nested', ['payload', 'nested'], 'object'],
+      ],
+    );
+  } finally {
+    await worker.terminate();
+  }
+});
+
+test('an isolated tab keeps parsed ancestor modes needed to resolve its nested path', async () => {
+  const worker = new Worker(new URL('../src/worker/jsonWorker.js', import.meta.url), {
+    type: 'module',
+  });
+  const send = (message) =>
+    new Promise((resolve, reject) => {
+      worker.once('message', resolve);
+      worker.once('error', reject);
+      worker.postMessage(message);
+    });
+  const displayModeOverrides = [{ path: ['payload'], mode: 'parsed' }];
+
+  try {
+    await send({
+      id: 'parse-root-for-nested-tab-snapshot',
+      type: 'parse-root',
+      text: JSON.stringify({
+        payload: JSON.stringify({ nested: { text: 'hello' } }),
+      }),
+    });
+    await send({
+      id: 'parse-string-for-nested-tab-snapshot',
+      type: 'parse-string',
+      path: ['payload'],
+    });
+    await send({
+      id: 'return-nested-tab-source-to-raw',
+      type: 'toggle-parsed-display',
+      path: ['payload'],
+    });
+
+    const rowsResponse = await send({
+      id: 'collect-nested-mode-snapshot',
+      type: 'collect-visible-rows',
+      rootPath: ['payload', 'nested'],
+      displayModeOverrides,
+      expandedKeys: [pathKey(['payload', 'nested'])],
+      maxRows: 10,
+    });
+    const stringResponse = await send({
+      id: 'read-nested-mode-snapshot-string',
+      type: 'read-string-range',
+      path: ['payload', 'nested', 'text'],
+      displayModeOverrides,
+      offset: 0,
+      length: 100,
+    });
+
+    assert.deepEqual(
+      rowsResponse.rows.map((row) => [row.key, row.path]),
+      [
+        ['$', ['payload', 'nested']],
+        ['text', ['payload', 'nested', 'text']],
+      ],
+    );
+    assert.equal(stringResponse.text, 'hello');
+  } finally {
+    await worker.terminate();
+  }
+});
+
+test('a raw string tab copies the original string after the source row becomes parsed', async () => {
+  const worker = new Worker(new URL('../src/worker/jsonWorker.js', import.meta.url), {
+    type: 'module',
+  });
+  const send = (message) =>
+    new Promise((resolve, reject) => {
+      worker.once('message', resolve);
+      worker.once('error', reject);
+      worker.postMessage(message);
+    });
+  const rawValue = JSON.stringify({ nested: true });
+
+  try {
+    await send({
+      id: 'parse-root-for-raw-tab-copy',
+      type: 'parse-root',
+      text: JSON.stringify({ payload: rawValue }),
+    });
+    await send({
+      id: 'parse-source-after-raw-tab-opened',
+      type: 'parse-string',
+      path: ['payload'],
+    });
+    const response = await send({
+      id: 'copy-raw-tab-string',
+      type: 'copy-node',
+      path: ['payload'],
+      format: 'raw-string',
+    });
+
+    assert.equal(response.ok, true);
+    assert.equal(response.text, rawValue);
+  } finally {
+    await worker.terminate();
+  }
+});
+
+test('a parsed string tab reads and copies the effective inner string', async () => {
+  const worker = new Worker(new URL('../src/worker/jsonWorker.js', import.meta.url), {
+    type: 'module',
+  });
+  const send = (message) =>
+    new Promise((resolve, reject) => {
+      worker.once('message', resolve);
+      worker.once('error', reject);
+      worker.postMessage(message);
+    });
+  const displayModeOverrides = [{ path: ['payload'], mode: 'parsed' }];
+
+  try {
+    await send({
+      id: 'parse-root-for-parsed-string-tab',
+      type: 'parse-root',
+      text: JSON.stringify({ payload: JSON.stringify('inner text') }),
+    });
+    await send({
+      id: 'parse-string-for-parsed-string-tab',
+      type: 'parse-string',
+      path: ['payload'],
+    });
+
+    const rangeResponse = await send({
+      id: 'read-parsed-string-tab',
+      type: 'read-string-range',
+      path: ['payload'],
+      displayModeOverrides,
+      effective: true,
+      offset: 0,
+      length: 100,
+    });
+    const copyResponse = await send({
+      id: 'copy-parsed-string-tab',
+      type: 'copy-node',
+      path: ['payload'],
+      displayModeOverrides,
+      format: 'value',
+    });
+
+    assert.equal(rangeResponse.text, 'inner text');
+    assert.equal(copyResponse.text, 'inner text');
+  } finally {
+    await worker.terminate();
+  }
 });
 
 test('worker marks truncated string summaries without returning the complete value', async () => {

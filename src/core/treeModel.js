@@ -110,6 +110,7 @@ export async function collectVisibleRows(rootValue, options = {}) {
     collapsedKeys = new Set(),
     recursiveExpandedKeys = new Set(),
     parseCache = null,
+    rootPath = [],
     yieldEvery = 500,
     maxRows = Number.POSITIVE_INFINITY,
   } = options;
@@ -161,6 +162,6 @@ export async function collectVisibleRows(rootValue, options = {}) {
     }
   }
 
-  await visit({ key: '$', path: [], value: rootValue, depth: 0 });
+  await visit({ key: '$', path: rootPath, value: rootValue, depth: 0 });
   return rows;
 }
