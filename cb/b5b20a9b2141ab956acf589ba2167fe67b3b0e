@@ -1,0 +1,23 @@
+src/ui/viewTabs.js
+  s_2a8c562109077b::t_2cc7873e219e01 19-164,221-223
+test/viewTabs.test.mjs
+  s_2a8c562109077b::t_47f48a0fe28829 7,11,236-306
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "cbb5b20a9b2141ab956acf589ba2167fe67b3b0e",
+  "prompts": {},
+  "sessions": {
+    "s_2a8c562109077b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f8eb1-7112-7e00-8787-4b76ff7e1edc",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
