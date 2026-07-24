@@ -53,6 +53,16 @@ Run a local package-only rehearsal first. This performs tests and ZIP verificati
 npm run release:chrome -- --dry-run
 ```
 
+To upload a new package as a dashboard draft without submitting it for review, use:
+
+```bash
+npm run release:chrome -- --upload-only
+```
+
+This mode still requires a clean worktree, matching incremented versions, passing tests, and valid
+credentials. It stops after Chrome finishes processing the ZIP, so Store Listing text and images can
+be updated manually before the final dashboard submission.
+
 When the worktree is clean and the version has been incremented, release it:
 
 ```bash

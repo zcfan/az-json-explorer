@@ -533,16 +533,37 @@
   flex: 0 1 240px;
   align-items: center;
   border: 1px solid #cbd5e1;
-  border-bottom: 1px solid #cbd5e1;
+  border-bottom: 0;
   border-radius: 7px 7px 0 0;
   color: #475569;
   background: #e2e8f0;
 }
 
 .jt-tab-active {
-  border-bottom-color: #eef2f7;
   color: #111827;
   background: #eef2f7;
+}
+
+.jt-tab-active::after {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  background: #eef2f7;
+  content: "";
+  pointer-events: none;
+}
+
+.jt-tab-root {
+  min-width: 0;
+  max-width: none;
+  flex: 0 0 auto;
+}
+
+.jt-tab-root .jt-tab-select {
+  flex: 0 0 auto;
+  padding: 0 12px;
 }
 
 .jt-tab-select,

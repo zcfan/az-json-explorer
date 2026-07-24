@@ -116,6 +116,33 @@ test('sample fixture is valid JSON and includes nested stringified JSON', async 
   assert.deepEqual(JSON.parse(sample.meta.stringifiedArray), [1, 2, 3]);
 });
 
+test('store presentation centers on parse, isolated views, and history', async () => {
+  const listing = await readFile(new URL('../store-assets/listing.md', import.meta.url), 'utf8');
+  const generator = await readFile(
+    new URL('../scripts/generate-store-assets.mjs', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(listing, /Parse as JSON:/);
+  assert.match(listing, /Isolated views:/);
+  assert.match(listing, /History:/);
+  assert.match(listing, /Star the project on GitHub:/);
+  assert.match(listing, /github\.com\/zcfan\/az-json-explorer/);
+  assert.match(generator, /isolated-view-1\.png/);
+  assert.match(generator, /isolated-view-2\.png/);
+  assert.match(generator, /isolated-view-3\.png/);
+  assert.doesNotMatch(listing, /large-json-navigation/);
+  assert.equal(generator.match(/class="tab tab-active"/g)?.length, 1);
+  assert.match(
+    generator,
+    /\.tab\s*\{[\s\S]*?position:\s*relative;[\s\S]*?border-bottom:\s*0;/,
+  );
+  assert.match(
+    generator,
+    /\.tab-active::after\s*\{[^}]*bottom:\s*-2px;[^}]*height:\s*3px;[^}]*background:\s*#ffffff;/s,
+  );
+});
+
 test('viewer layout constrains the virtual tree to a scroll viewport', async () => {
   const html = await readFile(new URL('../src/viewer.html', import.meta.url), 'utf8');
   const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
@@ -192,9 +219,21 @@ test('viewer exposes isolated tree and paged string tabs instead of a modal', as
   );
   assert.match(
     css,
-    /\.jt-tab\s*\{[^}]*position:\s*relative;[^}]*z-index:\s*1;[^}]*border-bottom:\s*1px solid #cbd5e1;/s,
+    /\.jt-tab\s*\{[^}]*position:\s*relative;[^}]*z-index:\s*1;[^}]*border-bottom:\s*0;/s,
   );
-  assert.match(css, /\.jt-tab-active\s*\{[^}]*border-bottom-color:\s*#eef2f7;/s);
+  assert.match(viewer, /tab\.id === 'root' \? ' jt-tab-root' : ''/);
+  assert.match(
+    css,
+    /\.jt-tab-root\s*\{[^}]*min-width:\s*0;[^}]*max-width:\s*none;[^}]*flex:\s*0 0 auto;/s,
+  );
+  assert.match(
+    css,
+    /\.jt-tab-root \.jt-tab-select\s*\{[^}]*flex:\s*0 0 auto;[^}]*padding:\s*0 12px;/s,
+  );
+  assert.match(
+    css,
+    /\.jt-tab-active::after\s*\{[^}]*bottom:\s*-1px;[^}]*height:\s*2px;[^}]*background:\s*#eef2f7;/s,
+  );
   assert.match(viewer, /const mode = document\.createElement\('button'\)/);
   assert.match(viewer, /mode\.addEventListener\('click',[\s\S]*toggleIsolatedTabMode/);
   assert.match(

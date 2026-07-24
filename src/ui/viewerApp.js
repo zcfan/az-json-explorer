@@ -1549,7 +1549,8 @@ class JsonViewerApp {
     for (const tab of this.viewTabs.tabs) {
       const isActive = tab.id === this.viewTabs.activeTabId;
       const item = document.createElement('div');
-      item.className = `jt-tab${isActive ? ' jt-tab-active' : ''}`;
+      const rootClass = tab.id === 'root' ? ' jt-tab-root' : '';
+      item.className = `jt-tab${rootClass}${isActive ? ' jt-tab-active' : ''}`;
       item.setAttribute('role', 'presentation');
       item.title = tab.title;
 

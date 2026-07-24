@@ -6,7 +6,7 @@ Name:
 AZ JSON Explorer
 
 Short description:
-View, format, search, and browse large JSON. Parse nested JSON strings into expandable trees with one click.
+Parse nested JSON strings, isolate any path in its own tab, and reopen recent inputs from local history.
 
 Category:
 Developer Tools
@@ -16,24 +16,21 @@ English
 
 ## Detailed Description
 
-AZ JSON Explorer is a local-first JSON viewer for developers working with API responses, logs, fixtures, and local JSON files.
+AZ JSON Explorer is a local-first JSON viewer for developers working with API responses, logs, fixtures, and local files.
 
-Use it to inspect raw JSON pages in Chrome, open local JSON files, or paste JSON directly into the standalone viewer. You can format pasted JSON into readable two-space indentation, search across the parsed tree, and navigate large documents without leaving the browser.
-
-Many APIs return objects or arrays as escaped string fields. AZ JSON Explorer detects string values that look like JSON and shows a Parse as JSON action, so you can expand them into normal tree nodes without copying the value into another tool. When you need to reference a value, copy a JavaScript-style path from the tree, including paths inside parsed nested JSON strings.
+It is built around three focused workflows:
 
 Key features:
-- Browse raw JSON pages directly in Chrome.
-- Open local JSON files in the standalone viewer.
-- Paste JSON manually and format it into readable indentation.
-- Parse nested JSON strings into expandable tree nodes with one click.
-- Automatically expand small JSON trees while keeping large documents shallow by default.
-- Click anywhere on a container row to expand or collapse it, or use the tree-wide expansion controls.
-- Copy parse-aware JavaScript-style paths from tree rows.
-- Parse JSON in a Web Worker so large files do not block the page UI.
-- Use virtual scrolling to keep large JSON trees responsive.
-- Search across the parsed JSON tree.
-- Toggle parsed string values back to their original raw string form.
+- Parse as JSON: turn escaped objects or arrays into browsable tree nodes, while preserving the original string so you can switch between raw and parsed views.
+- Isolated views: open any object, array, or JSON string in its own tab. Each tab keeps its own raw/parsed mode and search state.
+- History: reopen successfully parsed manual inputs and files from local history, together with restored tabs and per-tab view state.
+
+AZ JSON Explorer can replace raw JSON pages directly in Chrome or open manual input and local files in its standalone viewer. Web Worker parsing and virtual scrolling keep large trees responsive.
+
+History is stored locally in your browser until you clean it. JSON content is never uploaded or synced to an external server.
+
+Like AZ JSON Explorer? Star the project on GitHub:
+https://github.com/zcfan/az-json-explorer
 
 What this extension does not do:
 - It is not a JSON editor.
@@ -42,14 +39,15 @@ What this extension does not do:
 ## Suggested Store Copy
 
 Headline:
-Parse nested JSON strings with one click
+Parse. Isolate. Revisit.
 
 Feature callouts:
-- Paste, format, search, and browse JSON in one local viewer.
-- Turn escaped JSON strings into normal expandable tree nodes.
-- Open small JSON trees fully expanded and navigate containers by clicking their rows.
-- Keep large JSON responsive with worker parsing and virtual scrolling.
-- Copy parse-aware JavaScript-style paths from nested values.
+- Parse nested JSON strings without losing the original raw value.
+- Focus on any JSON path in an independent, searchable tab.
+- Reopen recent manual inputs and files from local browser history.
+
+Like AZ JSON Explorer? Star the project on GitHub:
+https://github.com/zcfan/az-json-explorer
 
 ## Privacy And Permissions Notes
 
@@ -63,7 +61,6 @@ The extension runs on HTTP, HTTPS, and file URLs so it can detect raw JSON pages
 - Small promo tile: ./promo-small-440x280.png
 - Marquee promo tile: ./promo-marquee-1400x560.png
 - Screenshots:
-  - ./screenshot-1-detect-nested-json-string-1280x800.png
-  - ./screenshot-2-one-click-parsed-tree-1280x800.png
-  - ./screenshot-3-search-parsed-json-1280x800.png
-  - ./screenshot-4-large-json-navigation-1280x800.png
+  - ./screenshot-1-isolated-view-context-menu-1280x800.png
+  - ./screenshot-2-isolated-view-raw-1280x800.png
+  - ./screenshot-3-isolated-view-parsed-1280x800.png

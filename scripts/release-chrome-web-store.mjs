@@ -116,7 +116,7 @@ export async function getAccessToken(
   return tokenResponse.access_token;
 }
 
-export async function publishPackage({
+export async function uploadPackage({
   publisherId,
   extensionId,
   token,
@@ -149,10 +149,34 @@ export async function publishPackage({
     throw new Error(`Chrome Web Store package upload did not succeed (state: ${uploadState ?? 'unknown'}).`);
   }
 
+  return {
+    ...upload,
+    uploadState,
+  };
+}
+
+export async function publishPackage({
+  publisherId,
+  extensionId,
+  token,
+  packageBytes,
+  fetchImpl = fetch,
+  sleep = (milliseconds) => new Promise((resolvePromise) => setTimeout(resolvePromise, milliseconds)),
+}) {
+  await uploadPackage({
+    publisherId,
+    extensionId,
+    token,
+    packageBytes,
+    fetchImpl,
+    sleep,
+  });
+
+  const itemName = `publishers/${encodeURIComponent(publisherId)}/items/${encodeURIComponent(extensionId)}`;
   return requestJson(fetchImpl, `${API_ROOT}/v2/${itemName}:publish`, {
     method: 'POST',
     headers: {
-      ...authorization,
+      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ publishType: 'DEFAULT_PUBLISH' }),
@@ -176,7 +200,7 @@ function run(command, args, options = {}) {
 function assertCleanWorktree() {
   const status = run('git', ['status', '--porcelain', '--untracked-files=all'], { capture: true });
   if (status.trim()) {
-    throw new Error('Refusing to publish a dirty worktree. Commit or stash all changes first.');
+    throw new Error('Refusing to release a dirty worktree. Commit or stash all changes first.');
   }
 }
 
@@ -190,16 +214,23 @@ async function buildPackage(version) {
   return artifactPath;
 }
 
-function parseOptions(argv) {
-  const unknown = argv.filter((argument) => argument !== '--dry-run');
+export function parseOptions(argv) {
+  const knownOptions = new Set(['--dry-run', '--upload-only']);
+  const unknown = argv.filter((argument) => !knownOptions.has(argument));
   if (unknown.length > 0) {
     throw new Error(`Unknown option: ${unknown.join(', ')}.`);
   }
-  return { dryRun: argv.includes('--dry-run') };
+
+  const dryRun = argv.includes('--dry-run');
+  const uploadOnly = argv.includes('--upload-only');
+  if (dryRun && uploadOnly) {
+    throw new Error('--dry-run and --upload-only cannot be combined.');
+  }
+  return { dryRun, uploadOnly };
 }
 
 export async function main({ argv = process.argv.slice(2), env = process.env } = {}) {
-  const { dryRun } = parseOptions(argv);
+  const { dryRun, uploadOnly } = parseOptions(argv);
   const [manifest, packageJson] = await Promise.all([
     readJson(join(ROOT, 'manifest.json')),
     readJson(join(ROOT, 'package.json')),
@@ -222,6 +253,20 @@ export async function main({ argv = process.argv.slice(2), env = process.env } =
   const token = await getAccessToken(env);
   const packageBytes = await readFile(artifactPath);
   console.log(`Uploading ${artifactPath} to Chrome Web Store...`);
+  if (uploadOnly) {
+    const upload = await uploadPackage({
+      publisherId,
+      extensionId,
+      token,
+      packageBytes,
+    });
+    console.log(`Uploaded ${extensionId} as a draft without submitting it for review.`);
+    if (upload.warningInfo?.warnings?.length) {
+      console.warn(JSON.stringify(upload.warningInfo.warnings, null, 2));
+    }
+    return { version, artifactPath, upload, uploadOnly: true };
+  }
+
   const publication = await publishPackage({
     publisherId,
     extensionId,

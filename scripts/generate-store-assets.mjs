@@ -1,5 +1,5 @@
 import { execFileSync, spawn } from 'node:child_process';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { relative, resolve } from 'node:path';
 
 const ROOT = process.cwd();
@@ -8,46 +8,27 @@ const STORE_DIR = resolve(ROOT, 'store-assets');
 const SOURCE_DIR = resolve(STORE_DIR, 'source');
 const SERVER_PORTS = Array.from({ length: 10 }, (_, index) => 8765 + index);
 
-const DEMO_DATA = {
-  requestId: 'req_20260705_001',
-  endpoint: '/api/orders/preview',
-  nestedPayload: JSON.stringify({
-    customer: {
-      id: 'cus_10042',
-      tier: 'enterprise',
-      flags: ['beta', 'priority'],
-    },
-    cart: {
-      currency: 'USD',
-      items: [
-        { sku: 'json-probe', qty: 2, price: 29 },
-        { sku: 'worker-search', qty: 1, price: 49 },
-      ],
-    },
-    shipping: {
-      method: 'express',
-      address: { city: 'San Francisco', country: 'US' },
-    },
-  }),
-  auditTrail: JSON.stringify([
-    { at: '2026-07-05T09:12:00Z', event: 'created', actor: 'api-gateway' },
-    { at: '2026-07-05T09:12:02Z', event: 'enriched', actor: 'worker' },
-    { at: '2026-07-05T09:12:03Z', event: 'ready', actor: 'queue' },
-  ]),
-  meta: {
-    source: 'demo fixture',
-    note: 'Nested JSON strings stay local and parse in the browser.',
+const SCREENSHOTS = [
+  {
+    source: 'isolated-view-1.png',
+    output: 'screenshot-1-isolated-view-context-menu-1280x800.png',
   },
-  records: Array.from({ length: 40 }, (_, index) => ({
-    id: index + 1,
-    status: index % 3 === 0 ? 'open' : 'closed',
-    durationMs: 18 + index * 7,
-    trace: {
-      logId: `log_${String(index + 1).padStart(4, '0')}`,
-      phase: index % 2 === 0 ? 'ingest' : 'render',
-    },
-  })),
-};
+  {
+    source: 'isolated-view-2.png',
+    output: 'screenshot-2-isolated-view-raw-1280x800.png',
+  },
+  {
+    source: 'isolated-view-3.png',
+    output: 'screenshot-3-isolated-view-parsed-1280x800.png',
+  },
+];
+
+const LEGACY_SCREENSHOTS = [
+  'screenshot-1-detect-nested-json-string-1280x800.png',
+  'screenshot-2-one-click-parsed-tree-1280x800.png',
+  'screenshot-3-search-parsed-json-1280x800.png',
+  'screenshot-4-large-json-navigation-1280x800.png',
+];
 
 const LISTING = `# Chrome Web Store Listing Draft
 
@@ -57,7 +38,7 @@ Name:
 AZ JSON Explorer
 
 Short description:
-View large JSON and parse nested JSON strings into browsable trees with one click.
+Parse nested JSON strings, isolate any path in its own tab, and reopen recent inputs from local history.
 
 Category:
 Developer Tools
@@ -67,18 +48,21 @@ English
 
 ## Detailed Description
 
-AZ JSON Explorer is a fast JSON viewer for developers working with API responses, logs, fixtures, and local JSON files.
+AZ JSON Explorer is a local-first JSON viewer for developers working with API responses, logs, fixtures, and local files.
 
-Many APIs return objects or arrays as escaped string fields. AZ JSON Explorer detects string values that look like JSON and shows a Parse as JSON action, so you can expand them into a normal tree without copying the value into another tool.
+It is built around three focused workflows:
 
 Key features:
-- Parse nested JSON strings into browsable trees with one click.
-- Browse raw JSON pages directly in Chrome.
-- Open local JSON files in the standalone viewer.
-- Parse JSON in a Web Worker so large files do not block the page UI.
-- Use virtual scrolling to keep large JSON trees responsive.
-- Search across the parsed JSON tree.
-- Toggle parsed string values back to their original raw string form.
+- Parse as JSON: turn escaped objects or arrays into browsable tree nodes, while preserving the original string so you can switch between raw and parsed views.
+- Isolated views: open any object, array, or JSON string in its own tab. Each tab keeps its own raw/parsed mode and search state.
+- History: reopen successfully parsed manual inputs and files from local history, together with restored tabs and per-tab view state.
+
+AZ JSON Explorer can replace raw JSON pages directly in Chrome or open manual input and local files in its standalone viewer. Web Worker parsing and virtual scrolling keep large trees responsive.
+
+History is stored locally in your browser until you clean it. JSON content is never uploaded or synced to an external server.
+
+Like AZ JSON Explorer? Star the project on GitHub:
+https://github.com/zcfan/az-json-explorer
 
 What this extension does not do:
 - It is not a JSON editor.
@@ -87,12 +71,15 @@ What this extension does not do:
 ## Suggested Store Copy
 
 Headline:
-Parse nested JSON strings with one click
+Parse. Isolate. Revisit.
 
 Feature callouts:
-- Turn escaped JSON strings into normal tree nodes.
-- Keep large JSON responsive with worker parsing and virtual scrolling.
-- Search API responses, logs, fixtures, and local files without leaving Chrome.
+- Parse nested JSON strings without losing the original raw value.
+- Focus on any JSON path in an independent, searchable tab.
+- Reopen recent manual inputs and files from local browser history.
+
+Like AZ JSON Explorer? Star the project on GitHub:
+https://github.com/zcfan/az-json-explorer
 
 ## Privacy And Permissions Notes
 
@@ -106,10 +93,9 @@ The extension runs on HTTP, HTTPS, and file URLs so it can detect raw JSON pages
 - Small promo tile: ./promo-small-440x280.png
 - Marquee promo tile: ./promo-marquee-1400x560.png
 - Screenshots:
-  - ./screenshot-1-detect-nested-json-string-1280x800.png
-  - ./screenshot-2-one-click-parsed-tree-1280x800.png
-  - ./screenshot-3-search-parsed-json-1280x800.png
-  - ./screenshot-4-large-json-navigation-1280x800.png
+  - ./screenshot-1-isolated-view-context-menu-1280x800.png
+  - ./screenshot-2-isolated-view-raw-1280x800.png
+  - ./screenshot-3-isolated-view-parsed-1280x800.png
 `;
 
 const iconHtml = `<!doctype html>
@@ -174,7 +160,9 @@ function promoHtml({ width, height }) {
         width: 100%;
         height: 100%;
         padding: ${large ? 54 : 24}px;
-        background: linear-gradient(90deg, #ffffff 0 55%, #eef6ff 55% 100%);
+        background:
+          radial-gradient(circle at 8% 8%, #ffffff 0, rgba(255, 255, 255, 0) 40%),
+          linear-gradient(135deg, #ffffff 0 46%, #eef6ff 72%, #e4efff 100%);
       }
       .brand {
         display: flex;
@@ -198,34 +186,63 @@ function promoHtml({ width, height }) {
       .mini-logo .left { color: #ffffff; }
       .mini-logo .right { color: #34d399; }
       h1 {
-        max-width: ${large ? 560 : 190}px;
+        max-width: ${large ? 580 : 190}px;
         margin: 0;
         color: #0f172a;
-        font-size: ${large ? 54 : 23}px;
-        line-height: 1.03;
-        letter-spacing: 0;
+        font-size: ${large ? 60 : 29}px;
+        line-height: 0.98;
+        letter-spacing: -0.035em;
       }
       .sub {
-        max-width: ${large ? 520 : 188}px;
-        margin: ${large ? 22 : 12}px 0 0;
+        max-width: ${large ? 550 : 182}px;
+        margin: ${large ? 24 : 12}px 0 0;
         color: #475467;
-        font-size: ${large ? 20 : 12}px;
+        font-size: ${large ? 20 : 10}px;
         line-height: 1.45;
+      }
+      .features {
+        display: flex;
+        flex-direction: ${large ? 'row' : 'column'};
+        flex-wrap: wrap;
+        gap: ${large ? 10 : 5}px;
+        max-width: ${large ? 600 : 180}px;
+        margin-top: ${large ? 28 : 14}px;
+      }
+      .feature {
+        display: inline-flex;
+        align-items: center;
+        gap: ${large ? 8 : 5}px;
+        width: max-content;
+        padding: ${large ? '9px 13px' : '4px 7px'};
+        border: 1px solid #cbd8ea;
+        border-radius: 999px;
+        color: #334155;
+        background: rgba(255, 255, 255, 0.88);
+        font-size: ${large ? 15 : 8}px;
+        font-weight: 750;
+        box-shadow: 0 4px 14px rgba(51, 65, 85, 0.06);
+      }
+      .feature::before {
+        width: ${large ? 8 : 5}px;
+        height: ${large ? 8 : 5}px;
+        border-radius: 50%;
+        background: #2563eb;
+        content: "";
       }
       .diagram {
         position: absolute;
-        right: ${large ? 58 : 24}px;
-        top: ${large ? 54 : 58}px;
-        width: ${large ? 610 : 178}px;
-        height: ${large ? 452 : 178}px;
+        right: ${large ? 42 : 16}px;
+        top: ${large ? 48 : 48}px;
+        width: ${large ? 660 : 214}px;
+        height: ${large ? 464 : 216}px;
         border: 1px solid #cbd5e1;
-        border-radius: 8px;
+        border-radius: ${large ? 14 : 8}px;
         background: #ffffff;
-        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.14);
+        box-shadow: 0 24px 54px rgba(28, 52, 84, 0.18);
         overflow: hidden;
       }
       .toolbar {
-        height: ${large ? 54 : 31}px;
+        height: ${large ? 48 : 27}px;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -235,22 +252,68 @@ function promoHtml({ width, height }) {
         font-size: ${large ? 15 : 8}px;
         font-weight: 700;
       }
-      .search {
-        width: ${large ? 154 : 48}px;
-        height: ${large ? 28 : 15}px;
+      .history-button {
+        padding: ${large ? '6px 12px' : '3px 6px'};
         border: 1px solid #cbd5e1;
-        border-radius: 6px;
-        background: #f8fafc;
+        border-radius: ${large ? 7 : 4}px;
+        color: #334155;
+        background: #ffffff;
+        font-size: ${large ? 11 : 5}px;
+      }
+      .tabs {
+        display: flex;
+        align-items: end;
+        height: ${large ? 56 : 30}px;
+        padding: ${large ? '10px 12px 0' : '5px 5px 0'};
+        border-bottom: 1px solid #cbd5e1;
+        background: #eef2f7;
+      }
+      .tab {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: ${large ? 7 : 3}px;
+        height: ${large ? 46 : 25}px;
+        padding: 0 ${large ? 13 : 5}px;
+        border: 1px solid #cbd5e1;
+        border-bottom: 0;
+        border-radius: ${large ? '9px 9px 0 0' : '5px 5px 0 0'};
+        color: #334155;
+        background: #e2e8f0;
+        font-size: ${large ? 12 : 5}px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      .tab + .tab {
+        margin-left: ${large ? 7 : 3}px;
+      }
+      .tab-root {
+        color: #64748b;
+        background: #e7edf5;
+        border-bottom-color: #cbd5e1;
+      }
+      .tab-active {
+        color: #0f172a;
+        background: #ffffff;
+      }
+      .tab-active::after {
+        position: absolute;
+        right: 0;
+        bottom: -2px;
+        left: 0;
+        height: 3px;
+        background: #ffffff;
+        content: "";
       }
       .rows {
-        padding: ${large ? 18 : 8}px ${large ? 22 : 9}px;
-        font: ${large ? 18 : 8}px/1.9 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        padding: ${large ? '12px 194px 12px 18px' : '6px 66px 6px 7px'};
+        font: ${large ? 14 : 6}px/1.9 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       }
       .row {
         display: flex;
         align-items: center;
-        gap: ${large ? 12 : 5}px;
-        min-height: ${large ? 32 : 16}px;
+        gap: ${large ? 8 : 3}px;
+        min-height: ${large ? 35 : 17}px;
         white-space: nowrap;
       }
       .key { color: #7c3aed; font-weight: 700; }
@@ -260,96 +323,102 @@ function promoHtml({ width, height }) {
       .parse {
         display: inline-flex;
         align-items: center;
-        height: ${large ? 26 : 13}px;
-        padding: 0 ${large ? 9 : 4}px;
+        height: ${large ? 24 : 11}px;
+        padding: 0 ${large ? 8 : 3}px;
         border: 1px solid #99f6e4;
         border-radius: 6px;
         color: #115e59;
         background: #ecfdf5;
-        font: 700 ${large ? 13 : 6}px/1 ui-sans-serif, system-ui, sans-serif;
+        font: 700 ${large ? 11 : 4}px/1 ui-sans-serif, system-ui, sans-serif;
       }
       .badge {
         display: inline-flex;
         align-items: center;
-        height: ${large ? 26 : 13}px;
-        padding: 0 ${large ? 9 : 4}px;
+        height: ${large ? 24 : 11}px;
+        padding: 0 ${large ? 8 : 3}px;
         border: 1px solid #fde68a;
         border-radius: 6px;
         color: #92400e;
         background: #fffbeb;
-        font: 800 ${large ? 13 : 6}px/1 ui-sans-serif, system-ui, sans-serif;
+        font: 800 ${large ? 11 : 4}px/1 ui-sans-serif, system-ui, sans-serif;
       }
-      .indent-1 { padding-left: ${large ? 34 : 14}px; }
-      .indent-2 { padding-left: ${large ? 68 : 28}px; }
-      .callout {
+      .indent-1 { padding-left: ${large ? 28 : 11}px; }
+      .indent-2 { padding-left: ${large ? 52 : 20}px; }
+      .history {
         position: absolute;
-        right: ${large ? 404 : 130}px;
-        bottom: ${large ? 48 : 23}px;
-        width: ${large ? 250 : 118}px;
-        padding: ${large ? 14 : 7}px;
-        border: 1px solid #bbf7d0;
-        border-radius: 8px;
-        color: #14532d;
-        background: #f0fdf4;
-        font-size: ${large ? 15 : 7}px;
-        font-weight: 700;
+        top: ${large ? 104 : 57}px;
+        right: 0;
+        bottom: 0;
+        width: ${large ? 180 : 60}px;
+        border-left: 1px solid #cbd5e1;
+        background: #ffffff;
+      }
+      .history-title {
+        padding: ${large ? '12px 13px' : '5px'};
+        border-bottom: 1px solid #d9dee8;
+        color: #1e293b;
+        font-size: ${large ? 12 : 5}px;
+        font-weight: 800;
+      }
+      .history-item {
+        padding: ${large ? '12px 13px' : '5px'};
+        border-bottom: 1px solid #e7ebf1;
+      }
+      .history-item.active {
+        border-left: ${large ? 3 : 2}px solid #2563eb;
+        background: #eef5ff;
+      }
+      .history-name {
+        color: #273449;
+        font-size: ${large ? 10 : 4}px;
+        font-weight: 800;
+      }
+      .history-preview {
+        margin-top: ${large ? 5 : 2}px;
+        overflow: hidden;
+        color: #64748b;
+        font: ${large ? 8 : 3}px/1.3 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
     </style>
   </head>
   <body>
     <main class="stage">
       <div class="brand"><div class="mini-logo"><span><span class="left">{</span><span class="right">}</span></span></div><span>AZ JSON Explorer</span></div>
-      <h1>Parse nested JSON strings with one click</h1>
-      <p class="sub">${large ? 'A fast Chrome JSON viewer for API responses, logs, fixtures, and local files. Worker parsing and virtual scrolling keep large trees responsive.' : 'Turn escaped API payloads into readable tree nodes.'}</p>
+      <h1>Parse.<br>Isolate.<br>Revisit.</h1>
+      <p class="sub">${large ? 'Parse nested JSON strings, focus on any path in its own tab, and reopen recent inputs from local history.' : 'Three focused ways to explore JSON.'}</p>
+      <div class="features">
+        <span class="feature">Parse as JSON</span>
+        <span class="feature">Isolated views</span>
+        <span class="feature">History</span>
+      </div>
       <section class="diagram" aria-label="AZ JSON Explorer preview">
-        <div class="toolbar"><span>${large ? 'orders-api-response.json' : 'api-response.json'}</span><div class="search"></div></div>
-        <div class="rows">
-          <div class="row"><span class="key">"$"</span><span class="muted">{</span></div>
-          <div class="row indent-1"><span class="key">"nestedPayload"</span><span class="muted">:</span><span class="parse">Parse as JSON</span></div>
-          <div class="row indent-1"><span class="badge">parsed</span><span class="muted">{</span></div>
-          <div class="row indent-2"><span class="key">"customer"</span><span class="muted">:</span><span class="muted">{...}</span></div>
-          <div class="row indent-2"><span class="key">"items"</span><span class="muted">:</span><span class="number">[2]</span></div>${large ? '\n          <div class="row indent-2"><span class="key">"shipping"</span><span class="muted">:</span><span class="string">"express"</span></div><div class="row indent-1"><span class="key">"records"</span><span class="muted">:</span><span class="number">[40]</span></div>' : ''}
+        <div class="toolbar"><span>AZ JSON Explorer</span><span class="history-button">History</span></div>
+        <div class="tabs">
+          <span class="tab tab-root">$</span>
+          <span class="tab tab-active">$.payload <span class="badge">parsed</span></span>
+          <span class="tab">$.shipping <span class="badge">parsed</span></span>
         </div>
-      </section>${large ? '\n      <div class="callout">No copy-paste into another parser. Keep the payload in context.</div>' : ''}
+        <div class="rows">
+          <div class="row"><span class="key">"$"</span><span class="badge">parsed</span><span class="muted">{ 5 keys }</span></div>
+          <div class="row indent-1"><span class="key">"orderId"</span><span class="muted">:</span><span class="string">"ORD-2026-001"</span></div>
+          <div class="row indent-1"><span class="key">"payload"</span><span class="muted">:</span><span class="parse">Parse as JSON</span></div>
+          <div class="row indent-1"><span class="key">"customer"</span><span class="muted">:</span><span class="muted">{ 2 keys }</span></div>
+          <div class="row indent-1"><span class="key">"items"</span><span class="muted">:</span><span class="muted">[ 2 items ]</span></div>
+          <div class="row indent-1"><span class="key">"shipping"</span><span class="muted">:</span><span class="badge">parsed</span></div>
+        </div>
+        <aside class="history">
+          <div class="history-title">History</div>
+          <div class="history-item active"><div class="history-name">Manual input</div><div class="history-preview">{"orderId":"ORD-2026..."}</div></div>
+          <div class="history-item"><div class="history-name">events.json</div><div class="history-preview">[{"event":"created"...}]</div></div>
+          <div class="history-item"><div class="history-name">Manual input</div><div class="history-preview">{"payload":"{\\"id\\"..."}</div></div>
+        </aside>
+      </section>
     </main>
   </body>
 </html>`;
 }
-
-const viewerDemoHtml = `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>AZ JSON Explorer Store Demo</title>
-    <link rel="icon" href="data:,">
-    <style>
-      html, body {
-        width: 100%;
-        height: 100%;
-        margin: 0;
-        background: #f6f7f9;
-      }
-      #app { height: 100%; }
-    </style>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module">
-      import { mountJsonViewer } from '../../src/ui/viewerApp.js';
-
-      const demoJson = ${JSON.stringify(JSON.stringify(DEMO_DATA, null, 2))};
-
-      mountJsonViewer(document.getElementById('app'), {
-        autoParse: true,
-        initialText: demoJson,
-        sourceLabel: 'orders-api-response.json',
-        styleUrl: new URL('../../src/ui/styles.css', import.meta.url).href,
-        workerUrl: new URL('../../src/worker/jsonWorker.js', import.meta.url).href,
-      });
-    </script>
-  </body>
-</html>`;
 
 async function main() {
   await mkdir(ASSETS_DIR, { recursive: true });
@@ -359,10 +428,13 @@ async function main() {
   const promoMarquee = promoHtml({ width: 1400, height: 560 });
 
   await writeFile(resolve(STORE_DIR, 'listing.md'), LISTING);
-  await writeFile(resolve(SOURCE_DIR, 'icon.html'), iconHtml);
-  await writeFile(resolve(SOURCE_DIR, 'promo-small.html'), promoSmall);
-  await writeFile(resolve(SOURCE_DIR, 'promo-marquee.html'), promoMarquee);
-  await writeFile(resolve(SOURCE_DIR, 'viewer-demo.html'), viewerDemoHtml);
+  await writeFile(resolve(SOURCE_DIR, 'icon.html'), `${iconHtml}\n`);
+  await writeFile(resolve(SOURCE_DIR, 'promo-small.html'), `${promoSmall}\n`);
+  await writeFile(resolve(SOURCE_DIR, 'promo-marquee.html'), `${promoMarquee}\n`);
+  await rm(resolve(SOURCE_DIR, 'viewer-demo.html'), { force: true });
+  await Promise.all(
+    LEGACY_SCREENSHOTS.map((filename) => rm(resolve(STORE_DIR, filename), { force: true })),
+  );
 
   const server = await startStaticServer();
   try {
@@ -374,10 +446,14 @@ async function main() {
     await renderHtml(iconHtml, resolve(STORE_DIR, 'icon-128.png'), 128, 128, { omitBackground: true });
     await renderHtml(promoSmall, resolve(STORE_DIR, 'promo-small-440x280.png'), 440, 280);
     await renderHtml(promoMarquee, resolve(STORE_DIR, 'promo-marquee-1400x560.png'), 1400, 560);
-    await renderViewerScreenshot(server.baseUrl, 'detect', 'screenshot-1-detect-nested-json-string-1280x800.png');
-    await renderViewerScreenshot(server.baseUrl, 'parse', 'screenshot-2-one-click-parsed-tree-1280x800.png');
-    await renderViewerScreenshot(server.baseUrl, 'search', 'screenshot-3-search-parsed-json-1280x800.png');
-    await renderViewerScreenshot(server.baseUrl, 'records', 'screenshot-4-large-json-navigation-1280x800.png');
+    for (const screenshot of SCREENSHOTS) {
+      await renderSourceScreenshot(server.baseUrl, screenshot.source, screenshot.output);
+    }
+    await Promise.all(
+      SCREENSHOTS.map(({ output }) =>
+        validatePngDimensions(resolve(STORE_DIR, output), 1280, 800),
+      ),
+    );
   } finally {
     server.process.kill();
     try {
@@ -399,7 +475,7 @@ async function startStaticServer() {
 
     try {
       const baseUrl = `http://127.0.0.1:${port}`;
-      await waitForUrl(`${baseUrl}/store-assets/source/viewer-demo.html`, 2500);
+      await waitForUrl(`${baseUrl}/store-assets/source/${SCREENSHOTS[0].source}`, 2500);
       return { baseUrl, process: child };
     } catch {
       child.kill();
@@ -438,32 +514,18 @@ async function renderHtml(html, output, width, height, options = {}) {
   execPlaywright(['run-code', code]);
 }
 
-async function renderViewerScreenshot(baseUrl, action, filename) {
-  const output = resolve(STORE_DIR, filename);
+async function renderSourceScreenshot(baseUrl, sourceFilename, outputFilename) {
+  const output = resolve(STORE_DIR, outputFilename);
+  const sourceUrl = `${baseUrl}/store-assets/source/${sourceFilename}`;
   const code = `async page => {
     await page.setViewportSize({ width: 1280, height: 800 });
-    await page.goto(${JSON.stringify(`${baseUrl}/store-assets/source/viewer-demo.html`)}, {
-      waitUntil: 'domcontentloaded',
+    await page.goto(${JSON.stringify(sourceUrl)}, {
+      waitUntil: 'load',
       timeout: 10000
     });
-    await page.waitForSelector('text=Parse as JSON', { timeout: 10000 });
-
-    if (${JSON.stringify(action)} === 'parse' || ${JSON.stringify(action)} === 'search') {
-      await page.getByText('Parse as JSON').first().click();
-      await page.getByText('parsed').first().waitFor({ timeout: 10000 });
-    }
-
-    if (${JSON.stringify(action)} === 'search') {
-      await page.getByRole('searchbox').fill('express');
-      await page.waitForTimeout(750);
-    }
-
-    if (${JSON.stringify(action)} === 'records') {
-      await page.locator('.jt-row[title="$.records"] .jt-toggle').click();
-      await page.waitForTimeout(250);
-      await page.locator('.jt-row[title="$.records[0]"] .jt-toggle').click();
-      await page.waitForTimeout(250);
-    }
+    await page.addStyleTag({
+      content: '*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#fff}img{display:block;width:100%;height:100%;margin:0;object-fit:cover;object-position:center}'
+    });
 
     await page.screenshot({
       path: ${JSON.stringify(output)},
@@ -471,6 +533,22 @@ async function renderViewerScreenshot(baseUrl, action, filename) {
     });
   }`;
   execPlaywright(['run-code', code]);
+}
+
+async function validatePngDimensions(path, expectedWidth, expectedHeight) {
+  const bytes = await readFile(path);
+  const signature = bytes.subarray(0, 8).toString('hex');
+  if (signature !== '89504e470d0a1a0a') {
+    throw new Error(`${relative(ROOT, path)} is not a PNG file.`);
+  }
+
+  const width = bytes.readUInt32BE(16);
+  const height = bytes.readUInt32BE(20);
+  if (width !== expectedWidth || height !== expectedHeight) {
+    throw new Error(
+      `${relative(ROOT, path)} is ${width}x${height}; expected ${expectedWidth}x${expectedHeight}.`,
+    );
+  }
 }
 
 function execPlaywright(args) {

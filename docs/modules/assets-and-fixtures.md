@@ -25,7 +25,14 @@ node fixtures/large-sample-generator.mjs 50000
 
 ## Store Assets
 
-`scripts/generate-store-assets.mjs` regenerates promotional images and screenshots from source HTML under `store-assets/source/`.
+`scripts/generate-store-assets.mjs` regenerates promotional images from source HTML and normalizes
+captured product screenshots under `store-assets/source/` to the Chrome Web Store's 1280×800 format.
+
+The current store presentation centers on three product capabilities:
+
+- Parse nested strings with **Parse as JSON**.
+- Focus on a path with **Isolated views**.
+- Reopen local inputs and files from **History**.
 
 ```bash
 npm run store-assets

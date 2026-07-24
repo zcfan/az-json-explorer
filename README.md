@@ -7,7 +7,7 @@ AZ JSON Explorer focuses on two problems that make JSON tools feel slow or awkwa
 - Large JSON should stay responsive while parsing, searching, expanding, and scrolling.
 - String fields that contain escaped JSON should be explorable in place with `Parse as JSON`, not copied into another tool.
 
-![AZ JSON Explorer detects nested JSON strings](store-assets/screenshot-1-detect-nested-json-string-1280x800.png)
+![AZ JSON Explorer isolated views and local history](store-assets/screenshot-1-isolated-view-context-menu-1280x800.png)
 
 ## Why Use It
 

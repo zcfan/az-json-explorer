@@ -7,7 +7,9 @@ import test from 'node:test';
 
 import {
   getAccessToken,
+  parseOptions,
   publishPackage,
+  uploadPackage,
   validateApiConfig,
   validateReleaseMetadata,
 } from '../scripts/release-chrome-web-store.mjs';
@@ -112,6 +114,47 @@ test('package upload waits for processing and submits an automatic publish', asy
   );
   assert.equal(calls[2].options.method, 'POST');
   assert.deepEqual(JSON.parse(calls[2].options.body), { publishType: 'DEFAULT_PUBLISH' });
+});
+
+test('upload-only mode waits for package processing without submitting for review', async () => {
+  const calls = [];
+  const responses = [
+    { uploadState: 'IN_PROGRESS' },
+    { lastAsyncUploadState: 'SUCCEEDED' },
+  ];
+  const fetchImpl = async (url, options = {}) => {
+    calls.push({ url, options });
+    return new Response(JSON.stringify(responses.shift()), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  };
+
+  const result = await uploadPackage({
+    publisherId: 'publisher',
+    extensionId: 'extension',
+    token: 'token',
+    packageBytes: Buffer.from('zip'),
+    fetchImpl,
+    sleep: async () => {},
+  });
+
+  assert.equal(result.uploadState, 'SUCCEEDED');
+  assert.equal(calls.length, 2);
+  assert.match(calls[0].url, /:upload$/);
+  assert.match(calls[1].url, /:fetchStatus$/);
+  assert.ok(calls.every(({ url }) => !url.endsWith(':publish')));
+});
+
+test('release CLI accepts upload-only as a distinct mode', () => {
+  assert.deepEqual(parseOptions(['--upload-only']), {
+    dryRun: false,
+    uploadOnly: true,
+  });
+  assert.throws(
+    () => parseOptions(['--dry-run', '--upload-only']),
+    /cannot be combined/,
+  );
 });
 
 test('API failures include the server message and stop before publish', async () => {
