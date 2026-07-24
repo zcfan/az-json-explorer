@@ -1,0 +1,39 @@
+src/core/treeModel.js
+  s_2a8c562109077b::t_f2dd4f59e06b16 113,165
+src/core/treeSearch.js
+  s_2a8c562109077b::t_b1f0fe21b41bef 98,186
+src/ui/stringSearchHighlight.js
+  s_2a8c562109077b::t_52c9c8e0ac6f6d 1-43
+src/ui/viewTabs.js
+  s_2a8c562109077b::t_b3487f20edc96a 1-16,19-25,27-29,32-38,41-76,79-117,119-149
+src/worker/jsonWorker.js
+  s_2a8c562109077b::t_1ad5b0cfcc3189 2-8,11,109-123,129-131,146-147,149-150,166-176,179-191,306-309,344-427,436-437,446,454,472,522-526,546-549,552,560-561,564-571,577,627-630,642-650,657,684-699
+test/jsonWorker.test.mjs
+  s_2a8c562109077b::t_7757f1a412a954 104-183,260-302,351-603
+test/stringSearchHighlight.test.mjs
+  s_2a8c562109077b::t_644f2566b4b097 2,4,6-15,18-23
+test/treeModel.test.mjs
+  s_2a8c562109077b::t_b178a00f09b91e 57-75
+test/treeSearch.test.mjs
+  s_2a8c562109077b::t_d874fc36f67dab 54-73
+test/viewTabs.test.mjs
+  s_2a8c562109077b::t_8196b56c8c57c4 1-233
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "a6f41e347997cc9ac8818af8d837122cb763a1df",
+  "prompts": {},
+  "sessions": {
+    "s_2a8c562109077b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f8eb1-7112-7e00-8787-4b76ff7e1edc",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
