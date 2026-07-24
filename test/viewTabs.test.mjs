@@ -4,9 +4,11 @@ import test from 'node:test';
 import {
   activateViewTabParsedMode,
   closeViewTab,
+  createViewSessionSnapshot,
   createViewTabsState,
   getIsolationViewType,
   openIsolatedView,
+  restoreViewSessionSnapshot,
   setViewTabPathMode,
 } from '../src/ui/viewTabs.js';
 
@@ -230,4 +232,75 @@ test('closing the active isolated tab returns to its left neighbor', () => {
   assert.equal(closed.tabs.length, 2);
   assert.equal(closed.activeTabId, closed.tabs[1].id);
   assert.equal(closed.tabs[1].title, '$.first');
+});
+
+test('history sessions keep stable tab state but discard derived search and tree state', () => {
+  let viewTabs = openIsolatedView(
+    createViewTabsState(),
+    {
+      path: ['payload'],
+      kind: 'string',
+      effectiveKind: 'object',
+      parsedKind: 'object',
+      parsed: true,
+      hasParsed: true,
+    },
+    [],
+  );
+  viewTabs = {
+    ...viewTabs,
+    activeTabId: viewTabs.tabs[1].id,
+  };
+  const tabSearchStates = new Map([
+    [
+      'root',
+      {
+        query: 'root query',
+        results: [{ path: ['discard-me'] }],
+        selectedIndex: 4,
+        truncated: true,
+        ready: true,
+      },
+    ],
+    [
+      viewTabs.activeTabId,
+      {
+        query: 'nested query',
+        results: [{ path: ['payload', 'discard-me'] }],
+        selectedIndex: 2,
+        truncated: false,
+        ready: true,
+      },
+    ],
+  ]);
+  const treeViewStates = new Map([
+    [viewTabs.activeTabId, { expansion: { mode: 'all' }, scrollTop: 900 }],
+  ]);
+
+  const snapshot = createViewSessionSnapshot(viewTabs, tabSearchStates, treeViewStates);
+  const restored = restoreViewSessionSnapshot(snapshot);
+
+  assert.equal(snapshot.activeTabId, viewTabs.activeTabId);
+  assert.equal(snapshot.tabs[1].mode, 'parsed');
+  assert.equal(snapshot.tabs[0].searchQuery, 'root query');
+  assert.equal(snapshot.tabs[1].searchQuery, 'nested query');
+  assert.equal(JSON.stringify(snapshot).includes('discard-me'), false);
+  assert.equal(JSON.stringify(snapshot).includes('selectedIndex'), false);
+  assert.equal(JSON.stringify(snapshot).includes('scrollTop'), false);
+  assert.equal(JSON.stringify(snapshot).includes('expansion'), false);
+  assert.deepEqual(restored.viewTabs, viewTabs);
+  assert.deepEqual(restored.tabSearchStates.get('root'), {
+    query: 'root query',
+    results: [],
+    selectedIndex: -1,
+    truncated: false,
+    ready: false,
+  });
+  assert.deepEqual(restored.tabSearchStates.get(viewTabs.activeTabId), {
+    query: 'nested query',
+    results: [],
+    selectedIndex: -1,
+    truncated: false,
+    ready: false,
+  });
 });

@@ -14,15 +14,28 @@ import {
   formatJsonStringLiteral,
   formatValueForClipboard,
 } from '../core/clipboard.js';
+import { createHistoryStore } from './historyStore.js';
 
 let retainedRootValue;
 let retainedParseCache = new Map();
+let retainedHistoryId = null;
+const historyStore = createHistoryStore();
 const MAX_DISPLAY_VALUE_LENGTH = 240;
+const MAX_HISTORY_PREVIEW_LENGTH = 240;
+const MAX_HISTORY_PREVIEW_SOURCE_LENGTH = 512;
 const MAX_STRING_RANGE_LENGTH = 256 * 1024;
 const MAX_STRING_RANGE_LINE_BREAKS = 2000;
 
 function parseJson(text) {
   return JSON.parse(text);
+}
+
+function createHistoryPreview(text) {
+  return text
+    .slice(0, MAX_HISTORY_PREVIEW_SOURCE_LENGTH)
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, MAX_HISTORY_PREVIEW_LENGTH);
 }
 
 async function readMessageText(message) {
@@ -483,6 +496,7 @@ async function createParseResult(message, resultType, { retainRoot = false } = {
     if (retainRoot) {
       retainedRootValue = value;
       retainedParseCache = new Map();
+      retainedHistoryId = null;
     }
 
     const response = {
@@ -497,6 +511,22 @@ async function createParseResult(message, resultType, { retainRoot = false } = {
       if (Number.isFinite(message.nodeCountLimit)) {
         response.nodeCount = countJsonNodesUpTo(value, message.nodeCountLimit);
       }
+      if (message.historyEntry) {
+        try {
+          const historyItem = await historyStore.add({
+            title: String(message.historyEntry.title || 'Untitled JSON'),
+            sourceType:
+              message.historyEntry.sourceType === 'file' ? 'file' : 'manual',
+            content: message.file ?? message.blob ?? text,
+            preview: createHistoryPreview(text),
+          });
+          retainedHistoryId = historyItem.id;
+          response.historyId = historyItem.id;
+        } catch (error) {
+          response.historyError =
+            error instanceof Error ? error.message : String(error);
+        }
+      }
     } else {
       response.value = value;
     }
@@ -506,6 +536,7 @@ async function createParseResult(message, resultType, { retainRoot = false } = {
     if (retainRoot) {
       retainedRootValue = undefined;
       retainedParseCache = new Map();
+      retainedHistoryId = null;
     }
 
     return {
@@ -531,6 +562,7 @@ function createStringParseResult(message) {
       parsedValue: retainedParseCache.get(key)?.parsedValue,
       displayMode: 'raw',
       error: `Value at ${formatPath(message.path)} is not a string.`,
+      path: [...message.path],
     });
     return {
       id: message.id,
@@ -551,6 +583,7 @@ function createStringParseResult(message) {
       parsedValue,
       displayMode,
       error: null,
+      path: [...message.path],
     });
     return {
       id: message.id,
@@ -567,6 +600,7 @@ function createStringParseResult(message) {
         parsedValue: retainedParseCache.get(key)?.parsedValue,
         displayMode: 'raw',
         error: errorMessage,
+        path: [...message.path],
       });
     }
     return {
@@ -579,9 +613,173 @@ function createStringParseResult(message) {
   }
 }
 
+function getRetainedParsedPaths() {
+  return [...retainedParseCache.entries()]
+    .filter(([, entry]) => entry.parsedValue !== undefined)
+    .map(([key, entry]) => [...(entry.path || JSON.parse(key))])
+    .sort((left, right) => left.length - right.length);
+}
+
+function restoreParsedPaths(parsedPaths) {
+  const restoredPaths = [];
+  for (const path of [...(parsedPaths || [])].sort(
+    (left, right) => left.length - right.length,
+  )) {
+    const result = createStringParseResult({
+      id: 'restore-history-parse-string',
+      path,
+      activateDisplay: false,
+      displayModeOverrides: restoredPaths.map((restoredPath) => ({
+        path: restoredPath,
+        mode: 'parsed',
+      })),
+    });
+    if (result.ok) {
+      restoredPaths.push(path);
+    }
+  }
+}
+
+async function createOpenHistoryResult(message) {
+  try {
+    const record = await historyStore.get(message.historyId);
+    if (!record) {
+      return {
+        id: message.id,
+        type: 'open-history-result',
+        ok: false,
+        error: 'History entry was not found.',
+      };
+    }
+
+    const text =
+      typeof record.content === 'string'
+        ? record.content
+        : await record.content.text();
+    const value = parseJson(text);
+    retainedRootValue = value;
+    retainedParseCache = new Map();
+    retainedHistoryId = record.id;
+    restoreParsedPaths(record.session?.parsedPaths);
+    const viewedItem = await historyStore.markViewed(record.id);
+
+    const response = {
+      id: message.id,
+      type: 'open-history-result',
+      ok: true,
+      historyId: record.id,
+      title: record.title,
+      sourceType: record.sourceType,
+      lastViewedAt: viewedItem?.lastViewedAt,
+      root: createRootSummary(value),
+      session: record.session || null,
+    };
+    if (Number.isFinite(message.nodeCountLimit)) {
+      response.nodeCount = countJsonNodesUpTo(value, message.nodeCountLimit);
+    }
+    return response;
+  } catch (error) {
+    retainedRootValue = undefined;
+    retainedParseCache = new Map();
+    retainedHistoryId = null;
+    return {
+      id: message.id,
+      type: 'open-history-result',
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
 export async function handleWorkerMessage(message) {
   if (message?.type === 'parse-root') {
     return createParseResult(message, 'parse-root-result', { retainRoot: true });
+  }
+
+  if (message?.type === 'list-history') {
+    try {
+      const page = await historyStore.list({
+        cursor: message.cursor,
+        limit: message.limit,
+      });
+      return {
+        id: message.id,
+        type: 'list-history-result',
+        ok: true,
+        ...page,
+      };
+    } catch (error) {
+      return {
+        id: message.id,
+        type: 'list-history-result',
+        ok: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
+
+  if (message?.type === 'save-history-session') {
+    const historyId = message.historyId || retainedHistoryId;
+    if (!historyId) {
+      return {
+        id: message.id,
+        type: 'save-history-session-result',
+        ok: false,
+        error: 'No history-backed JSON is active.',
+      };
+    }
+
+    try {
+      const saved = await historyStore.updateSession(historyId, {
+        ...(message.session || {}),
+        parsedPaths: getRetainedParsedPaths(),
+      });
+      return {
+        id: message.id,
+        type: 'save-history-session-result',
+        ok: saved,
+        historyId,
+        ...(saved ? {} : { error: 'History entry was not found.' }),
+      };
+    } catch (error) {
+      return {
+        id: message.id,
+        type: 'save-history-session-result',
+        ok: false,
+        historyId,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }
+
+  if (message?.type === 'open-history') {
+    return createOpenHistoryResult(message);
+  }
+
+  if (message?.type === 'cleanup-history') {
+    try {
+      const keep = Math.max(0, Math.floor(Number(message.keep) || 0));
+      const result = await historyStore.cleanup(keep);
+      const activeHistoryRetained =
+        !retainedHistoryId || result.keptIds.includes(retainedHistoryId);
+      if (!activeHistoryRetained) {
+        retainedHistoryId = null;
+      }
+      return {
+        id: message.id,
+        type: 'cleanup-history-result',
+        ok: true,
+        deletedCount: result.deletedCount,
+        activeHistoryRetained,
+      };
+    } catch (error) {
+      return {
+        id: message.id,
+        type: 'cleanup-history-result',
+        ok: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
   }
 
   if (message?.type === 'parse-string') {

@@ -27,8 +27,9 @@ The project uses Node's built-in test runner. There is no test build step.
 | `test/searchHighlight.test.mjs` | UI search highlight segmentation and row flags. |
 | `test/stringSearchHighlight.test.mjs` | Mapping full-string match offsets onto a bounded text page and its current match. |
 | `test/expansionState.test.mjs` | Explicit/all/recursive expansion transitions, collapsed exceptions, parsed-node reopening, and search reveal. |
-| `test/jsonWorker.test.mjs` | Worker parse, retained root, nested parse, copy text, visible rows, search messages. |
-| `test/viewTabs.test.mjs` | Permanent-root, isolation eligibility, raw/parsed modes, duplicate titles, and close selection. |
+| `test/jsonWorker.test.mjs` | Worker parse, retained root, nested parse, copy text, visible rows, search messages, and history create/list/open/session restore. |
+| `test/viewTabs.test.mjs` | Permanent-root, isolation eligibility, raw/parsed modes, duplicate titles, close selection, and lightweight history-session snapshots. |
+| `test/historyPanelResize.test.mjs` | History-panel drag direction and width/viewer-space bounds. |
 | `test/externalLaunch.test.mjs` | Public launch validation, payload handoff, rate limiting, claim, timeout, and tab failures. |
 | `test/pageLaunchBridge.test.mjs` | Webpage discovery, trusted-click gating, and bridge errors. |
 | `test/integrationClient.test.mjs` | Shared webpage/extension transports, store-page fallback, and error behavior. |

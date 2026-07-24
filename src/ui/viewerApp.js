@@ -24,11 +24,18 @@ import {
 import { getRowSearchState, splitHighlightedText } from './searchHighlight.js';
 import { createStringSearchSegments } from './stringSearchHighlight.js';
 import {
+  MAX_HISTORY_PANEL_WIDTH,
+  MIN_HISTORY_PANEL_WIDTH,
+  resizeHistoryPanelWidth,
+} from './historyPanelResize.js';
+import {
   activateViewTabParsedMode,
   closeViewTab,
+  createViewSessionSnapshot,
   createViewTabsState,
   getIsolationViewType,
   openIsolatedView,
+  restoreViewSessionSnapshot,
   setViewTabPathMode,
 } from './viewTabs.js';
 
@@ -38,6 +45,8 @@ const MAX_VISIBLE_ROWS = 100000;
 const AUTO_EXPAND_MAX_ROWS = 5000;
 const MAX_SEARCH_RESULTS = 500;
 const SEARCH_DEBOUNCE_MS = 250;
+const HISTORY_SESSION_SAVE_DEBOUNCE_MS = 300;
+const HISTORY_PAGE_SIZE = 50;
 const STRING_VIEW_PAGE_LENGTH = 128 * 1024;
 const SAMPLE_JSON = JSON.stringify(
   {
@@ -52,6 +61,20 @@ const SAMPLE_JSON = JSON.stringify(
   null,
   2,
 );
+
+function formatHistorySize(size) {
+  if (size < 1024) {
+    return `${size} B`;
+  }
+  if (size < 1024 * 1024) {
+    return `${(size / 1024).toFixed(1)} KB`;
+  }
+  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function formatHistoryTime(timestamp) {
+  return new Date(timestamp).toLocaleString();
+}
 
 export function mountJsonViewer(host, options = {}) {
   const app = new JsonViewerApp(host, options);
@@ -85,6 +108,14 @@ class JsonViewerApp {
     this.stringViewState = null;
     this.stringViewRequestToken = 0;
     this.parsingViewTabIds = new Set();
+    this.currentHistoryId = null;
+    this.historySessionTimer = 0;
+    this.historyItems = [];
+    this.historyCursor = null;
+    this.historyLoaded = false;
+    this.historyLoading = false;
+    this.historySavePromise = Promise.resolve();
+    this.historyResizeState = null;
   }
 
   mount() {
@@ -102,7 +133,9 @@ class JsonViewerApp {
     if (this.options.initialText && this.options.autoParse) {
       this.parseText(this.options.initialText);
     } else if (!this.options.embedded) {
-      this.setStatus('Open a JSON file to start.');
+      this.setStatus(
+        'Paste JSON, open a file, or choose an item from History to get started.',
+      );
     }
   }
 
@@ -144,6 +177,7 @@ class JsonViewerApp {
             <input class="jt-file-input" type="file" accept=".json,application/json,text/plain">
           </label>
           <button class="jt-button jt-button-secondary" data-action="load-sample" type="button">Sample</button>
+          <button class="jt-button jt-button-secondary jt-history-button" data-action="toggle-history" type="button" aria-expanded="false">History</button>
         </div>
       </section>
       <nav class="jt-tabs" role="tablist" aria-label="Open JSON views" hidden></nav>
@@ -190,6 +224,37 @@ class JsonViewerApp {
         <div class="jt-context-menu-separator" role="separator"></div>
         <button class="jt-context-menu-item" data-action="expand-recursively" type="button" role="menuitem">Expand recursively</button>
       </div>
+      <aside class="jt-history-panel" aria-label="Parse history" hidden>
+        <div
+          class="jt-history-resizer"
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize history panel"
+          aria-valuemin="${MIN_HISTORY_PANEL_WIDTH}"
+          aria-valuemax="${MAX_HISTORY_PANEL_WIDTH}"
+          aria-valuenow="320"
+          tabindex="0"
+        ></div>
+        <header class="jt-history-header">
+          <h2>History</h2>
+          <button class="jt-history-close" data-action="close-history" type="button" aria-label="Close history">
+            <svg class="jt-history-close-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <path d="M3.5 3.5 12.5 12.5 M12.5 3.5 3.5 12.5"></path>
+            </svg>
+          </button>
+        </header>
+        <div class="jt-history-list" role="list"></div>
+        <div class="jt-history-empty">No history yet.</div>
+        <button class="jt-button jt-button-secondary jt-history-more" data-action="load-more-history" type="button" hidden>Load more</button>
+        <div class="jt-history-retention">
+          <label>
+            Keep latest
+            <input class="jt-history-keep-count" data-action="history-keep-count" type="number" min="0" step="1" value="10">
+            records
+          </label>
+          <button class="jt-button jt-history-clean-button" data-action="cleanup-history" type="button">Clean history</button>
+        </div>
+      </aside>
     `;
     fragment.append(shell);
     return fragment;
@@ -208,6 +273,15 @@ class JsonViewerApp {
       parseManualButton: this.shadow.querySelector('[data-action="parse-manual"]'),
       formatManualButton: this.shadow.querySelector('[data-action="format-manual"]'),
       fileInput: this.shadow.querySelector('.jt-file-input'),
+      historyButton: this.shadow.querySelector('[data-action="toggle-history"]'),
+      historyPanel: this.shadow.querySelector('.jt-history-panel'),
+      historyResizer: this.shadow.querySelector('.jt-history-resizer'),
+      historyCloseButton: this.shadow.querySelector('[data-action="close-history"]'),
+      historyList: this.shadow.querySelector('.jt-history-list'),
+      historyEmpty: this.shadow.querySelector('.jt-history-empty'),
+      historyMoreButton: this.shadow.querySelector('[data-action="load-more-history"]'),
+      historyKeepCount: this.shadow.querySelector('[data-action="history-keep-count"]'),
+      historyCleanupButton: this.shadow.querySelector('[data-action="cleanup-history"]'),
       viewControls: this.shadow.querySelector('.jt-view-controls'),
       expansionControls: this.shadow.querySelector('.jt-expansion-controls'),
       stringControls: this.shadow.querySelector('.jt-string-controls'),
@@ -306,6 +380,35 @@ class JsonViewerApp {
       this.formatManualInput();
     });
 
+    this.elements.historyButton.addEventListener('click', () => {
+      this.toggleHistoryPanel();
+    });
+
+    this.elements.historyCloseButton.addEventListener('click', () => {
+      this.closeHistoryPanel();
+    });
+
+    this.elements.historyMoreButton.addEventListener('click', () => {
+      this.loadHistoryPage();
+    });
+
+    this.elements.historyCleanupButton.addEventListener('click', () => {
+      this.cleanupHistory();
+    });
+
+    this.elements.historyResizer.addEventListener('pointerdown', (event) => {
+      this.beginHistoryPanelResize(event);
+    });
+    this.host.ownerDocument.addEventListener('pointermove', (event) => {
+      this.continueHistoryPanelResize(event);
+    });
+    this.host.ownerDocument.addEventListener('pointerup', (event) => {
+      this.endHistoryPanelResize(event);
+    });
+    this.host.ownerDocument.addEventListener('pointercancel', (event) => {
+      this.endHistoryPanelResize(event);
+    });
+
     this.elements.loadSampleButton.addEventListener('click', () => {
       this.parseText(SAMPLE_JSON);
     });
@@ -316,12 +419,13 @@ class JsonViewerApp {
         return;
       }
 
-      this.parseFile(file);
+      this.parseFile(file, '', { recordHistory: true });
       event.currentTarget.value = '';
     });
 
     this.elements.searchInput.addEventListener('input', () => {
       this.scheduleSearch();
+      this.scheduleHistorySessionSave();
     });
 
     this.elements.searchInput.addEventListener('keydown', (event) => {
@@ -421,6 +525,12 @@ class JsonViewerApp {
         this.renderVisibleRows();
       });
     });
+
+    this.host.ownerDocument.addEventListener('visibilitychange', () => {
+      if (this.host.ownerDocument.visibilityState === 'hidden') {
+        this.flushHistorySessionSave();
+      }
+    });
   }
 
   parseManualInput() {
@@ -432,7 +542,12 @@ class JsonViewerApp {
     }
 
     this.setSourceLabel('Manual input');
-    this.parseText(text);
+    this.parseText(text, {
+      historyEntry: {
+        sourceType: 'manual',
+        title: 'Manual input',
+      },
+    });
   }
 
   formatManualInput() {
@@ -481,8 +596,269 @@ class JsonViewerApp {
     });
   }
 
-  async parseText(text) {
+  async toggleHistoryPanel() {
+    if (this.elements.historyPanel.hidden) {
+      this.elements.historyPanel.hidden = false;
+      this.elements.historyButton.setAttribute('aria-expanded', 'true');
+      await this.loadHistoryPage({ reset: true });
+      return;
+    }
+
+    this.closeHistoryPanel();
+  }
+
+  closeHistoryPanel() {
+    this.elements.historyPanel.hidden = true;
+    this.elements.historyButton.setAttribute('aria-expanded', 'false');
+  }
+
+  beginHistoryPanelResize(event) {
+    if (event.button !== 0) {
+      return;
+    }
+
+    this.historyResizeState = {
+      pointerId: event.pointerId,
+      startClientX: event.clientX,
+      startWidth: this.elements.historyPanel.getBoundingClientRect().width,
+    };
+    this.elements.historyResizer.setPointerCapture(event.pointerId);
+    this.elements.historyResizer.classList.add('jt-history-resizer-active');
+    event.preventDefault();
+  }
+
+  continueHistoryPanelResize(event) {
+    const state = this.historyResizeState;
+    if (!state || state.pointerId !== event.pointerId) {
+      return;
+    }
+
+    const viewportWidth =
+      this.host.ownerDocument.defaultView?.innerWidth || window.innerWidth;
+    const width = resizeHistoryPanelWidth({
+      ...state,
+      clientX: event.clientX,
+      viewportWidth,
+    });
+    this.elements.historyPanel.style.setProperty(
+      '--jt-history-panel-width',
+      `${width}px`,
+    );
+    this.elements.historyResizer.setAttribute('aria-valuenow', String(width));
+  }
+
+  endHistoryPanelResize(event) {
+    if (this.historyResizeState?.pointerId !== event.pointerId) {
+      return;
+    }
+
+    if (this.elements.historyResizer.hasPointerCapture(event.pointerId)) {
+      this.elements.historyResizer.releasePointerCapture(event.pointerId);
+    }
+    this.historyResizeState = null;
+    this.elements.historyResizer.classList.remove('jt-history-resizer-active');
+  }
+
+  async loadHistoryPage({ reset = false } = {}) {
+    if (this.historyLoading) {
+      return;
+    }
+
+    if (reset) {
+      this.historyItems = [];
+      this.historyCursor = null;
+      this.renderHistoryItems();
+    } else if (this.historyLoaded && !this.historyCursor) {
+      return;
+    }
+
+    this.historyLoading = true;
+    this.elements.historyMoreButton.disabled = true;
+    this.elements.historyMoreButton.textContent = 'Loading...';
+    const response = await this.requestWorker('list-history', {
+      cursor: this.historyCursor,
+      limit: HISTORY_PAGE_SIZE,
+    });
+    this.historyLoading = false;
+    this.historyLoaded = true;
+    this.elements.historyMoreButton.disabled = false;
+    this.elements.historyMoreButton.textContent = 'Load more';
+
+    if (!response.ok) {
+      this.elements.historyEmpty.hidden = false;
+      this.elements.historyEmpty.textContent = `History unavailable: ${response.error}`;
+      this.elements.historyMoreButton.hidden = true;
+      return;
+    }
+
+    this.historyItems = reset
+      ? response.items
+      : [...this.historyItems, ...response.items];
+    this.historyCursor = response.nextCursor;
+    this.renderHistoryItems();
+  }
+
+  refreshLoadedHistory() {
+    if (this.historyLoaded || !this.elements.historyPanel.hidden) {
+      this.loadHistoryPage({ reset: true });
+    }
+  }
+
+  renderHistoryItems() {
+    const fragment = document.createDocumentFragment();
+    for (const item of this.historyItems) {
+      const listItem = document.createElement('div');
+      listItem.className = 'jt-history-list-item';
+      listItem.setAttribute('role', 'listitem');
+      const button = document.createElement('button');
+      button.className = `jt-history-item${
+        item.id === this.currentHistoryId ? ' jt-history-item-active' : ''
+      }`;
+      button.type = 'button';
+      button.addEventListener('click', () => this.openHistoryEntry(item.id));
+
+      const title = document.createElement('span');
+      title.className = 'jt-history-item-title';
+      title.textContent = item.title;
+      const preview = document.createElement('span');
+      preview.className = 'jt-history-item-preview';
+      preview.textContent = item.preview;
+      const metadata = document.createElement('span');
+      metadata.className = 'jt-history-item-metadata';
+      metadata.textContent = `${formatHistorySize(
+        item.size,
+      )} · Viewed ${formatHistoryTime(
+        item.lastViewedAt,
+      )}`;
+      button.append(title, preview, metadata);
+      listItem.append(button);
+      fragment.append(listItem);
+    }
+
+    this.elements.historyList.replaceChildren(fragment);
+    this.elements.historyList.hidden = this.historyItems.length === 0;
+    this.elements.historyEmpty.hidden = this.historyItems.length > 0;
+    this.elements.historyEmpty.textContent = 'No history yet.';
+    this.elements.historyMoreButton.hidden = !this.historyCursor;
+  }
+
+  async openHistoryEntry(historyId) {
+    await this.flushHistorySessionSave();
+    this.clearError();
+    this.setStatus('Loading history in worker...');
+    const response = await this.requestWorker('open-history', {
+      historyId,
+      nodeCountLimit: AUTO_EXPAND_MAX_ROWS,
+    });
+    if (!response.ok) {
+      this.showError(`History load failed: ${response.error}`);
+      this.setStatus('History load failed.');
+      return;
+    }
+
+    this.resetViewTabs();
+    this.hasParsedRoot = true;
+    this.currentHistoryId = response.historyId;
+    this.setSourceLabel(response.title);
+    const initialExpansion = createInitialExpansionState(
+      response.nodeCount,
+      pathKey([]),
+    );
+    const restored = restoreViewSessionSnapshot(response.session);
+    this.viewTabs = restored.viewTabs;
+    this.tabSearchStates = restored.tabSearchStates;
+    this.treeViewStates.clear();
+    this.treeViewStates.set('root', {
+      expansion: initialExpansion,
+      scrollTop: 0,
+    });
+    this.renderTabs();
+    await this.showActiveView();
+    await this.loadHistoryPage({ reset: true });
+  }
+
+  async cleanupHistory() {
+    const keepCount = Math.max(
+      0,
+      Math.floor(Number(this.elements.historyKeepCount.value) || 0),
+    );
+    this.elements.historyKeepCount.value = String(keepCount);
+    this.elements.historyCleanupButton.disabled = true;
+    this.elements.historyCleanupButton.textContent = 'Cleaning...';
+
+    try {
+      await this.flushHistorySessionSave();
+      const response = await this.requestWorker('cleanup-history', {
+        keep: keepCount,
+      });
+      if (!response.ok) {
+        this.showError(`History cleanup failed: ${response.error}`);
+        return;
+      }
+
+      if (!response.activeHistoryRetained) {
+        this.currentHistoryId = null;
+      }
+      this.setStatus(
+        `Cleaned ${response.deletedCount.toLocaleString()} history record${
+          response.deletedCount === 1 ? '' : 's'
+        }.`,
+      );
+      await this.loadHistoryPage({ reset: true });
+    } finally {
+      this.elements.historyCleanupButton.disabled = false;
+      this.elements.historyCleanupButton.textContent = 'Clean history';
+    }
+  }
+
+  scheduleHistorySessionSave() {
+    if (!this.currentHistoryId || !this.hasParsedRoot) {
+      return;
+    }
+
+    window.clearTimeout(this.historySessionTimer);
+    this.historySessionTimer = window.setTimeout(() => {
+      this.historySessionTimer = 0;
+      this.persistHistorySession();
+    }, HISTORY_SESSION_SAVE_DEBOUNCE_MS);
+  }
+
+  persistHistorySession() {
+    if (!this.currentHistoryId || !this.hasParsedRoot) {
+      return this.historySavePromise;
+    }
+
+    this.saveActiveViewState();
+    const historyId = this.currentHistoryId;
+    const session = createViewSessionSnapshot(
+      this.viewTabs,
+      this.tabSearchStates,
+    );
+    this.historySavePromise = this.historySavePromise
+      .catch(() => {})
+      .then(() =>
+        this.requestWorker('save-history-session', {
+          historyId,
+          session,
+        }),
+      );
+    return this.historySavePromise;
+  }
+
+  async flushHistorySessionSave() {
+    window.clearTimeout(this.historySessionTimer);
+    this.historySessionTimer = 0;
+    if (this.currentHistoryId && this.hasParsedRoot) {
+      await this.persistHistorySession();
+    } else {
+      await this.historySavePromise.catch(() => {});
+    }
+  }
+
+  async parseText(text, options = {}) {
     const rawText = String(text || '');
+    await this.flushHistorySessionSave();
+    this.currentHistoryId = null;
     this.resetViewTabs();
     this.clearSearchResults();
     this.clearError();
@@ -493,6 +869,7 @@ class JsonViewerApp {
     const response = await this.requestWorker('parse-root', {
       text: rawText,
       nodeCountLimit: AUTO_EXPAND_MAX_ROWS,
+      ...(options.historyEntry ? { historyEntry: options.historyEntry } : {}),
     });
     if (!response.ok) {
       this.hasParsedRoot = false;
@@ -503,11 +880,21 @@ class JsonViewerApp {
     }
 
     this.hasParsedRoot = true;
+    this.currentHistoryId = response.historyId || null;
     this.expansion = createInitialExpansionState(response.nodeCount, pathKey([]));
     await this.refreshRowsAndSearch();
+    if (response.historyError) {
+      this.showError(`JSON parsed, but history could not be saved: ${response.historyError}`);
+    }
+    if (this.currentHistoryId) {
+      this.scheduleHistorySessionSave();
+      this.refreshLoadedHistory();
+    }
   }
 
-  async parseFile(file, sourceLabel = '') {
+  async parseFile(file, sourceLabel = '', options = {}) {
+    await this.flushHistorySessionSave();
+    this.currentHistoryId = null;
     this.resetViewTabs();
     this.clearSearchResults();
     this.clearError();
@@ -519,6 +906,14 @@ class JsonViewerApp {
     const response = await this.requestWorker('parse-root', {
       file,
       nodeCountLimit: AUTO_EXPAND_MAX_ROWS,
+      ...(options.recordHistory
+        ? {
+            historyEntry: {
+              sourceType: 'file',
+              title: file.name || sourceLabel || 'Local file',
+            },
+          }
+        : {}),
     });
     if (!response.ok) {
       this.hasParsedRoot = false;
@@ -529,8 +924,16 @@ class JsonViewerApp {
     }
 
     this.hasParsedRoot = true;
+    this.currentHistoryId = response.historyId || null;
     this.expansion = createInitialExpansionState(response.nodeCount, pathKey([]));
     await this.refreshRowsAndSearch();
+    if (response.historyError) {
+      this.showError(`JSON parsed, but history could not be saved: ${response.historyError}`);
+    }
+    if (this.currentHistoryId) {
+      this.scheduleHistorySessionSave();
+      this.refreshLoadedHistory();
+    }
   }
 
   async refreshRows(options = {}) {
@@ -1146,6 +1549,7 @@ class JsonViewerApp {
     this.viewTabs = { ...this.viewTabs, activeTabId: tabId };
     this.renderTabs();
     await this.showActiveView();
+    this.scheduleHistorySessionSave();
   }
 
   async toggleIsolatedTabMode(tabId) {
@@ -1189,6 +1593,7 @@ class JsonViewerApp {
         if (tab.id === this.viewTabs.activeTabId) {
           await this.showActiveView();
         }
+        this.scheduleHistorySessionSave();
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         this.showError(`Parse failed: ${message}`);
@@ -1208,6 +1613,7 @@ class JsonViewerApp {
     if (isActive) {
       await this.showActiveView();
     }
+    this.scheduleHistorySessionSave();
   }
 
   async showActiveView() {
@@ -1279,6 +1685,7 @@ class JsonViewerApp {
     this.viewTabs = openIsolatedView(this.viewTabs, row, this.getActiveTab().path);
     this.renderTabs();
     await this.showActiveView();
+    this.scheduleHistorySessionSave();
   }
 
   async closeViewTab(tabId) {
@@ -1290,6 +1697,7 @@ class JsonViewerApp {
     if (wasActive) {
       await this.showActiveView();
     }
+    this.scheduleHistorySessionSave();
   }
 
   openRowContextMenu(event, row) {
@@ -1453,6 +1861,7 @@ class JsonViewerApp {
     this.renderTabs();
     if (isViewRoot) {
       await this.showActiveView();
+      this.scheduleHistorySessionSave();
       return;
     }
 
@@ -1460,6 +1869,7 @@ class JsonViewerApp {
       this.expansion = ensureExpanded(this.expansion, row.pathKey);
     }
     await this.refreshRowsAndSearch();
+    this.scheduleHistorySessionSave();
   }
 
   scheduleSearch() {

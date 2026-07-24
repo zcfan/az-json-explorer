@@ -86,6 +86,248 @@ test('worker reports parse errors without throwing', async () => {
   assert.match(response.error, /JSON|Unexpected|position|end/i);
 });
 
+test('worker records only successful user parses and lists history without source content', async () => {
+  const worker = new Worker(new URL('../src/worker/jsonWorker.js', import.meta.url), {
+    type: 'module',
+  });
+  const send = (message) =>
+    new Promise((resolve, reject) => {
+      worker.once('message', resolve);
+      worker.once('error', reject);
+      worker.postMessage(message);
+    });
+
+  try {
+    const parsed = await send({
+      id: 'history-parse-success',
+      type: 'parse-root',
+      text: '{"saved":true}',
+      historyEntry: {
+        sourceType: 'manual',
+        title: 'Manual input',
+      },
+    });
+    const failed = await send({
+      id: 'history-parse-failure',
+      type: 'parse-root',
+      text: '{"broken":',
+      historyEntry: {
+        sourceType: 'manual',
+        title: 'Broken input',
+      },
+    });
+    const history = await send({
+      id: 'history-list',
+      type: 'list-history',
+      limit: 20,
+    });
+
+    assert.equal(parsed.ok, true);
+    assert.equal(typeof parsed.historyId, 'string');
+    assert.equal(failed.ok, false);
+    assert.equal(history.ok, true);
+    assert.equal(history.items.length, 1);
+    assert.deepEqual(
+      {
+        id: history.items[0].id,
+        title: history.items[0].title,
+        sourceType: history.items[0].sourceType,
+        size: history.items[0].size,
+        preview: history.items[0].preview,
+      },
+      {
+        id: parsed.historyId,
+        title: 'Manual input',
+        sourceType: 'manual',
+        size: 14,
+        preview: '{"saved":true}',
+      },
+    );
+    assert.equal('content' in history.items[0], false);
+    assert.equal(history.nextCursor, null);
+  } finally {
+    await worker.terminate();
+  }
+});
+
+test('worker restores a saved history session and parsed string cache', async () => {
+  const worker = new Worker(new URL('../src/worker/jsonWorker.js', import.meta.url), {
+    type: 'module',
+  });
+  const send = (message) =>
+    new Promise((resolve, reject) => {
+      worker.once('message', resolve);
+      worker.once('error', reject);
+      worker.postMessage(message);
+    });
+
+  try {
+    const parsed = await send({
+      id: 'history-session-parse',
+      type: 'parse-root',
+      text: JSON.stringify({
+        payload: '{"needle":true}',
+      }),
+      historyEntry: {
+        sourceType: 'manual',
+        title: 'Manual input',
+      },
+    });
+    await send({
+      id: 'history-session-parse-string',
+      type: 'parse-string',
+      path: ['payload'],
+      activateDisplay: false,
+    });
+
+    const session = {
+      version: 1,
+      activeTabId: 'view:1',
+      nextTabId: 2,
+      tabs: [
+        {
+          id: 'root',
+          title: '$',
+          path: [],
+          type: 'tree',
+          closable: false,
+          searchQuery: '',
+        },
+        {
+          id: 'view:1',
+          title: '$.payload',
+          path: ['payload'],
+          type: 'tree',
+          mode: 'parsed',
+          parsedType: 'tree',
+          displayModeOverrides: [{ path: ['payload'], mode: 'parsed' }],
+          closable: true,
+          searchQuery: 'needle',
+        },
+      ],
+    };
+    const saved = await send({
+      id: 'history-session-save',
+      type: 'save-history-session',
+      historyId: parsed.historyId,
+      session,
+    });
+    const reopened = await send({
+      id: 'history-session-open',
+      type: 'open-history',
+      historyId: parsed.historyId,
+      nodeCountLimit: 100,
+    });
+    const rows = await send({
+      id: 'history-session-rows',
+      type: 'collect-visible-rows',
+      rootPath: ['payload'],
+      rootMode: 'parsed',
+      displayModeOverrides: [{ path: ['payload'], mode: 'parsed' }],
+      expansionMode: 'all',
+      maxRows: 100,
+    });
+
+    assert.equal(saved.ok, true);
+    assert.equal(reopened.ok, true);
+    assert.equal(reopened.historyId, parsed.historyId);
+    assert.equal(reopened.title, 'Manual input');
+    assert.deepEqual(reopened.session.tabs, session.tabs);
+    assert.equal(rows.ok, true);
+    assert.deepEqual(
+      rows.rows.map((row) => [row.path, row.effectiveKind]),
+      [
+        [['payload'], 'object'],
+        [['payload', 'needle'], 'boolean'],
+      ],
+    );
+  } finally {
+    await worker.terminate();
+  }
+});
+
+test('history is ordered by latest view and cleanup keeps only the latest N records', async () => {
+  const worker = new Worker(new URL('../src/worker/jsonWorker.js', import.meta.url), {
+    type: 'module',
+  });
+  const send = (message) =>
+    new Promise((resolve, reject) => {
+      worker.once('message', resolve);
+      worker.once('error', reject);
+      worker.postMessage(message);
+    });
+
+  try {
+    const created = [];
+    for (const title of ['First', 'Second', 'Third']) {
+      created.push(
+        await send({
+          id: `history-order-${title}`,
+          type: 'parse-root',
+          text: JSON.stringify({ title }),
+          historyEntry: {
+            sourceType: 'manual',
+            title,
+          },
+        }),
+      );
+    }
+
+    const initial = await send({
+      id: 'history-order-initial',
+      type: 'list-history',
+      limit: 10,
+    });
+    assert.deepEqual(
+      initial.items.map((item) => item.title),
+      ['Third', 'Second', 'First'],
+    );
+
+    await send({
+      id: 'history-order-reopen-first',
+      type: 'open-history',
+      historyId: created[0].historyId,
+      nodeCountLimit: 10,
+    });
+    const reordered = await send({
+      id: 'history-order-after-open',
+      type: 'list-history',
+      limit: 10,
+    });
+    assert.deepEqual(
+      reordered.items.map((item) => item.title),
+      ['First', 'Third', 'Second'],
+    );
+
+    const cleaned = await send({
+      id: 'history-cleanup',
+      type: 'cleanup-history',
+      keep: 2,
+    });
+    const remaining = await send({
+      id: 'history-order-after-cleanup',
+      type: 'list-history',
+      limit: 10,
+    });
+    const deleted = await send({
+      id: 'history-open-deleted',
+      type: 'open-history',
+      historyId: created[1].historyId,
+    });
+
+    assert.equal(cleaned.ok, true);
+    assert.equal(cleaned.deletedCount, 1);
+    assert.equal(cleaned.activeHistoryRetained, true);
+    assert.deepEqual(
+      remaining.items.map((item) => item.title),
+      ['First', 'Third'],
+    );
+    assert.equal(deleted.ok, false);
+  } finally {
+    await worker.terminate();
+  }
+});
+
 test('worker parses nested string values with path echo', async () => {
   const response = await runWorkerRequest({
     id: 'parse-string-1',

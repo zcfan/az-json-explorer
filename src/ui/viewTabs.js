@@ -16,6 +16,152 @@ export function createViewTabsState() {
   };
 }
 
+function cloneTabForSession(tab) {
+  return {
+    id: tab.id,
+    title: tab.title,
+    path: [...tab.path],
+    type: tab.type,
+    closable: tab.closable,
+    ...(tab.mode ? { mode: tab.mode } : {}),
+    ...(tab.parsedType ? { parsedType: tab.parsedType } : {}),
+    ...(tab.displayModeOverrides
+      ? {
+          displayModeOverrides: tab.displayModeOverrides.map((entry) => ({
+            path: [...entry.path],
+            mode: entry.mode,
+          })),
+        }
+      : {}),
+    ...(Number.isFinite(tab.valueLength) ? { valueLength: tab.valueLength } : {}),
+  };
+}
+
+export function createViewSessionSnapshot(viewTabs, tabSearchStates) {
+  return {
+    version: 1,
+    activeTabId: viewTabs.activeTabId,
+    nextTabId: viewTabs.nextTabId,
+    tabs: viewTabs.tabs.map((tab) => ({
+      ...cloneTabForSession(tab),
+      searchQuery: tabSearchStates.get(tab.id)?.query || '',
+    })),
+  };
+}
+
+function isValidPath(path) {
+  return (
+    Array.isArray(path) &&
+    path.every(
+      (segment) => typeof segment === 'string' || Number.isInteger(segment),
+    )
+  );
+}
+
+function restoreSessionTab(tab, index) {
+  if (
+    !tab ||
+    typeof tab.id !== 'string' ||
+    typeof tab.title !== 'string' ||
+    !isValidPath(tab.path) ||
+    (tab.type !== 'tree' && tab.type !== 'string') ||
+    (index === 0 &&
+      (tab.id !== 'root' ||
+        tab.closable !== false ||
+        tab.type !== 'tree' ||
+        tab.path.length !== 0))
+  ) {
+    return null;
+  }
+
+  const restored = {
+    id: tab.id,
+    title: tab.title,
+    path: [...tab.path],
+    type: tab.type,
+    closable: index === 0 ? false : true,
+  };
+  if (tab.mode === 'raw' || tab.mode === 'parsed') {
+    restored.mode = tab.mode;
+  }
+  if (tab.parsedType === 'tree' || tab.parsedType === 'string') {
+    restored.parsedType = tab.parsedType;
+  }
+  if (Array.isArray(tab.displayModeOverrides)) {
+    restored.displayModeOverrides = tab.displayModeOverrides
+      .filter(
+        (entry) =>
+          isValidPath(entry?.path) &&
+          (entry.mode === 'raw' || entry.mode === 'parsed'),
+      )
+      .map((entry) => ({
+        path: [...entry.path],
+        mode: entry.mode,
+      }));
+  }
+  if (Number.isFinite(tab.valueLength)) {
+    restored.valueLength = tab.valueLength;
+  }
+  return restored;
+}
+
+export function restoreViewSessionSnapshot(session) {
+  if (session?.version !== 1 || !Array.isArray(session.tabs)) {
+    return {
+      viewTabs: createViewTabsState(),
+      tabSearchStates: new Map(),
+    };
+  }
+
+  const tabs = session.tabs.map(restoreSessionTab);
+  if (tabs.length === 0 || tabs.some((tab) => !tab)) {
+    return {
+      viewTabs: createViewTabsState(),
+      tabSearchStates: new Map(),
+    };
+  }
+
+  const uniqueIds = new Set(tabs.map((tab) => tab.id));
+  if (uniqueIds.size !== tabs.length) {
+    return {
+      viewTabs: createViewTabsState(),
+      tabSearchStates: new Map(),
+    };
+  }
+
+  const activeTabId = uniqueIds.has(session.activeTabId)
+    ? session.activeTabId
+    : 'root';
+  const nextTabId = Math.max(
+    Number.isInteger(session.nextTabId) ? session.nextTabId : 1,
+    ...tabs.map((tab) => {
+      const match = /^view:(\d+)$/.exec(tab.id);
+      return match ? Number(match[1]) + 1 : 1;
+    }),
+  );
+  const tabSearchStates = new Map(
+    session.tabs.map((tab) => [
+      tab.id,
+      {
+        query: typeof tab.searchQuery === 'string' ? tab.searchQuery : '',
+        results: [],
+        selectedIndex: -1,
+        truncated: false,
+        ready: false,
+      },
+    ]),
+  );
+
+  return {
+    viewTabs: {
+      activeTabId,
+      nextTabId,
+      tabs,
+    },
+    tabSearchStates,
+  };
+}
+
 export function getIsolationViewType(row, viewRootPath = []) {
   if (pathKey(row.path) === pathKey(viewRootPath)) {
     return null;
@@ -72,7 +218,9 @@ export function openIsolatedView(state, row, viewRootPath = []) {
     ...(parsedType ? { parsedType } : {}),
     ...(displayModeOverrides.length > 0 ? { displayModeOverrides } : {}),
     closable: true,
-    ...(row.kind === 'string' ? { valueLength: row.valueLength } : {}),
+    ...(row.kind === 'string' && Number.isFinite(row.valueLength)
+      ? { valueLength: row.valueLength }
+      : {}),
   };
 
   return {

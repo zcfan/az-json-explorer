@@ -205,6 +205,10 @@ test('viewer exposes isolated tree and paged string tabs instead of a modal', as
 test('viewer supports one-way manual JSON input without echoing file content', async () => {
   const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
 
+  assert.match(
+    viewer,
+    /Paste JSON, open a file, or choose an item from History to get started\./,
+  );
   assert.match(viewer, /<textarea class="jt-manual-input"/);
   assert.match(viewer, /data-action="parse-manual"/);
   assert.match(viewer, /data-action="format-manual"/);
@@ -212,12 +216,117 @@ test('viewer supports one-way manual JSON input without echoing file content', a
   assert.match(viewer, /formatManualInput\(\)/);
   assert.match(viewer, /formatJsonText/);
   assert.match(viewer, /manualInput\.value\s*=\s*formatJsonText\(text\)/);
-  assert.match(viewer, /this\.parseText\(text\)/);
+  assert.match(viewer, /this\.parseText\(text,\s*\{[\s\S]*historyEntry:/);
   assert.match(viewer, /setSourceLabel\('Manual input'\)/);
   assert.doesNotMatch(viewer, /file\.text\(\)/);
   assert.doesNotMatch(viewer, /manualInput\.value\s*=\s*await\s+file\.text/);
-  assert.match(viewer, /parseFile\(file\)/);
+  assert.match(viewer, /parseFile\(file,\s*'',\s*\{\s*recordHistory:\s*true\s*\}\)/);
   assert.match(viewer, /this\.requestWorker\('parse-root', \{\s*file,/);
+});
+
+test('viewer exposes a paged right-side parse history without refilling manual input', async () => {
+  const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
+
+  assert.match(
+    viewer,
+    /class="jt-loader-actions"[\s\S]*data-action="parse-manual"[\s\S]*data-action="format-manual"[\s\S]*data-action="toggle-history"[^>]*>History<\/button>/,
+  );
+  assert.match(viewer, /class="jt-history-panel"[^>]*aria-label="Parse history"[^>]*hidden/);
+  assert.match(
+    viewer,
+    /class="jt-history-close"[^>]*aria-label="Close history"[^>]*>[\s\S]*class="jt-history-close-icon"[\s\S]*aria-hidden="true"/,
+  );
+  assert.match(
+    viewer,
+    /class="jt-history-resizer"[^>]*role="separator"[^>]*aria-orientation="vertical"/,
+  );
+  assert.match(viewer, /resizeHistoryPanelWidth/);
+  assert.match(viewer, /historyResizer\.addEventListener\('pointerdown'/);
+  assert.match(
+    viewer,
+    /ownerDocument\.addEventListener\('pointermove'[\s\S]*continueHistoryPanelResize/,
+  );
+  assert.match(
+    viewer,
+    /ownerDocument\.addEventListener\('pointerup'[\s\S]*endHistoryPanelResize/,
+  );
+  assert.match(viewer, /data-action="load-more-history"/);
+  assert.match(viewer, /listItem\.setAttribute\('role',\s*'listitem'\)/);
+  assert.match(viewer, /listItem\.append\(button\)/);
+  assert.doesNotMatch(viewer, /button\.setAttribute\('role',\s*'listitem'\)/);
+  assert.match(viewer, /preview\.className = 'jt-history-item-preview'/);
+  assert.match(viewer, /preview\.textContent = item\.preview/);
+  assert.match(
+    viewer,
+    /metadata\.textContent = `\$\{formatHistorySize\([\s\S]*item\.lastViewedAt/,
+  );
+  assert.doesNotMatch(
+    viewer,
+    /metadata\.textContent = `\$\{[\s\S]*item\.sourceType[\s\S]*Manual input/,
+  );
+  assert.match(viewer, />No history yet\.<\/div>/);
+  assert.doesNotMatch(viewer, /No parse history yet\./);
+  assert.match(
+    viewer,
+    /this\.elements\.historyList\.hidden = this\.historyItems\.length === 0/,
+  );
+  assert.match(
+    viewer,
+    /class="jt-history-retention"[\s\S]*Keep latest[\s\S]*data-action="history-keep-count"[^>]*value="10"[\s\S]*records[\s\S]*data-action="cleanup-history"[^>]*>Clean history<\/button>/,
+  );
+  assert.match(viewer, /requestWorker\('list-history',\s*\{[\s\S]*cursor:[\s\S]*limit:/);
+  assert.match(viewer, /requestWorker\('open-history',\s*\{[\s\S]*historyId,/);
+  assert.match(viewer, /requestWorker\('save-history-session',\s*\{/);
+  assert.match(
+    viewer,
+    /requestWorker\('cleanup-history',\s*\{\s*keep:\s*keepCount/,
+  );
+  assert.match(viewer, /historyEntry:\s*\{[\s\S]*sourceType:\s*'manual'/);
+  assert.match(viewer, /historyEntry:\s*\{[\s\S]*sourceType:\s*'file'/);
+  assert.match(viewer, /restoreViewSessionSnapshot\(response\.session\)/);
+  assert.doesNotMatch(
+    viewer,
+    /openHistoryEntry[\s\S]*manualInput\.value\s*=/,
+  );
+  assert.doesNotMatch(viewer, /delete-history|clear-history/);
+  assert.match(css, /\.jt-history-button\s*\{[^}]*margin-left:\s*auto;/s);
+  assert.match(
+    css,
+    /\.jt-app\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s+auto;/s,
+  );
+  assert.match(
+    css,
+    /\.jt-history-panel\s*\{[^}]*width:\s*var\(--jt-history-panel-width,\s*320px\);/s,
+  );
+  assert.match(
+    css,
+    /\.jt-loader\s*\{[^}]*grid-row:\s*3;/s,
+    'history and main content must keep the same row anchor when the optional banner is hidden',
+  );
+  assert.match(css, /\.jt-history-panel\s*\{[^}]*grid-row:\s*3\s*\/\s*-1;/s);
+  assert.match(css, /\.jt-history-panel\[hidden\]\s*\{[^}]*display:\s*none;/s);
+  assert.match(
+    css,
+    /\.jt-history-close-icon\s*\{[^}]*width:\s*16px;[^}]*height:\s*16px;[^}]*stroke:\s*currentColor;/s,
+  );
+  assert.match(
+    css,
+    /\.jt-history-resizer\s*\{[^}]*cursor:\s*col-resize;/s,
+  );
+  assert.match(
+    css,
+    /\.jt-history-empty\s*\{[^}]*flex:\s*1 1 auto;[^}]*align-items:\s*center;/s,
+  );
+  assert.match(
+    css,
+    /\.jt-history-item-preview\s*\{[^}]*overflow:\s*hidden;[^}]*text-overflow:\s*ellipsis;[^}]*white-space:\s*nowrap;/s,
+  );
+  assert.match(
+    css,
+    /\.jt-history-retention\s*\{[^}]*margin-top:\s*auto;[^}]*flex-wrap:\s*wrap;[^}]*justify-content:\s*flex-end;[^}]*border-top:/s,
+  );
+  assert.match(viewer, /formatHistoryTime\(\s*item\.lastViewedAt/);
 });
 
 test('viewer redirects page paste and exposes the platform parse shortcut', async () => {
