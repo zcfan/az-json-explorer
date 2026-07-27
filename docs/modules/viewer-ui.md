@@ -9,6 +9,7 @@ The viewer UI is the main-thread coordinator. It owns DOM rendering, user intera
 - `src/ui/viewerApp.js`
 - `src/ui/viewTabs.js`
 - `src/ui/historyPanelResize.js`
+- `src/ui/viewerUiState.js`
 - `src/ui/styles.css`
 - `src/core/i18n.js`
 - `_locales/en/messages.json`
@@ -23,6 +24,7 @@ The viewer UI is the main-thread coordinator. It owns DOM rendering, user intera
 - `test/searchHighlight.test.mjs`
 - `test/stringSearchHighlight.test.mjs`
 - `test/historyPanelResize.test.mjs`
+- `test/viewerUiState.test.mjs`
 - `test/standalonePerformanceHint.test.mjs`
 - `test/versionUpdateNotice.test.mjs`
 
@@ -55,7 +57,8 @@ This is why row height and row DOM layout must remain stable.
 ## User Interactions
 
 - Every paste into the manual JSON textarea immediately parses the resulting input.
-- The manual JSON textarea is 300px tall by default. Dragging the row beneath it resizes the textarea vertically, with a 92px minimum height.
+- Embedded viewers hide the complete manual JSON input region; the textarea, actions, History button, and resize/toggle row are standalone-only controls.
+- The manual JSON textarea is 300px tall by default. Dragging the row beneath it resizes the textarea vertically, with a 92px minimum height and a maximum of 30% of the viewport height.
 - A bordered action card connects beneath the textarea and contains the complete manual-input action row plus a text-only toggle. Its copy also explains that dragging resizes the input. The toggle text keeps a pointer cursor; the surrounding row uses a vertical-resize cursor and highlights its drag handle as a blue line around the text. Collapsing hides the textarea and action row without clearing the input, leaving the `Ctrl+\`` / `Toggle JSON input · Drag to resize` control visible.
 - Pressing the toggle text and moving at most 5px still counts as a click. Moving farther starts a resize and suppresses the visibility toggle when the pointer is released. Clicking blank space in the resize row does not toggle visibility.
 - Using the select-all shortcut outside editable controls expands the manual input, focuses it, and selects all of its content. Search, manual-input, and other editable controls keep their native select-all behavior.
@@ -69,7 +72,9 @@ This is why row height and row DOM layout must remain stable.
 - `Open file`: sends a File directly to `parse-root`.
 - `Sample`: loads the inline sample JSON.
 - `History`: opens a 320px right-side panel. The panel pages through successful manual-input and user-opened-file parses without loading their source content into the UI.
-- The history panel's left divider is pointer-draggable from 240px to 720px while preserving viewer space where the viewport allows it.
+- The history panel's left divider is pointer-draggable from 240px to 720px while preserving viewer space where the viewport allows it, and its effective width never exceeds half the viewport.
+- The standalone viewer stores whether History is open, the History panel width, and the manual JSON input height in local storage. Refreshing restores those values, with dimensions clamped to current safety bounds; embedded viewers do not share this preference.
+- Before any JSON is loaded, the standalone tree area is a full-size button labeled `Click to load the most recent history entry`. It requests only the newest history summary, then restores that record through the existing worker-owned history path; embedded viewers never show this prompt.
 - Clicking a history item asks the worker to restore it directly into the viewer; it never refills or replaces the manual-input textarea.
 - Each history item renders three lines: its source title, a bounded beginning-of-content preview, and size/last-viewed metadata.
 - History is ordered by most recently engaged time. Selecting an item only restores it; the first subsequent click in the tabs, viewer controls/status, or active content area updates its timestamp and moves it to the top.

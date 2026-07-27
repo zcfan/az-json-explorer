@@ -29,7 +29,7 @@ test('dragging the history divider resizes leftward and preserves viewer space',
       clientX: 100,
       viewportWidth: 1000,
     }),
-    640,
+    500,
   );
   assert.equal(
     resizeHistoryPanelWidth({

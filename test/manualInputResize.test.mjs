@@ -45,6 +45,18 @@ test('manual input drag starts only beyond 5px and resizes vertically', () => {
   );
 });
 
+test('manual input height never exceeds 30% of the viewport', () => {
+  assert.equal(
+    resizeManualInputHeight({
+      startHeight: 300,
+      startClientY: 200,
+      clientY: 900,
+      viewportHeight: 800,
+    }),
+    240,
+  );
+});
+
 test('only an undragged press on the toggle text changes input visibility', () => {
   assert.equal(
     shouldToggleManualInputAfterPointerGesture({

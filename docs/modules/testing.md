@@ -31,6 +31,7 @@ The project uses Node's built-in test runner. There is no test build step.
 | `test/viewTabs.test.mjs` | Permanent-root, isolation eligibility, raw/parsed modes, duplicate titles, close selection, and lightweight history-session snapshots. |
 | `test/manualInputResize.test.mjs` | Manual-input drag threshold, vertical height calculation, minimum height, and click-versus-drag behavior. |
 | `test/historyPanelResize.test.mjs` | History-panel drag direction and width/viewer-space bounds. |
+| `test/viewerUiState.test.mjs` | Persistent standalone UI-state defaults, validation, bounds, storage failures, and round trips. |
 | `test/i18n.test.mjs` | English/Simplified Chinese catalog parity, source key coverage, fallback behavior, Chrome UI-language propagation, and package inclusion. |
 | `test/externalLaunch.test.mjs` | Public launch validation, payload handoff, rate limiting, claim, timeout, and tab failures. |
 | `test/pageLaunchBridge.test.mjs` | Webpage discovery, trusted-click gating, and bridge errors. |

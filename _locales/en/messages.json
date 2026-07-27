@@ -112,6 +112,9 @@
   "jsonTree": {
     "message": "JSON tree"
   },
+  "loadLatestHistory": {
+    "message": "Click to load the most recent history entry"
+  },
   "stringValue": {
     "message": "String value"
   },

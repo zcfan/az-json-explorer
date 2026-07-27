@@ -112,6 +112,9 @@
   "jsonTree": {
     "message": "JSON 树"
   },
+  "loadLatestHistory": {
+    "message": "点击加载最近一次历史记录"
+  },
   "stringValue": {
     "message": "字符串值"
   },

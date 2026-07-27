@@ -441,6 +441,103 @@ test('viewer supports one-way manual JSON input without echoing file content', a
   );
 });
 
+test('embedded viewer hides the complete manual JSON input region', async () => {
+  const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
+
+  assert.match(
+    viewer,
+    /if \(this\.options\.embedded\) \{[\s\S]*this\.elements\.loader\.hidden = true;/,
+  );
+  assert.match(
+    css,
+    /\.jt-loader\[hidden\]\s*\{[^}]*display:\s*none;/s,
+  );
+});
+
+test('empty standalone tree opens the most recent history entry from a full-area prompt', async () => {
+  const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
+
+  assert.match(
+    viewer,
+    /class="jt-empty-history-load"[\s\S]*data-action="open-latest-history"[\s\S]*data-i18n="loadLatestHistory"/,
+  );
+  assert.match(
+    viewer,
+    /emptyHistoryLoadButton\.addEventListener\('click',[\s\S]*openLatestHistoryEntry\(\)/,
+  );
+  assert.match(
+    viewer,
+    /async openLatestHistoryEntry\(\) \{[\s\S]*requestWorker\('list-history',\s*\{[\s\S]*cursor:\s*null,[\s\S]*limit:\s*1,[\s\S]*response\.items\[0\][\s\S]*openHistoryEntry\(/,
+  );
+  assert.match(
+    css,
+    /\.jt-empty-history-load\s*\{[^}]*position:\s*absolute;[^}]*inset:\s*0;[^}]*color:[^}]*font-size:/s,
+  );
+  assert.match(
+    css,
+    /\.jt-empty-history-load\[hidden\]\s*\{[^}]*display:\s*none;/s,
+  );
+});
+
+test('viewer restores persistent history and manual-input dimensions', async () => {
+  const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
+
+  assert.match(viewer, /loadViewerUiState/);
+  assert.match(viewer, /saveViewerUiState/);
+  assert.match(
+    viewer,
+    /this\.createWorker\(\);\s*this\.restoreViewerUiState\(\);/,
+  );
+  assert.match(
+    viewer,
+    /restoreViewerUiState\(\) \{[\s\S]*manualInput\.style\.height[\s\S]*--jt-history-panel-width[\s\S]*historyPanelOpen[\s\S]*loadHistoryPage\(\{ reset: true \}\)/,
+  );
+  assert.match(
+    viewer,
+    /persistViewerUiState\(\) \{[\s\S]*historyPanelOpen:[\s\S]*historyPanelWidth:[\s\S]*manualInputHeight:[\s\S]*saveViewerUiState/,
+  );
+  assert.match(
+    viewer,
+    /endManualInputResize\(event\) \{[\s\S]*state\.dragging[\s\S]*persistViewerUiState\(\)/,
+  );
+  assert.match(
+    viewer,
+    /endHistoryPanelResize\(event\) \{[\s\S]*persistViewerUiState\(\)/,
+  );
+  assert.match(
+    viewer,
+    /toggleHistoryPanel\(\) \{[\s\S]*persistViewerUiState\(\)/,
+  );
+  assert.match(
+    viewer,
+    /closeHistoryPanel\(\) \{[\s\S]*persistViewerUiState\(\)/,
+  );
+});
+
+test('viewer applies viewport limits while dragging and restoring dimensions', async () => {
+  const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
+
+  assert.match(
+    css,
+    /\.jt-manual-input\s*\{[^}]*max-height:\s*30vh;/s,
+  );
+  assert.match(
+    css,
+    /\.jt-history-panel\s*\{[^}]*max-width:\s*50vw;/s,
+  );
+  assert.match(
+    viewer,
+    /continueManualInputResize\(event\) \{[\s\S]*viewportHeight[\s\S]*resizeManualInputHeight\(\{[\s\S]*viewportHeight/,
+  );
+  assert.match(
+    viewer,
+    /restoreViewerUiState\(\) \{[\s\S]*viewportHeight[\s\S]*resizeManualInputHeight\(\{[\s\S]*state\.manualInputHeight[\s\S]*viewportHeight[\s\S]*manualInput\.style\.height/,
+  );
+});
+
 test('viewer exposes a paged right-side parse history without refilling manual input', async () => {
   const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
   const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');

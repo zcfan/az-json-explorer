@@ -12,7 +12,15 @@ export function resizeHistoryPanelWidth({
     MIN_HISTORY_PANEL_WIDTH,
     viewportWidth - MIN_VIEWER_WIDTH,
   );
-  const maximum = Math.min(MAX_HISTORY_PANEL_WIDTH, availableMaximum);
+  const halfViewportMaximum = Math.max(
+    MIN_HISTORY_PANEL_WIDTH,
+    viewportWidth / 2,
+  );
+  const maximum = Math.min(
+    MAX_HISTORY_PANEL_WIDTH,
+    availableMaximum,
+    halfViewportMaximum,
+  );
   return Math.max(
     MIN_HISTORY_PANEL_WIDTH,
     Math.min(maximum, startWidth + startClientX - clientX),

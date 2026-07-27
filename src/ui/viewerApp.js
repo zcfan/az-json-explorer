@@ -43,6 +43,11 @@ import {
   shouldToggleManualInputAfterPointerGesture,
 } from './manualInputResize.js';
 import {
+  DEFAULT_VIEWER_UI_STATE,
+  loadViewerUiState,
+  saveViewerUiState,
+} from './viewerUiState.js';
+import {
   activateViewTabParsedMode,
   closeViewTab,
   createViewSessionSnapshot,
@@ -159,6 +164,8 @@ class JsonViewerApp {
     this.bindEvents();
     this.showVersionUpdateNoticeIfNeeded();
     this.createWorker();
+    this.restoreViewerUiState();
+    this.elements.emptyHistoryLoadButton.hidden = Boolean(this.options.embedded);
 
     if (this.options.embedded) {
       this.elements.loader.hidden = true;
@@ -306,6 +313,13 @@ class JsonViewerApp {
       <section class="jt-tree" tabindex="0" aria-label="JSON tree" data-i18n-aria-label="jsonTree">
         <div class="jt-spacer"></div>
         <div class="jt-row-layer"></div>
+        <button
+          class="jt-empty-history-load"
+          data-action="open-latest-history"
+          type="button"
+          data-i18n="loadLatestHistory"
+          hidden
+        >Click to load the most recent history entry</button>
       </section>
       <section class="jt-string-view" aria-label="String value" data-i18n-aria-label="stringValue" hidden>
         <div
@@ -502,6 +516,9 @@ class JsonViewerApp {
       tree: this.shadow.querySelector('.jt-tree'),
       spacer: this.shadow.querySelector('.jt-spacer'),
       rowLayer: this.shadow.querySelector('.jt-row-layer'),
+      emptyHistoryLoadButton: this.shadow.querySelector(
+        '[data-action="open-latest-history"]',
+      ),
       loadSampleButton: this.shadow.querySelector('[data-action="load-sample"]'),
       collapseAllButton: this.shadow.querySelector('[data-action="collapse-all"]'),
       expandRootButton: this.shadow.querySelector('[data-action="expand-root"]'),
@@ -692,6 +709,10 @@ class JsonViewerApp {
 
     this.elements.historyMoreButton.addEventListener('click', () => {
       this.loadHistoryPage();
+    });
+
+    this.elements.emptyHistoryLoadButton.addEventListener('click', () => {
+      this.openLatestHistoryEntry();
     });
 
     this.elements.historyRetention.addEventListener('submit', (event) => {
@@ -968,7 +989,13 @@ class JsonViewerApp {
       );
     }
 
-    const height = resizeManualInputHeight({ ...state, clientY: event.clientY });
+    const viewportHeight =
+      this.host.ownerDocument.defaultView?.innerHeight || window.innerHeight;
+    const height = resizeManualInputHeight({
+      ...state,
+      clientY: event.clientY,
+      viewportHeight,
+    });
     this.elements.manualInput.style.height = `${Math.round(height)}px`;
     event.preventDefault();
   }
@@ -985,6 +1012,10 @@ class JsonViewerApp {
     }
     this.manualInputResizeState = null;
     manualInputResizer.classList.remove('jt-manual-input-resizer-active');
+
+    if (state.dragging) {
+      this.persistViewerUiState();
+    }
 
     if (
       event.type === 'pointerup' &&
@@ -1055,10 +1086,79 @@ class JsonViewerApp {
     });
   }
 
+  getLocalStorage() {
+    try {
+      return this.host.ownerDocument.defaultView?.localStorage || null;
+    } catch {
+      return null;
+    }
+  }
+
+  restoreViewerUiState() {
+    if (this.options.embedded) {
+      return;
+    }
+
+    const state = loadViewerUiState(this.getLocalStorage());
+    const viewportHeight =
+      this.host.ownerDocument.defaultView?.innerHeight || 800;
+    const manualInputHeight = resizeManualInputHeight({
+      startHeight: state.manualInputHeight,
+      startClientY: 0,
+      clientY: 0,
+      viewportHeight,
+    });
+    this.elements.manualInput.style.height = `${manualInputHeight}px`;
+
+    const viewportWidth =
+      this.host.ownerDocument.defaultView?.innerWidth || 1280;
+    const historyPanelWidth = resizeHistoryPanelWidth({
+      startWidth: state.historyPanelWidth,
+      startClientX: 0,
+      clientX: 0,
+      viewportWidth,
+    });
+    this.elements.historyPanel.style.setProperty(
+      '--jt-history-panel-width',
+      `${historyPanelWidth}px`,
+    );
+    this.elements.historyResizer.setAttribute(
+      'aria-valuenow',
+      String(historyPanelWidth),
+    );
+
+    if (state.historyPanelOpen) {
+      this.elements.historyPanel.hidden = false;
+      this.elements.historyButton.setAttribute('aria-expanded', 'true');
+      void this.loadHistoryPage({ reset: true });
+    }
+  }
+
+  persistViewerUiState() {
+    if (this.options.embedded) {
+      return;
+    }
+
+    const historyPanelWidth =
+      Number(this.elements.historyResizer.getAttribute('aria-valuenow')) ||
+      DEFAULT_VIEWER_UI_STATE.historyPanelWidth;
+    const manualInputHeight =
+      Number.parseFloat(this.elements.manualInput.style.height) ||
+      this.elements.manualInput.getBoundingClientRect().height ||
+      DEFAULT_VIEWER_UI_STATE.manualInputHeight;
+    const state = {
+      historyPanelOpen: !this.elements.historyPanel.hidden,
+      historyPanelWidth: historyPanelWidth,
+      manualInputHeight: manualInputHeight,
+    };
+    saveViewerUiState(this.getLocalStorage(), state);
+  }
+
   async toggleHistoryPanel() {
     if (this.elements.historyPanel.hidden) {
       this.elements.historyPanel.hidden = false;
       this.elements.historyButton.setAttribute('aria-expanded', 'true');
+      this.persistViewerUiState();
       await this.loadHistoryPage({ reset: true });
       return;
     }
@@ -1069,6 +1169,7 @@ class JsonViewerApp {
   closeHistoryPanel() {
     this.elements.historyPanel.hidden = true;
     this.elements.historyButton.setAttribute('aria-expanded', 'false');
+    this.persistViewerUiState();
   }
 
   beginHistoryPanelResize(event) {
@@ -1116,6 +1217,7 @@ class JsonViewerApp {
     }
     this.historyResizeState = null;
     this.elements.historyResizer.classList.remove('jt-history-resizer-active');
+    this.persistViewerUiState();
   }
 
   async loadHistoryPage({ reset = false } = {}) {
@@ -1232,6 +1334,7 @@ class JsonViewerApp {
 
     this.resetViewTabs();
     this.hasParsedRoot = true;
+    this.elements.emptyHistoryLoadButton.hidden = true;
     this.currentHistoryId = response.historyId;
     this.pendingHistoryViewId = response.historyId;
     this.setSourceLabel(response.title);
@@ -1250,6 +1353,56 @@ class JsonViewerApp {
     this.renderTabs();
     await this.showActiveView();
     await this.loadHistoryPage({ reset: true });
+  }
+
+  async openLatestHistoryEntry() {
+    const button = this.elements.emptyHistoryLoadButton;
+    if (this.hasParsedRoot || button.disabled) {
+      return;
+    }
+
+    button.disabled = true;
+    this.clearError();
+    this.setStatus(translate('loadingHistory', 'Loading history in worker...'));
+
+    try {
+      const response = await this.requestWorker('list-history', {
+        cursor: null,
+        limit: 1,
+      });
+      if (!response.ok) {
+        this.showError(
+          translate(
+            'historyUnavailable',
+            `History unavailable: ${response.error}`,
+            response.error,
+          ),
+        );
+        this.setStatus(translate('historyLoadFailed', 'History load failed.'));
+        return;
+      }
+
+      const latestHistoryEntry = response.items[0];
+      if (!latestHistoryEntry) {
+        this.setStatus(translate('noHistoryYet', 'No history yet.'));
+        return;
+      }
+
+      await this.openHistoryEntry(latestHistoryEntry.id);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      this.showError(
+        translate(
+          'historyUnavailable',
+          `History unavailable: ${message}`,
+          message,
+        ),
+      );
+      this.setStatus(translate('historyLoadFailed', 'History load failed.'));
+    } finally {
+      button.disabled = false;
+      button.hidden = this.hasParsedRoot || Boolean(this.options.embedded);
+    }
   }
 
   async markCurrentHistoryViewed() {
@@ -1372,6 +1525,7 @@ class JsonViewerApp {
 
   async parseText(text, options = {}) {
     const rawText = String(text || '');
+    this.elements.emptyHistoryLoadButton.hidden = true;
     await this.flushHistorySessionSave();
     this.currentHistoryId = null;
     this.pendingHistoryViewId = null;
@@ -1415,6 +1569,7 @@ class JsonViewerApp {
   }
 
   async parseFile(file, sourceLabel = '', options = {}) {
+    this.elements.emptyHistoryLoadButton.hidden = true;
     await this.flushHistorySessionSave();
     this.currentHistoryId = null;
     this.pendingHistoryViewId = null;

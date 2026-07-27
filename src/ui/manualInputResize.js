@@ -1,5 +1,6 @@
 export const MANUAL_INPUT_DRAG_THRESHOLD = 5;
 export const MIN_MANUAL_INPUT_HEIGHT = 92;
+export const MAX_MANUAL_INPUT_VIEWPORT_RATIO = 0.3;
 
 export function hasExceededManualInputDragThreshold({
   startClientX,
@@ -17,11 +18,18 @@ export function resizeManualInputHeight({
   startHeight,
   startClientY,
   clientY,
+  viewportHeight,
 }) {
-  return Math.max(
+  const maximum = Number.isFinite(viewportHeight)
+    ? Math.max(
+        MIN_MANUAL_INPUT_HEIGHT,
+        viewportHeight * MAX_MANUAL_INPUT_VIEWPORT_RATIO,
+      )
+    : Number.POSITIVE_INFINITY;
+  return Math.min(maximum, Math.max(
     MIN_MANUAL_INPUT_HEIGHT,
     startHeight + clientY - startClientY,
-  );
+  ));
 }
 
 export function shouldToggleManualInputAfterPointerGesture({
