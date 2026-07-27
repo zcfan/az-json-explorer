@@ -1,0 +1,43 @@
+README.md
+  s_a1e539ce1158d1::t_eb2271030ad5a3 43,64,72,75
+docs/README.md
+  s_a1e539ce1158d1::t_a6bdeb6446e485 15
+docs/modules/extension-entrypoints.md
+  s_a1e539ce1158d1::t_a3602ddc4bd086 9-10,19,48
+docs/modules/testing.md
+  s_a1e539ce1158d1::t_8b5e47103774df 51
+docs/modules/viewer-ui.md
+  s_a1e539ce1158d1::t_080a6d15fb8ce1 53-55
+manifest.json
+  s_a1e539ce1158d1::t_805015729e1ccd 13
+src/background.js
+  s_a1e539ce1158d1::t_2fe8b9eee1abae 9-11,13-20,23-24
+src/core/inputShortcuts.js
+  s_a1e539ce1158d1::t_1d209bc2dcca09 42-64
+src/ui/styles.css
+  s_a1e539ce1158d1::t_60a314a74d1f6b 162-167,182-246
+src/ui/viewerApp.js
+  s_a1e539ce1158d1::t_b251e2e40b024a 6,9,190-205,307-309,383-386,397-406,410-419,434,632-645
+test/inputShortcuts.test.mjs
+  s_a1e539ce1158d1::t_a8af50b506d893 8,11,50-91
+test/projectFiles.test.mjs
+  s_a1e539ce1158d1::t_3d692d3dbcd228 14,36-39,260-282,296-300,445
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "c07da47571ea62a290d18a29dddb1d570ffa59d4",
+  "prompts": {},
+  "sessions": {
+    "s_a1e539ce1158d1": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa246-6373-76c1-b8aa-aae825e01d4e",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
