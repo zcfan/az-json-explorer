@@ -63,7 +63,7 @@ This is why row height and row DOM layout must remain stable.
 - `Help`: opens a compact menu with `Keyboard shortcuts` and `Change log`.
 - `Keyboard shortcuts`: opens a modal grouped by Chrome state and focused viewer control. Platform-specific labels use `Cmd` on macOS and `Ctrl` elsewhere; standalone-only input groups are omitted in embedded mode.
 - `Open shortcut settings`: opens `chrome://extensions/shortcuts` so the extension command can be reassigned without requiring an additional permission.
-- `Change log`: opens the repository's published-version-only `CHANGELOG.md` on GitHub.
+- `Change log`: opens the repository's published-version-only changelog on GitHub, selecting `CHANGELOG.md` or `CHANGELOG.zh-CN.md` to match the active extension language.
 - On the first viewer opened for each extension version, a top notice links to that changelog. Its background fills from left to right over a 10-second countdown, then the notice closes automatically. The claimed version is stored locally and requires no extension permission.
 - `Open file`: sends a File directly to `parse-root`.
 - `Sample`: loads the inline sample JSON.

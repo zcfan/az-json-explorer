@@ -1,3 +1,6 @@
+const CHANGELOG_BASE_URL =
+  'https://github.com/zcfan/az-json-explorer/blob/main/';
+
 function normalizeSubstitutions(substitutions) {
   if (substitutions === undefined) {
     return undefined;
@@ -54,4 +57,12 @@ export function localizeDocument(document) {
     document.documentElement.lang = language;
   }
   document.title = translate('appName', document.title);
+}
+
+export function getLocalizedChangelogUrl() {
+  const fileName =
+    translate('documentationLocale', 'en') === 'zh-CN'
+      ? 'CHANGELOG.zh-CN.md'
+      : 'CHANGELOG.md';
+  return `${CHANGELOG_BASE_URL}${fileName}`;
 }

@@ -1,3 +1,5 @@
+[简体中文](CHANGELOG.zh-CN.md)
+
 # Changelog
 
 This file records published AZ JSON Explorer versions. It is updated only when a version is released.

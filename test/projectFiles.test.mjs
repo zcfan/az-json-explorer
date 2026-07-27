@@ -273,6 +273,9 @@ test('viewer help exposes grouped shortcuts and the published changelog', async 
     viewer,
     /href="https:\/\/github\.com\/zcfan\/az-json-explorer\/blob\/main\/CHANGELOG\.md"/,
   );
+  assert.match(viewer, /const changelogUrl = getLocalizedChangelogUrl\(\)/);
+  assert.match(viewer, /versionUpdateLink\.href = changelogUrl/);
+  assert.match(viewer, /changeLogLink\.href = changelogUrl/);
   assert.match(
     viewer,
     /class="jt-shortcuts-dialog" aria-labelledby="jt-shortcuts-title"/,

@@ -1,5 +1,9 @@
 import { formatJsonText } from '../core/jsonFormat.js';
-import { localizeUi, translate } from '../core/i18n.js';
+import {
+  getLocalizedChangelogUrl,
+  localizeUi,
+  translate,
+} from '../core/i18n.js';
 import {
   getParseShortcutLabel,
   getPasteShortcutLabel,
@@ -511,6 +515,9 @@ class JsonViewerApp {
       ),
     };
 
+    const changelogUrl = getLocalizedChangelogUrl();
+    this.elements.versionUpdateLink.href = changelogUrl;
+    this.elements.changeLogLink.href = changelogUrl;
     this.elements.source.textContent = this.options.sourceLabel || '';
     const parseShortcut = getParseShortcutLabel();
     const pasteShortcut = getPasteShortcutLabel();

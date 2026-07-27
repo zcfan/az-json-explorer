@@ -2,6 +2,10 @@
   "appName": {
     "message": "AZ JSON Explorer"
   },
+  "documentationLocale": {
+    "message": "zh-CN",
+    "description": "选择插件内仓库文档链接使用的语言。"
+  },
   "appDescription": {
     "message": "查看、格式化、搜索和浏览大型 JSON；一键将嵌套的 JSON 字符串解析为可展开的树。"
   },

@@ -1,3 +1,5 @@
+[简体中文](README.zh-CN.md)
+
 # AZ JSON Explorer
 
 Fast Chrome MV3 JSON viewer for developers who inspect API responses, logs, fixtures, and local JSON files.

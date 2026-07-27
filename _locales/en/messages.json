@@ -2,6 +2,10 @@
   "appName": {
     "message": "AZ JSON Explorer"
   },
+  "documentationLocale": {
+    "message": "en",
+    "description": "Selects the repository documentation language used by in-product links."
+  },
   "appDescription": {
     "message": "View, format, search, and browse large JSON. Parse nested JSON strings into expandable trees with one click."
   },

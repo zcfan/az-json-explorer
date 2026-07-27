@@ -48,16 +48,18 @@ Before publishing any new version, follow the release checklist in
 `docs/chrome-web-store-release.md`. A release is not ready until:
 
 - `manifest.json` and `package.json` contain the same new version.
-- `CHANGELOG.md` has a dated section for that exact version, summarizing only
-  changes included in the release. Write all changelog content in English and
-  do not add an `Unreleased` section.
-- After drafting the new `CHANGELOG.md` section, stop and ask the user to
-  review it. Do not continue release preparation, packaging, uploading, or
-  publishing until the user explicitly approves the current draft. If the
-  draft changes afterward, request approval again.
+- `CHANGELOG.md` and `CHANGELOG.zh-CN.md` have matching dated sections for that
+  exact version, summarizing only changes included in the release. Write the
+  default file in English and the translated file in Simplified Chinese; do
+  not add an `Unreleased` section.
+- After drafting both new changelog sections, stop and ask the user to review
+  them. Do not continue release preparation, packaging, uploading, or
+  publishing until the user explicitly approves both current drafts. If
+  either draft changes afterward, request approval again.
 - The visible version-update notice in `src/ui/viewerApp.js` is updated for
   that release to highlight its most useful change; keep the copy concise and
-  keep its link pointed at the repository `CHANGELOG.md`.
+  keep its link pointed at the repository changelog matching the extension's
+  active language.
 - The notice is verified in both standalone and embedded viewers. It must
   appear once for the new version, fill from left to right for 10 seconds, and
   then close automatically.

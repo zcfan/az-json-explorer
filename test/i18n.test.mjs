@@ -2,7 +2,12 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
-import { localizeDocument, localizeUi, translate } from '../src/core/i18n.js';
+import {
+  getLocalizedChangelogUrl,
+  localizeDocument,
+  localizeUi,
+  translate,
+} from '../src/core/i18n.js';
 
 const ROOT = new URL('../', import.meta.url);
 
@@ -44,6 +49,7 @@ test('manifest and product source reference only cataloged message keys', async 
     readJson('manifest.json'),
     readJson('_locales/en/messages.json'),
     readFile(new URL('src/background.js', ROOT), 'utf8'),
+    readFile(new URL('src/core/i18n.js', ROOT), 'utf8'),
     readFile(new URL('src/viewer.js', ROOT), 'utf8'),
     readFile(new URL('src/ui/viewerApp.js', ROOT), 'utf8'),
   ]);
@@ -125,6 +131,54 @@ test('document localization follows the Chrome UI language', () => {
       globalThis.chrome = previousChrome;
     }
   }
+});
+
+test('changelog links follow the locale selected by Chrome i18n', () => {
+  const previousChrome = globalThis.chrome;
+  globalThis.chrome = {
+    i18n: {
+      getMessage: (key) => (key === 'documentationLocale' ? 'zh-CN' : ''),
+    },
+  };
+
+  try {
+    assert.equal(
+      getLocalizedChangelogUrl(),
+      'https://github.com/zcfan/az-json-explorer/blob/main/CHANGELOG.zh-CN.md',
+    );
+    globalThis.chrome.i18n.getMessage = (key) =>
+      key === 'documentationLocale' ? 'en' : '';
+    assert.equal(
+      getLocalizedChangelogUrl(),
+      'https://github.com/zcfan/az-json-explorer/blob/main/CHANGELOG.md',
+    );
+  } finally {
+    if (previousChrome === undefined) {
+      delete globalThis.chrome;
+    } else {
+      globalThis.chrome = previousChrome;
+    }
+  }
+});
+
+test('English and Chinese repository documents link to each other and stay version-aligned', async () => {
+  const [readmeEn, readmeZh, changelogEn, changelogZh] = await Promise.all([
+    readFile(new URL('README.md', ROOT), 'utf8'),
+    readFile(new URL('README.zh-CN.md', ROOT), 'utf8'),
+    readFile(new URL('CHANGELOG.md', ROOT), 'utf8'),
+    readFile(new URL('CHANGELOG.zh-CN.md', ROOT), 'utf8'),
+  ]);
+
+  assert.ok(readmeEn.startsWith('[简体中文](README.zh-CN.md)'));
+  assert.ok(readmeZh.startsWith('[English](README.md)'));
+  assert.ok(changelogEn.startsWith('[简体中文](CHANGELOG.zh-CN.md)'));
+  assert.ok(changelogZh.startsWith('[English](CHANGELOG.md)'));
+
+  const versionPattern = /^## (\d+\.\d+\.\d+) — (\d{4}-\d{2}-\d{2})$/gm;
+  assert.deepEqual(
+    [...changelogZh.matchAll(versionPattern)].map((match) => match[0]),
+    [...changelogEn.matchAll(versionPattern)].map((match) => match[0]),
+  );
 });
 
 test('static UI localization updates text and accessibility attributes', () => {

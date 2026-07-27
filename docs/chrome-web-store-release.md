@@ -16,17 +16,19 @@ The command does not update Store Listing, Privacy, or distribution settings. Ke
 Complete these steps before uploading or submitting a new version:
 
 1. Set the same new version in `manifest.json` and `package.json`.
-2. Add a dated section for that exact version to `CHANGELOG.md`. Summarize only
-   shipped changes in English, ordered by user value. Keep the file limited to
-   published versions; do not add an `Unreleased` section and do not substitute
-   a GitHub Releases page.
-3. Stop and present the new changelog section to the user for manual review.
-   Explicit approval of the current draft is required before continuing with
-   release preparation, packaging, upload, or publication. If the draft
-   changes after approval, present it again and wait for renewed approval.
+2. Add matching dated sections for that exact version to `CHANGELOG.md` and
+   `CHANGELOG.zh-CN.md`. Summarize only shipped changes, ordered by user value:
+   English in the default file and Simplified Chinese in the translated file.
+   Keep both files limited to published versions; do not add an `Unreleased`
+   section and do not substitute a GitHub Releases page.
+3. Stop and present both new changelog sections to the user for manual review.
+   Explicit approval of the current drafts is required before continuing with
+   release preparation, packaging, upload, or publication. If either draft
+   changes after approval, present both again and wait for renewed approval.
 4. Update the visible version-update notice in `src/ui/viewerApp.js` for this
    release. Use one concise message that highlights its most useful change,
-   and keep `See what’s new` linked to the repository `CHANGELOG.md`.
+   and keep `See what’s new` linked to the repository changelog selected for the
+   extension's active language (`CHANGELOG.md` or `CHANGELOG.zh-CN.md`).
 5. Load the unpacked extension and verify the notice in standalone and
    embedded viewers. It must appear once for the new version, fill from left
    to right over 10 seconds, close automatically, and remain hidden on the
