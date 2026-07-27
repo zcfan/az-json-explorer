@@ -10,6 +10,7 @@ import {
   isSearchShortcut,
   isSelectAllShortcut,
   shouldRedirectPaste,
+  shouldRedirectSelectAll,
 } from '../src/core/inputShortcuts.js';
 
 test('parse shortcut label follows the current desktop platform', () => {
@@ -57,6 +58,14 @@ test('select-all shortcut requires the current platform primary modifier', () =>
     isSelectAllShortcut({ key: 'a', ctrlKey: true, shiftKey: true }, 'Windows'),
     false,
   );
+});
+
+test('select-all stays in editable controls instead of focusing JSON input', () => {
+  assert.equal(shouldRedirectSelectAll({ tagName: 'INPUT' }), false);
+  assert.equal(shouldRedirectSelectAll({ tagName: 'TEXTAREA' }), false);
+  assert.equal(shouldRedirectSelectAll({ isContentEditable: true }), false);
+  assert.equal(shouldRedirectSelectAll({ tagName: 'BUTTON' }), true);
+  assert.equal(shouldRedirectSelectAll(null), true);
 });
 
 test('manual input toggle shortcut is Ctrl+Backquote on every platform', () => {

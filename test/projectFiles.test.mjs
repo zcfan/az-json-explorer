@@ -226,7 +226,10 @@ test('viewer exposes isolated tree and paged string tabs', async () => {
   );
   assert.doesNotMatch(css, /\.jt-loader\s*\{[^}]*border-bottom:/s);
   assert.doesNotMatch(css, /\.jt-loader:has/);
-  assert.doesNotMatch(css, /\.jt-tabs::after/);
+  assert.match(
+    css,
+    /\.jt-tabs::after\s*\{[^}]*z-index:\s*0;[^}]*right:\s*0;[^}]*bottom:\s*0;[^}]*left:\s*0;[^}]*height:\s*1px;[^}]*background:\s*#cbd5e1;/s,
+  );
   assert.match(
     css,
     /\.jt-tab\s*\{[^}]*position:\s*relative;[^}]*z-index:\s*1;[^}]*border-bottom:\s*0;/s,

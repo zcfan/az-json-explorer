@@ -51,6 +51,15 @@ export function isSelectAllShortcut(event, platform = getRuntimePlatform()) {
   );
 }
 
+export function shouldRedirectSelectAll(target) {
+  const tagName = String(target?.tagName || '').toUpperCase();
+  return (
+    tagName !== 'INPUT' &&
+    tagName !== 'TEXTAREA' &&
+    !target?.isContentEditable
+  );
+}
+
 export function isManualInputToggleShortcut(event) {
   return Boolean(
     (event.code === 'Backquote' || event.key === '`') &&

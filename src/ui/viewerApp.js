@@ -13,6 +13,7 @@ import {
   isSearchShortcut,
   isSelectAllShortcut,
   shouldRedirectPaste,
+  shouldRedirectSelectAll,
 } from '../core/inputShortcuts.js';
 import {
   dismissStandalonePerformanceHint,
@@ -631,7 +632,7 @@ class JsonViewerApp {
       if (
         !this.options.embedded &&
         isSelectAllShortcut(event) &&
-        target !== this.elements.manualInput
+        shouldRedirectSelectAll(target)
       ) {
         event.preventDefault();
         this.setManualInputExpanded(true);
