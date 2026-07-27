@@ -1,0 +1,25 @@
+README.md
+  s_f634d01ebbcad7::t_2f9f0460d22dd8 9-10,56-69
+README.zh-CN.md
+  s_f634d01ebbcad7::t_32f3fb5c67a0c4 9-10,56-69
+test/i18n.test.mjs
+  s_f634d01ebbcad7::t_9a17e534c3eff1 177-187
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "153a77c11f44512e9e2f7aa5745ff5fb3f0942d7",
+  "prompts": {},
+  "sessions": {
+    "s_f634d01ebbcad7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa295-3d8b-7042-85e6-64ee1b7e8fe0",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
