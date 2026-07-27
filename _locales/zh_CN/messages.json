@@ -74,7 +74,7 @@
     "message": "展开 JSON 输入框"
   },
   "toggleJsonInput": {
-    "message": "显示或隐藏 JSON 输入框"
+    "message": "显示或隐藏 JSON 输入框 · 拖拽可调整高度"
   },
   "openJsonViews": {
     "message": "已打开的 JSON 视图"

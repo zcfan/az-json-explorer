@@ -37,6 +37,11 @@ import {
   resizeHistoryPanelWidth,
 } from './historyPanelResize.js';
 import {
+  hasExceededManualInputDragThreshold,
+  resizeManualInputHeight,
+  shouldToggleManualInputAfterPointerGesture,
+} from './manualInputResize.js';
+import {
   activateViewTabParsedMode,
   closeViewTab,
   createViewSessionSnapshot,
@@ -141,6 +146,7 @@ class JsonViewerApp {
     this.historyLoaded = false;
     this.historyLoading = false;
     this.historySavePromise = Promise.resolve();
+    this.manualInputResizeState = null;
     this.historyResizeState = null;
     this.versionUpdateNoticeTimer = 0;
   }
@@ -255,19 +261,21 @@ class JsonViewerApp {
               <button class="jt-button jt-button-secondary" data-action="load-sample" type="button" data-i18n="sample">Sample</button>
               <button class="jt-button jt-button-secondary jt-history-button" data-action="toggle-history" type="button" aria-expanded="false" data-i18n="history">History</button>
             </div>
-            <button
-              class="jt-manual-input-toggle"
-              data-action="toggle-manual-input"
-              type="button"
-              aria-controls="jt-manual-input jt-manual-input-actions"
-              aria-expanded="true"
-              aria-label="Collapse JSON input"
-              data-i18n-aria-label="collapseJsonInput"
-            >
-              <span class="jt-manual-input-toggle-content" aria-hidden="true">
-                <span class="jt-manual-input-toggle-label"><kbd>Ctrl+&#96;</kbd> <span data-i18n="toggleJsonInput">Toggle JSON input</span></span>
-              </span>
-            </button>
+            <div class="jt-manual-input-resizer">
+              <button
+                class="jt-manual-input-toggle"
+                data-action="toggle-manual-input"
+                type="button"
+                aria-controls="jt-manual-input jt-manual-input-actions"
+                aria-expanded="true"
+                aria-label="Collapse JSON input"
+                data-i18n-aria-label="collapseJsonInput"
+              >
+                <span class="jt-manual-input-toggle-content" aria-hidden="true">
+                  <span class="jt-manual-input-toggle-label"><kbd>Ctrl+&#96;</kbd> <span data-i18n="toggleJsonInput">Toggle JSON input · Drag to resize</span></span>
+                </span>
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -462,6 +470,7 @@ class JsonViewerApp {
       loader: this.shadow.querySelector('.jt-loader'),
       manualInput: this.shadow.querySelector('.jt-manual-input'),
       manualInputActions: this.shadow.querySelector('.jt-loader-actions'),
+      manualInputResizer: this.shadow.querySelector('.jt-manual-input-resizer'),
       manualInputToggle: this.shadow.querySelector(
         '[data-action="toggle-manual-input"]',
       ),
@@ -587,8 +596,25 @@ class JsonViewerApp {
       this.parseManualInput();
     });
 
-    this.elements.manualInputToggle.addEventListener('click', () => {
+    this.elements.manualInputToggle.addEventListener('click', (event) => {
+      if (event.detail !== 0) {
+        event.preventDefault();
+        return;
+      }
       this.toggleManualInput();
+    });
+
+    this.elements.manualInputResizer.addEventListener('pointerdown', (event) => {
+      this.beginManualInputResize(event);
+    });
+    this.host.ownerDocument.addEventListener('pointermove', (event) => {
+      this.continueManualInputResize(event);
+    });
+    this.host.ownerDocument.addEventListener('pointerup', (event) => {
+      this.endManualInputResize(event);
+    });
+    this.host.ownerDocument.addEventListener('pointercancel', (event) => {
+      this.endManualInputResize(event);
     });
 
     this.elements.manualInput.addEventListener('keydown', (event) => {
@@ -895,6 +921,76 @@ class JsonViewerApp {
 
   toggleManualInput() {
     this.setManualInputExpanded(this.elements.manualInput.hidden);
+  }
+
+  beginManualInputResize(event) {
+    if (event.button !== 0) {
+      return;
+    }
+
+    const { manualInput, manualInputResizer, manualInputToggle } = this.elements;
+    const renderedHeight = manualInput.getBoundingClientRect().height;
+    const computedHeight = Number.parseFloat(
+      this.host.ownerDocument.defaultView
+        ?.getComputedStyle(manualInput)
+        .height || '',
+    );
+    this.manualInputResizeState = {
+      pointerId: event.pointerId,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      startHeight: renderedHeight || computedHeight || 300,
+      startedOnToggle: event.composedPath().includes(manualInputToggle),
+      dragging: false,
+    };
+    manualInputResizer.setPointerCapture(event.pointerId);
+  }
+
+  continueManualInputResize(event) {
+    const state = this.manualInputResizeState;
+    if (!state || state.pointerId !== event.pointerId) {
+      return;
+    }
+
+    if (!state.dragging) {
+      if (!hasExceededManualInputDragThreshold({
+        ...state,
+        clientX: event.clientX,
+        clientY: event.clientY,
+      })) {
+        return;
+      }
+      state.dragging = true;
+      this.setManualInputExpanded(true);
+      this.elements.manualInputResizer.classList.add(
+        'jt-manual-input-resizer-active',
+      );
+    }
+
+    const height = resizeManualInputHeight({ ...state, clientY: event.clientY });
+    this.elements.manualInput.style.height = `${Math.round(height)}px`;
+    event.preventDefault();
+  }
+
+  endManualInputResize(event) {
+    const state = this.manualInputResizeState;
+    if (!state || state.pointerId !== event.pointerId) {
+      return;
+    }
+
+    const { manualInputResizer } = this.elements;
+    if (manualInputResizer.hasPointerCapture(event.pointerId)) {
+      manualInputResizer.releasePointerCapture(event.pointerId);
+    }
+    this.manualInputResizeState = null;
+    manualInputResizer.classList.remove('jt-manual-input-resizer-active');
+
+    if (
+      event.type === 'pointerup' &&
+      shouldToggleManualInputAfterPointerGesture(state)
+    ) {
+      this.toggleManualInput();
+    }
   }
 
   setManualInputExpanded(expanded) {

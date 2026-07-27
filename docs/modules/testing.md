@@ -29,6 +29,7 @@ The project uses Node's built-in test runner. There is no test build step.
 | `test/expansionState.test.mjs` | Explicit/all/recursive expansion transitions, collapsed exceptions, parsed-node reopening, and search reveal. |
 | `test/jsonWorker.test.mjs` | Worker parse, retained root, nested parse, copy text, visible rows, search messages, and history create/list/open/session restore. |
 | `test/viewTabs.test.mjs` | Permanent-root, isolation eligibility, raw/parsed modes, duplicate titles, close selection, and lightweight history-session snapshots. |
+| `test/manualInputResize.test.mjs` | Manual-input drag threshold, vertical height calculation, minimum height, and click-versus-drag behavior. |
 | `test/historyPanelResize.test.mjs` | History-panel drag direction and width/viewer-space bounds. |
 | `test/i18n.test.mjs` | English/Simplified Chinese catalog parity, source key coverage, fallback behavior, Chrome UI-language propagation, and package inclusion. |
 | `test/externalLaunch.test.mjs` | Public launch validation, payload handoff, rate limiting, claim, timeout, and tab failures. |

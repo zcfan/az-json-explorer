@@ -55,8 +55,9 @@ This is why row height and row DOM layout must remain stable.
 ## User Interactions
 
 - Every paste into the manual JSON textarea immediately parses the resulting input.
-- The manual JSON textarea is 300px tall by default and remains vertically resizable.
-- A bordered action card connects beneath the textarea and contains the complete manual-input action row plus a text-only toggle. Collapsing it hides the textarea and action row without clearing the input, leaving the `Ctrl+\`` / `Toggle JSON input` control visible.
+- The manual JSON textarea is 300px tall by default. Dragging the row beneath it resizes the textarea vertically, with a 92px minimum height.
+- A bordered action card connects beneath the textarea and contains the complete manual-input action row plus a text-only toggle. Its copy also explains that dragging resizes the input. The toggle text keeps a pointer cursor; the surrounding row uses a vertical-resize cursor and highlights its drag handle as a blue line around the text. Collapsing hides the textarea and action row without clearing the input, leaving the `Ctrl+\`` / `Toggle JSON input · Drag to resize` control visible.
+- Pressing the toggle text and moving at most 5px still counts as a click. Moving farther starts a resize and suppresses the visibility toggle when the pointer is released. Clicking blank space in the resize row does not toggle visibility.
 - Using the select-all shortcut while the manual input is unfocused expands it, focuses it, and selects all of its content.
 - Using the paste shortcut anywhere else in the standalone page expands the manual input when needed, clears it, redirects the clipboard text into it, and immediately parses it without changing focus.
 - `Parse input`: sends textarea text to `parse-root`; `cmd+enter` on macOS or `ctrl+enter` on Windows/Linux triggers it while the manual textarea has focus.

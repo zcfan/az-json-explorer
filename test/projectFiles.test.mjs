@@ -342,6 +342,10 @@ test('viewer supports one-way manual JSON input without echoing file content', a
     /Paste JSON, open a file, or choose an item from History to get started\./,
   );
   assert.match(viewer, /<textarea class="jt-manual-input"/);
+  assert.match(
+    viewer,
+    /class="jt-manual-input-resizer"[\s\S]*class="jt-manual-input-toggle"[\s\S]*Ctrl\+&#96;/,
+  );
   assert.match(viewer, /data-action="toggle-manual-input"/);
   assert.match(
     viewer,
@@ -349,7 +353,7 @@ test('viewer supports one-way manual JSON input without echoing file content', a
   );
   assert.match(
     viewer,
-    /<kbd>Ctrl\+&#96;<\/kbd> <span data-i18n="toggleJsonInput">Toggle JSON input<\/span>/,
+    /<kbd>Ctrl\+&#96;<\/kbd> <span data-i18n="toggleJsonInput">Toggle JSON input · Drag to resize<\/span>/,
   );
   assert.doesNotMatch(viewer, /jt-manual-input-toggle-icon/);
   assert.match(
@@ -358,7 +362,11 @@ test('viewer supports one-way manual JSON input without echoing file content', a
   );
   assert.match(
     viewer,
-    /manualInputToggle\.addEventListener\('click',[\s\S]*this\.toggleManualInput\(\)/,
+    /manualInputToggle\.addEventListener\('click', \(event\) => \{[\s\S]*event\.detail !== 0[\s\S]*this\.toggleManualInput\(\)/,
+  );
+  assert.match(
+    viewer,
+    /manualInputResizer\.addEventListener\('pointerdown',[\s\S]*beginManualInputResize\(event\)[\s\S]*continueManualInputResize\(event\)[\s\S]*endManualInputResize\(event\)/,
   );
   assert.match(
     viewer,
@@ -392,19 +400,33 @@ test('viewer supports one-way manual JSON input without echoing file content', a
   assert.match(viewer, /parseFile\(file,\s*'',\s*\{\s*recordHistory:\s*true\s*\}\)/);
   assert.match(viewer, /this\.requestWorker\('parse-root', \{\s*file,/);
   assert.match(css, /\.jt-manual-input\s*\{[^}]*height:\s*300px;/s);
+  assert.match(css, /\.jt-manual-input\s*\{[^}]*resize:\s*none;/s);
+  assert.match(
+    css,
+    /\.jt-manual-input-resizer\s*\{[^}]*min-height:\s*16px;[^}]*cursor:\s*row-resize;[^}]*touch-action:\s*none;/s,
+  );
+  assert.match(
+    css,
+    /\.jt-manual-input-toggle\s*\{[^}]*z-index:\s*1;[^}]*background:\s*#f8fafc;[^}]*cursor:\s*pointer;/s,
+  );
   assert.doesNotMatch(css, /\.jt-manual-input-toggle::before/);
   assert.match(
     css,
-    /\.jt-manual-input-card\s*\{[^}]*width:\s*100%;[^}]*margin-top:\s*-6px;[^}]*border:\s*1px solid #cbd5e1;[^}]*border-radius:\s*0 0 8px 8px;[^}]*padding:\s*14px 10px 6px;/s,
+    /\.jt-manual-input-card\s*\{[^}]*width:\s*100%;[^}]*margin-top:\s*-6px;[^}]*border:\s*1px solid #cbd5e1;[^}]*border-radius:\s*0 0 8px 8px;[^}]*padding:\s*14px 10px 3px;/s,
   );
   assert.match(
     css,
-    /\.jt-manual-input-card:has\(\.jt-manual-input-toggle\[aria-expanded="false"\]\)\s*\{[^}]*margin-top:\s*0;[^}]*border-radius:\s*6px;[^}]*padding:\s*4px 10px;/s,
+    /\.jt-manual-input-card:has\(\.jt-manual-input-toggle\[aria-expanded="false"\]\)\s*\{[^}]*margin-top:\s*0;[^}]*border-radius:\s*6px;[^}]*padding:\s*3px 10px;/s,
   );
   assert.match(
     css,
-    /\.jt-manual-input-toggle:hover,[\s\S]*\.jt-manual-input-toggle:focus-visible\s*\{[^}]*background:\s*#dfe7f1;/s,
+    /\.jt-manual-input-resizer:hover::before,[\s\S]*\.jt-manual-input-resizer:has\(\.jt-manual-input-toggle:focus-visible\)::before,[\s\S]*\.jt-manual-input-resizer-active::before\s*\{[^}]*background:\s*#3b82f6;/s,
   );
+  assert.match(
+    css,
+    /\.jt-manual-input-resizer::before\s*\{[^}]*height:\s*1px;[^}]*background:\s*#e2e8f0;/s,
+  );
+  assert.doesNotMatch(css, /\.jt-manual-input-resizer:focus-within::before/);
   assert.match(
     css,
     /\.jt-manual-input-toggle-content\s*\{[^}]*background:\s*transparent;/s,

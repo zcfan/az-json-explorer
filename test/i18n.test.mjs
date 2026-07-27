@@ -44,6 +44,22 @@ test('English and Simplified Chinese catalogs expose the same messages and place
   }
 });
 
+test('manual input toggle copy also explains drag resizing', async () => {
+  const [english, chinese] = await Promise.all([
+    readJson('_locales/en/messages.json'),
+    readJson('_locales/zh_CN/messages.json'),
+  ]);
+
+  assert.equal(
+    english.toggleJsonInput.message,
+    'Toggle JSON input · Drag to resize',
+  );
+  assert.equal(
+    chinese.toggleJsonInput.message,
+    '显示或隐藏 JSON 输入框 · 拖拽可调整高度',
+  );
+});
+
 test('manifest and product source reference only cataloged message keys', async () => {
   const [manifest, english, ...sources] = await Promise.all([
     readJson('manifest.json'),
