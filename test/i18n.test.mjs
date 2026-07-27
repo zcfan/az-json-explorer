@@ -174,6 +174,17 @@ test('English and Chinese repository documents link to each other and stay versi
   assert.ok(changelogEn.startsWith('[简体中文](CHANGELOG.zh-CN.md)'));
   assert.ok(changelogZh.startsWith('[English](CHANGELOG.md)'));
 
+  const readmeAssets = [
+    'store-assets/promo-marquee-1400x560.png',
+    'store-assets/screenshot-1-isolated-view-context-menu-1280x800.png',
+    'store-assets/screenshot-2-isolated-view-raw-1280x800.png',
+    'store-assets/screenshot-3-isolated-view-parsed-1280x800.png',
+  ];
+  for (const asset of readmeAssets) {
+    assert.match(readmeEn, new RegExp(asset.replaceAll('.', '\\.')));
+    assert.match(readmeZh, new RegExp(asset.replaceAll('.', '\\.')));
+  }
+
   const versionPattern = /^## (\d+\.\d+\.\d+) — (\d{4}-\d{2}-\d{2})$/gm;
   assert.deepEqual(
     [...changelogZh.matchAll(versionPattern)].map((match) => match[0]),

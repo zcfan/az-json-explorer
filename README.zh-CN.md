@@ -6,12 +6,12 @@
 
 [从 Chrome 应用商店安装 AZ JSON Explorer →](https://chromewebstore.google.com/detail/az-json-explorer/logkfmmknmmkpflgamhddeaedneaankj)
 
+![AZ JSON Explorer：解析、独立查看和再次打开 JSON](store-assets/promo-marquee-1400x560.png)
+
 AZ JSON Explorer 专注于解决 JSON 工具中两个容易造成卡顿或操作不便的问题：
 
 - 解析、搜索、展开和滚动大型 JSON 时，界面应始终保持流畅。
 - 包含转义 JSON 的字符串字段应能直接通过“解析为 JSON”浏览，无需复制到其他工具。
-
-![AZ JSON Explorer 的独立视图和本地历史记录](store-assets/screenshot-1-isolated-view-context-menu-1280x800.png)
 
 ## 为什么使用它
 
@@ -52,6 +52,20 @@ AZ JSON Explorer 专注于解决 JSON 工具中两个容易造成卡顿或操作
 - 支持展开/收起、根节点展开、路径感知的行标题和全文搜索。
 - 支持英文和简体中文，并自动跟随 Chrome 的界面语言。
 - 所有 JSON 处理都在浏览器本地完成，不依赖后端服务。
+
+## 截图
+
+通过行右键菜单，在独立视图中打开任意对象、数组或字符串：
+
+![在独立视图中打开 JSON 路径](store-assets/screenshot-1-isolated-view-context-menu-1280x800.png)
+
+查看嵌套 JSON 字符串的原始值：
+
+![以原始模式查看嵌套 JSON 字符串](store-assets/screenshot-2-isolated-view-raw-1280x800.png)
+
+将同一个独立视图切换为已解析的可展开树：
+
+![将嵌套 JSON 字符串查看为已解析树](store-assets/screenshot-3-isolated-view-parsed-1280x800.png)
 
 本项目有意不做 JSON 编辑器。它不会修改、上传、同步你的 JSON，也不会将其存储到外部服务器。
 

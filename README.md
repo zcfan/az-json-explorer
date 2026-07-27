@@ -6,12 +6,12 @@ Fast Chrome MV3 JSON viewer for developers who inspect API responses, logs, fixt
 
 [Install AZ JSON Explorer from the Chrome Web Store →](https://chromewebstore.google.com/detail/az-json-explorer/logkfmmknmmkpflgamhddeaedneaankj)
 
+![AZ JSON Explorer — parse, isolate, and revisit JSON](store-assets/promo-marquee-1400x560.png)
+
 AZ JSON Explorer focuses on two problems that make JSON tools feel slow or awkward:
 
 - Large JSON should stay responsive while parsing, searching, expanding, and scrolling.
 - String fields that contain escaped JSON should be explorable in place with `Parse as JSON`, not copied into another tool.
-
-![AZ JSON Explorer isolated views and local history](store-assets/screenshot-1-isolated-view-context-menu-1280x800.png)
 
 ## Why Use It
 
@@ -52,6 +52,20 @@ For very large local files, prefer the standalone viewer's `Open file` flow over
 - Supports expand/collapse, root expansion, path-aware row titles, and full-text search.
 - Supports English and Simplified Chinese, following Chrome's UI language automatically.
 - Keeps JSON processing local in the browser. There is no backend service.
+
+## Screenshots
+
+Open any object, array, or string in an isolated view from the row context menu:
+
+![Open a JSON path in an isolated view](store-assets/screenshot-1-isolated-view-context-menu-1280x800.png)
+
+Inspect the original raw value of a nested JSON string:
+
+![Inspect a nested JSON string in raw mode](store-assets/screenshot-2-isolated-view-raw-1280x800.png)
+
+Switch the same isolated view to its parsed, expandable tree:
+
+![Inspect a nested JSON string as a parsed tree](store-assets/screenshot-3-isolated-view-parsed-1280x800.png)
 
 This project is intentionally not a JSON editor. It does not modify, upload, sync, or store your JSON on an external server.
 
