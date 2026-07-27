@@ -172,11 +172,15 @@ test('viewer preserves consecutive whitespace in string values', async () => {
   assert.match(css, /\.jt-search-preview\s*\{[^}]*white-space:\s*break-spaces;/s);
 });
 
-test('viewer exposes isolated tree and paged string tabs instead of a modal', async () => {
+test('viewer exposes isolated tree and paged string tabs', async () => {
   const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
   const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
 
   assert.match(viewer, /class="jt-tabs"[^>]*role="tablist"[^>]*hidden/);
+  assert.match(
+    css,
+    /\.jt-tabs\s*\{[^}]*overflow-x:\s*auto;[^}]*overflow-y:\s*hidden;/s,
+  );
   assert.match(viewer, /class="jt-string-view-text"[^>]*aria-label="Full string value with line numbers"/);
   assert.match(viewer, /data-action="string-view-copy-all"/);
   assert.match(viewer, /this\.viewTabs\.tabs\.length < 2/);
@@ -188,8 +192,6 @@ test('viewer exposes isolated tree and paged string tabs instead of a modal', as
   );
   assert.match(viewer, /openRowInIsolatedView\(row\)/);
   assert.match(viewer, /getIsolationViewType\(row,\s*this\.getActiveTab\(\)\.path\)/);
-  assert.doesNotMatch(viewer, /<dialog/);
-  assert.doesNotMatch(viewer, /showModal\(\)/);
   assert.doesNotMatch(viewer, /beginStringDialogResize/);
   assert.match(viewer, /if \(row\.valueTruncated\)/);
   assert.match(viewer, /textContent = 'View all'/);
@@ -221,14 +223,9 @@ test('viewer exposes isolated tree and paged string tabs instead of a modal', as
     css,
     /\.jt-tab-close:hover,[\s\S]*\.jt-tab-close:focus-visible\s*\{[^}]*background:/s,
   );
-  assert.match(
-    css,
-    /\.jt-loader:has\(\+\s*\.jt-tabs:not\(\[hidden\]\)\)\s*\{[^}]*border-bottom:\s*0;/s,
-  );
-  assert.match(
-    css,
-    /\.jt-tabs::after\s*\{[^}]*bottom:\s*0;[^}]*height:\s*1px;[^}]*background:\s*#cbd5e1;/s,
-  );
+  assert.doesNotMatch(css, /\.jt-loader\s*\{[^}]*border-bottom:/s);
+  assert.doesNotMatch(css, /\.jt-loader:has/);
+  assert.doesNotMatch(css, /\.jt-tabs::after/);
   assert.match(
     css,
     /\.jt-tab\s*\{[^}]*position:\s*relative;[^}]*z-index:\s*1;[^}]*border-bottom:\s*0;/s,
@@ -260,6 +257,46 @@ test('viewer exposes isolated tree and paged string tabs instead of a modal', as
   assert.match(css, /\.jt-string-view-line:nth-child\(even\)/);
 });
 
+test('viewer help exposes grouped shortcuts and the published changelog', async () => {
+  const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
+  const changelog = await readFile(new URL('../CHANGELOG.md', import.meta.url), 'utf8');
+
+  assert.match(
+    viewer,
+    /class="jt-help-button"[\s\S]*aria-haspopup="menu"[\s\S]*>Help<\/button>/,
+  );
+  assert.match(viewer, /class="jt-help-menu" role="menu" hidden/);
+  assert.match(viewer, />Keyboard shortcuts<\/button>/);
+  assert.match(
+    viewer,
+    /href="https:\/\/github\.com\/zcfan\/az-json-explorer\/blob\/main\/CHANGELOG\.md"/,
+  );
+  assert.match(
+    viewer,
+    /class="jt-shortcuts-dialog" aria-labelledby="jt-shortcuts-title"/,
+  );
+  assert.match(viewer, />Chrome running in the background<\/h3>/);
+  assert.match(viewer, />Chrome in focus<\/h3>/);
+  assert.match(viewer, />JSON input not focused<\/h3>/);
+  assert.match(viewer, />JSON input focused<\/h3>/);
+  assert.match(viewer, />Viewer focused<\/h3>/);
+  assert.match(viewer, />Search focused<\/h3>/);
+  assert.match(viewer, /data-shortcut="open-viewer"/);
+  assert.match(viewer, /data-shortcut="select-all"/);
+  assert.match(viewer, /this\.elements\.shortcutsDialog\.showModal\(\)/);
+  assert.match(
+    viewer,
+    /globalThis\.chrome\.tabs\.create\(\{ url \}\)/,
+  );
+  assert.match(css, /\.jt-help-menu\s*\{[^}]*position:\s*absolute;/s);
+  assert.match(css, /\.jt-shortcuts-dialog::backdrop\s*\{[^}]*background:/s);
+  assert.match(changelog, /^# Changelog/m);
+  assert.match(changelog, /^## 0\.1\.9 — 2026-07-25/m);
+  assert.match(changelog, /^## 0\.1\.0 — 2026-07-05/m);
+  assert.doesNotMatch(changelog, /Unreleased/i);
+});
+
 test('viewer supports one-way manual JSON input without echoing file content', async () => {
   const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
   const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
@@ -270,8 +307,16 @@ test('viewer supports one-way manual JSON input without echoing file content', a
   );
   assert.match(viewer, /<textarea class="jt-manual-input"/);
   assert.match(viewer, /data-action="toggle-manual-input"/);
-  assert.match(viewer, /aria-controls="jt-manual-input"/);
+  assert.match(
+    viewer,
+    /aria-controls="jt-manual-input jt-manual-input-actions"/,
+  );
   assert.match(viewer, /<kbd>Ctrl\+&#96;<\/kbd> Toggle JSON input/);
+  assert.doesNotMatch(viewer, /jt-manual-input-toggle-icon/);
+  assert.match(
+    viewer,
+    /class="jt-manual-input"[\s\S]*class="jt-manual-input-card"[\s\S]*class="jt-loader-actions"[\s\S]*data-action="parse-manual"[\s\S]*data-action="format-manual"[\s\S]*data-action="toggle-manual-input"/,
+  );
   assert.match(
     viewer,
     /manualInputToggle\.addEventListener\('click',[\s\S]*this\.toggleManualInput\(\)/,
@@ -282,7 +327,7 @@ test('viewer supports one-way manual JSON input without echoing file content', a
   );
   assert.match(
     viewer,
-    /setManualInputExpanded\(expanded\) \{[\s\S]*manualInput\.hidden = !expanded;[\s\S]*setAttribute\('aria-expanded', String\(expanded\)\)/,
+    /setManualInputExpanded\(expanded\) \{[\s\S]*manualInput\.hidden = !expanded;[\s\S]*manualInputActions\.hidden = !expanded;[\s\S]*setAttribute\('aria-expanded', String\(expanded\)\)/,
   );
   assert.match(
     viewer,
@@ -305,9 +350,14 @@ test('viewer supports one-way manual JSON input without echoing file content', a
   assert.match(viewer, /parseFile\(file,\s*'',\s*\{\s*recordHistory:\s*true\s*\}\)/);
   assert.match(viewer, /this\.requestWorker\('parse-root', \{\s*file,/);
   assert.match(css, /\.jt-manual-input\s*\{[^}]*height:\s*300px;/s);
+  assert.doesNotMatch(css, /\.jt-manual-input-toggle::before/);
   assert.match(
     css,
-    /\.jt-manual-input-toggle::before\s*\{[^}]*border-top:\s*1px solid #cbd5e1;/s,
+    /\.jt-manual-input-card\s*\{[^}]*width:\s*100%;[^}]*margin-top:\s*-6px;[^}]*border:\s*1px solid #cbd5e1;[^}]*border-radius:\s*0 0 8px 8px;[^}]*padding:\s*14px 10px 6px;/s,
+  );
+  assert.match(
+    css,
+    /\.jt-manual-input-card:has\(\.jt-manual-input-toggle\[aria-expanded="false"\]\)\s*\{[^}]*margin-top:\s*0;[^}]*border-radius:\s*6px;[^}]*padding:\s*4px 10px;/s,
   );
   assert.match(
     css,
@@ -315,9 +365,13 @@ test('viewer supports one-way manual JSON input without echoing file content', a
   );
   assert.match(
     css,
-    /\.jt-manual-input-toggle-content\s*\{[^}]*background:\s*inherit;/s,
+    /\.jt-manual-input-toggle-content\s*\{[^}]*background:\s*transparent;/s,
   );
-  assert.match(css, /\.jt-manual-input\[hidden\]\s*\{[^}]*display:\s*none;/s);
+  assert.doesNotMatch(css, /\.jt-manual-input-toggle-icon/);
+  assert.match(
+    css,
+    /\.jt-manual-input\[hidden\],[\s\S]*\.jt-loader-actions\[hidden\]\s*\{[^}]*display:\s*none;/s,
+  );
 });
 
 test('viewer exposes a paged right-side parse history without refilling manual input', async () => {

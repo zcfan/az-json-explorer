@@ -106,6 +106,72 @@
   white-space: nowrap;
 }
 
+.jt-help {
+  position: relative;
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.jt-help-button {
+  height: 28px;
+  border: 0;
+  border-radius: 5px;
+  padding: 0 8px;
+  color: #475467;
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.jt-help-button:hover,
+.jt-help-button:focus-visible,
+.jt-help-button[aria-expanded="true"] {
+  outline: none;
+  color: #1f2937;
+  background: #eef2f7;
+}
+
+.jt-help-menu {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 180px;
+  padding: 4px;
+  border: 1px solid #d0d5dd;
+  border-radius: 7px;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgb(15 23 42 / 16%);
+}
+
+.jt-help-menu[hidden] {
+  display: none;
+}
+
+.jt-help-menu-item {
+  display: flex;
+  width: 100%;
+  height: 32px;
+  align-items: center;
+  border: 0;
+  border-radius: 4px;
+  padding: 0 10px;
+  color: #1f2937;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.jt-help-menu-item:hover,
+.jt-help-menu-item:focus-visible {
+  outline: none;
+  background: #eef2f7;
+}
+
 .jt-loader-actions,
 .jt-expansion-controls,
 .jt-string-controls,
@@ -162,10 +228,12 @@
 .jt-manual-input-region {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  align-items: center;
 }
 
 .jt-manual-input {
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
   height: 300px;
@@ -179,53 +247,50 @@
   font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
-.jt-manual-input[hidden] {
+.jt-manual-input[hidden],
+.jt-loader-actions[hidden] {
   display: none;
 }
 
-.jt-manual-input-toggle {
+.jt-manual-input-card {
   position: relative;
+  z-index: 0;
   display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: -6px;
+  border: 1px solid #cbd5e1;
+  border-radius: 0 0 8px 8px;
+  padding: 14px 10px 6px;
+  color: #667085;
+  background: #f8fafc;
+}
+
+.jt-manual-input-card:has(.jt-manual-input-toggle[aria-expanded="false"]) {
+  margin-top: 0;
+  border-radius: 6px;
+  padding: 4px 10px;
+}
+
+.jt-manual-input-toggle {
+  display: flex;
+  width: 100%;
+  min-height: 20px;
   align-items: center;
   justify-content: center;
-  height: 14px;
   border: 0;
-  padding: 0;
+  border-radius: 4px;
+  padding: 2px 6px;
   color: #667085;
-  background: #eef2f7;
+  background: transparent;
   cursor: pointer;
 }
 
-.jt-manual-input-toggle::before {
-  position: absolute;
-  top: 50%;
-  right: 0;
-  left: 0;
-  border-top: 1px solid #cbd5e1;
-  content: "";
-}
-
 .jt-manual-input-toggle-content {
-  position: relative;
-  z-index: 1;
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 0 6px;
-  background: inherit;
-}
-
-.jt-manual-input-toggle-icon {
-  display: block;
-  width: 7px;
-  height: 7px;
-  border-right: 1.5px solid currentColor;
-  border-bottom: 1.5px solid currentColor;
-  transform: translateY(2px) rotate(225deg);
-}
-
-.jt-manual-input-toggle[aria-expanded="false"] .jt-manual-input-toggle-icon {
-  transform: translateY(-2px) rotate(45deg);
+  background: transparent;
 }
 
 .jt-manual-input-toggle-label {
@@ -258,12 +323,7 @@
   align-items: stretch;
   gap: 10px;
   padding: 10px 12px;
-  border-bottom: 1px solid #d9dee8;
   background: #eef2f7;
-}
-
-.jt-loader:has(+ .jt-tabs:not([hidden])) {
-  border-bottom: 0;
 }
 
 .jt-button,
@@ -576,20 +636,10 @@
   align-items: flex-end;
   gap: 3px;
   overflow-x: auto;
+  overflow-y: hidden;
   min-width: 0;
   padding: 5px 8px 0;
   background: #eef2f7;
-}
-
-.jt-tabs::after {
-  position: absolute;
-  z-index: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 1px;
-  background: #cbd5e1;
-  content: "";
 }
 
 .jt-tabs[hidden] {
@@ -967,6 +1017,153 @@
   background: #e5e7eb;
 }
 
+.jt-shortcuts-dialog {
+  width: min(680px, calc(100vw - 32px));
+  max-height: min(760px, calc(100vh - 32px));
+  margin: auto;
+  overflow: hidden;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 0;
+  color: #111827;
+  background: #ffffff;
+  box-shadow: 0 24px 64px rgb(15 23 42 / 26%);
+}
+
+.jt-shortcuts-dialog::backdrop {
+  background: rgb(15 23 42 / 42%);
+}
+
+.jt-shortcuts-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 18px 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.jt-shortcuts-header h2 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.jt-shortcuts-header p {
+  margin: 4px 0 0;
+  color: #667085;
+}
+
+.jt-shortcuts-close {
+  display: inline-flex;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  color: #475569;
+  background: transparent;
+  font: inherit;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.jt-shortcuts-close:hover,
+.jt-shortcuts-close:focus-visible {
+  outline: none;
+  background: #e2e8f0;
+}
+
+.jt-shortcuts-body {
+  max-height: calc(100vh - 132px);
+  overflow: auto;
+  padding: 8px 20px 20px;
+}
+
+.jt-shortcut-group {
+  padding-top: 14px;
+}
+
+.jt-shortcut-group[hidden] {
+  display: none;
+}
+
+.jt-shortcut-group + .jt-shortcut-group {
+  margin-top: 6px;
+  border-top: 1px solid #edf0f4;
+}
+
+.jt-shortcut-group h3 {
+  margin: 0 0 5px;
+  color: #475467;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.jt-shortcut-row {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 14px;
+  padding: 7px 0;
+}
+
+.jt-shortcut-row kbd {
+  justify-self: start;
+  border: 1px solid #cbd5e1;
+  border-bottom-color: #94a3b8;
+  border-radius: 5px;
+  padding: 3px 7px;
+  color: #1f2937;
+  background: #f8fafc;
+  box-shadow: 0 1px 0 #cbd5e1;
+  font: 12px/1.25 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: nowrap;
+}
+
+.jt-shortcut-row span,
+.jt-shortcut-settings span {
+  color: #344054;
+}
+
+.jt-shortcut-settings {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 14px;
+  padding: 7px 0;
+}
+
+.jt-shortcut-settings button {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  border: 0;
+  border-radius: 5px;
+  padding: 6px 9px;
+  color: #175cd3;
+  background: #eff6ff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.jt-shortcut-settings button:hover,
+.jt-shortcut-settings button:focus-visible {
+  outline: none;
+  background: #dbeafe;
+}
+
+.jt-shortcut-settings code {
+  color: #667085;
+  font-size: 12px;
+}
+
 .jt-string-view {
   grid-row: 9;
   display: grid;
@@ -1034,6 +1231,10 @@
     flex-direction: column;
   }
 
+  .jt-help {
+    align-self: flex-end;
+  }
+
   .jt-loader-actions,
   .jt-expansion-controls,
   .jt-string-controls,
@@ -1050,6 +1251,21 @@
   .jt-search,
   .jt-search-input {
     flex: 1 1 120px;
+  }
+
+  .jt-shortcut-row {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+
+  .jt-shortcut-settings {
+    grid-template-columns: 1fr;
+  }
+
+  .jt-shortcut-settings button {
+    grid-column: 1;
+    grid-row: auto;
+    justify-self: start;
   }
 
 }

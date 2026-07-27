@@ -185,33 +185,58 @@ class JsonViewerApp {
           <strong>AZ JSON Explorer</strong>
           <span class="jt-source"></span>
         </div>
+        <div class="jt-help">
+          <button
+            class="jt-help-button"
+            data-action="toggle-help"
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded="false"
+          >Help</button>
+          <div class="jt-help-menu" role="menu" hidden>
+            <button
+              class="jt-help-menu-item"
+              data-action="show-shortcuts"
+              type="button"
+              role="menuitem"
+            >Keyboard shortcuts</button>
+            <a
+              class="jt-help-menu-item"
+              href="https://github.com/zcfan/az-json-explorer/blob/main/CHANGELOG.md"
+              target="_blank"
+              rel="noreferrer"
+              role="menuitem"
+            >Change log</a>
+          </div>
+        </div>
       </header>
       <section class="jt-loader">
         <div class="jt-manual-input-region">
           <textarea class="jt-manual-input" id="jt-manual-input" spellcheck="false" placeholder="Paste JSON"></textarea>
-          <button
-            class="jt-manual-input-toggle"
-            data-action="toggle-manual-input"
-            type="button"
-            aria-controls="jt-manual-input"
-            aria-expanded="true"
-            aria-label="Collapse JSON input"
-          >
-            <span class="jt-manual-input-toggle-content" aria-hidden="true">
-              <span class="jt-manual-input-toggle-icon"></span>
-              <span class="jt-manual-input-toggle-label"><kbd>Ctrl+&#96;</kbd> Toggle JSON input</span>
-            </span>
-          </button>
-        </div>
-        <div class="jt-loader-actions">
-          <button class="jt-button jt-button-primary" data-action="parse-manual" type="button">Parse input</button>
-          <button class="jt-button jt-button-secondary" data-action="format-manual" type="button">Format JSON</button>
-          <label class="jt-file-button">
-            Open file
-            <input class="jt-file-input" type="file" accept=".json,application/json,text/plain">
-          </label>
-          <button class="jt-button jt-button-secondary" data-action="load-sample" type="button">Sample</button>
-          <button class="jt-button jt-button-secondary jt-history-button" data-action="toggle-history" type="button" aria-expanded="false">History</button>
+          <div class="jt-manual-input-card">
+            <div class="jt-loader-actions" id="jt-manual-input-actions">
+              <button class="jt-button jt-button-primary" data-action="parse-manual" type="button">Parse input</button>
+              <button class="jt-button jt-button-secondary" data-action="format-manual" type="button">Format JSON</button>
+              <label class="jt-file-button">
+                Open file
+                <input class="jt-file-input" type="file" accept=".json,application/json,text/plain">
+              </label>
+              <button class="jt-button jt-button-secondary" data-action="load-sample" type="button">Sample</button>
+              <button class="jt-button jt-button-secondary jt-history-button" data-action="toggle-history" type="button" aria-expanded="false">History</button>
+            </div>
+            <button
+              class="jt-manual-input-toggle"
+              data-action="toggle-manual-input"
+              type="button"
+              aria-controls="jt-manual-input jt-manual-input-actions"
+              aria-expanded="true"
+              aria-label="Collapse JSON input"
+            >
+              <span class="jt-manual-input-toggle-content" aria-hidden="true">
+                <span class="jt-manual-input-toggle-label"><kbd>Ctrl+&#96;</kbd> Toggle JSON input</span>
+              </span>
+            </button>
+          </div>
         </div>
       </section>
       <nav class="jt-tabs" role="tablist" aria-label="Open JSON views" hidden></nav>
@@ -258,6 +283,83 @@ class JsonViewerApp {
         <div class="jt-context-menu-separator" role="separator"></div>
         <button class="jt-context-menu-item" data-action="expand-recursively" type="button" role="menuitem">Expand recursively</button>
       </div>
+      <dialog class="jt-shortcuts-dialog" aria-labelledby="jt-shortcuts-title">
+        <header class="jt-shortcuts-header">
+          <div>
+            <h2 id="jt-shortcuts-title">Keyboard shortcuts</h2>
+            <p>Open the viewer and move through JSON faster.</p>
+          </div>
+          <button
+            class="jt-shortcuts-close"
+            data-action="close-shortcuts"
+            type="button"
+            aria-label="Close keyboard shortcuts"
+          >×</button>
+        </header>
+        <div class="jt-shortcuts-body">
+          <section class="jt-shortcut-group">
+            <h3>Chrome running in the background</h3>
+            <div class="jt-shortcut-row">
+              <kbd data-shortcut="open-viewer"></kbd>
+              <span>Open a new standalone viewer.</span>
+            </div>
+          </section>
+          <section class="jt-shortcut-group">
+            <h3>Chrome in focus</h3>
+            <div class="jt-shortcut-settings">
+              <span>Customize the shortcut that opens AZ JSON Explorer.</span>
+              <button data-action="open-shortcut-settings" type="button">
+                Open shortcut settings
+              </button>
+              <code>chrome://extensions/shortcuts</code>
+            </div>
+          </section>
+          <section class="jt-shortcut-group" data-standalone-shortcuts>
+            <h3>JSON input not focused</h3>
+            <div class="jt-shortcut-row">
+              <kbd data-shortcut="paste"></kbd>
+              <span>Show the input, clear it, paste clipboard text, and parse.</span>
+            </div>
+            <div class="jt-shortcut-row">
+              <kbd data-shortcut="select-all"></kbd>
+              <span>Show the input, focus it, and select all content.</span>
+            </div>
+            <div class="jt-shortcut-row">
+              <kbd>Ctrl+&#96;</kbd>
+              <span>Show or hide the JSON input.</span>
+            </div>
+          </section>
+          <section class="jt-shortcut-group" data-standalone-shortcuts>
+            <h3>JSON input focused</h3>
+            <div class="jt-shortcut-row">
+              <kbd data-shortcut="parse"></kbd>
+              <span>Parse the current input.</span>
+            </div>
+            <div class="jt-shortcut-row">
+              <kbd data-shortcut="paste"></kbd>
+              <span>Paste at the selection and parse the updated input.</span>
+            </div>
+          </section>
+          <section class="jt-shortcut-group">
+            <h3>Viewer focused</h3>
+            <div class="jt-shortcut-row">
+              <kbd data-shortcut="search"></kbd>
+              <span>Focus full-text search.</span>
+            </div>
+          </section>
+          <section class="jt-shortcut-group">
+            <h3>Search focused</h3>
+            <div class="jt-shortcut-row">
+              <kbd>Enter</kbd>
+              <span>Move to the next result.</span>
+            </div>
+            <div class="jt-shortcut-row">
+              <kbd>Shift+Enter</kbd>
+              <span>Move to the previous result.</span>
+            </div>
+          </section>
+        </div>
+      </dialog>
       <aside class="jt-history-panel" aria-label="Parse history" hidden>
         <div
           class="jt-history-resizer"
@@ -302,8 +404,25 @@ class JsonViewerApp {
         '[data-action="dismiss-performance-hint"]',
       ),
       source: this.shadow.querySelector('.jt-source'),
+      help: this.shadow.querySelector('.jt-help'),
+      helpButton: this.shadow.querySelector('[data-action="toggle-help"]'),
+      helpMenu: this.shadow.querySelector('.jt-help-menu'),
+      helpMenuFirstItem: this.shadow.querySelector('[data-action="show-shortcuts"]'),
+      changeLogLink: this.shadow.querySelector(
+        'a[href="https://github.com/zcfan/az-json-explorer/blob/main/CHANGELOG.md"]',
+      ),
+      shortcutsDialog: this.shadow.querySelector('.jt-shortcuts-dialog'),
+      shortcutsCloseButton: this.shadow.querySelector('[data-action="close-shortcuts"]'),
+      openShortcutSettingsButton: this.shadow.querySelector(
+        '[data-action="open-shortcut-settings"]',
+      ),
+      shortcutLabels: this.shadow.querySelectorAll('[data-shortcut]'),
+      standaloneShortcutGroups: this.shadow.querySelectorAll(
+        '[data-standalone-shortcuts]',
+      ),
       loader: this.shadow.querySelector('.jt-loader'),
       manualInput: this.shadow.querySelector('.jt-manual-input'),
+      manualInputActions: this.shadow.querySelector('.jt-loader-actions'),
       manualInputToggle: this.shadow.querySelector(
         '[data-action="toggle-manual-input"]',
       ),
@@ -363,6 +482,21 @@ class JsonViewerApp {
     this.elements.parseManualButton.textContent = `Parse input (${parseShortcut})`;
     this.elements.manualInput.placeholder =
       `Paste JSON, or press ${pasteShortcut} anywhere to paste here`;
+
+    const primaryModifier = pasteShortcut.startsWith('cmd') ? 'Cmd' : 'Ctrl';
+    const shortcutLabels = {
+      'open-viewer': `${primaryModifier}+Shift+6`,
+      paste: `${primaryModifier}+V`,
+      'select-all': `${primaryModifier}+A`,
+      parse: `${primaryModifier}+Enter`,
+      search: `${primaryModifier}+F`,
+    };
+    for (const shortcut of this.elements.shortcutLabels) {
+      shortcut.textContent = shortcutLabels[shortcut.dataset.shortcut] || '';
+    }
+    for (const group of this.elements.standaloneShortcutGroups) {
+      group.hidden = Boolean(this.options.embedded);
+    }
   }
 
   bindEvents() {
@@ -374,6 +508,26 @@ class JsonViewerApp {
 
     this.elements.performanceBannerClose.addEventListener('click', () => {
       this.dismissStandalonePerformanceBanner();
+    });
+
+    this.elements.helpButton.addEventListener('click', () => {
+      this.toggleHelpMenu();
+    });
+
+    this.elements.helpMenuFirstItem.addEventListener('click', () => {
+      this.openShortcutsDialog();
+    });
+
+    this.elements.changeLogLink.addEventListener('click', () => {
+      this.closeHelpMenu();
+    });
+
+    this.elements.shortcutsCloseButton.addEventListener('click', () => {
+      this.closeShortcutsDialog();
+    });
+
+    this.elements.openShortcutSettingsButton.addEventListener('click', () => {
+      this.openChromeShortcutSettings();
     });
 
     this.elements.parseManualButton.addEventListener('click', () => {
@@ -577,6 +731,10 @@ class JsonViewerApp {
     });
 
     this.shadow.addEventListener('click', (event) => {
+      if (!event.composedPath().includes(this.elements.help)) {
+        this.closeHelpMenu();
+      }
+
       if (this.elements.contextMenu.hidden) {
         return;
       }
@@ -588,6 +746,7 @@ class JsonViewerApp {
 
     this.shadow.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
+        this.closeHelpMenu();
         this.closeContextMenu();
       }
     });
@@ -629,13 +788,48 @@ class JsonViewerApp {
     });
   }
 
+  toggleHelpMenu() {
+    const shouldOpen = this.elements.helpMenu.hidden;
+    this.elements.helpMenu.hidden = !shouldOpen;
+    this.elements.helpButton.setAttribute('aria-expanded', String(shouldOpen));
+  }
+
+  closeHelpMenu() {
+    this.elements.helpMenu.hidden = true;
+    this.elements.helpButton.setAttribute('aria-expanded', 'false');
+  }
+
+  openShortcutsDialog() {
+    this.closeHelpMenu();
+    if (!this.elements.shortcutsDialog.open) {
+      this.elements.shortcutsDialog.showModal();
+    }
+  }
+
+  closeShortcutsDialog() {
+    if (this.elements.shortcutsDialog.open) {
+      this.elements.shortcutsDialog.close();
+    }
+  }
+
+  openChromeShortcutSettings() {
+    const url = 'chrome://extensions/shortcuts';
+    if (globalThis.chrome?.tabs?.create) {
+      globalThis.chrome.tabs.create({ url });
+      return;
+    }
+
+    this.setStatus(`Open ${url} in Chrome to customize the shortcut.`);
+  }
+
   toggleManualInput() {
     this.setManualInputExpanded(this.elements.manualInput.hidden);
   }
 
   setManualInputExpanded(expanded) {
-    const { manualInput, manualInputToggle } = this.elements;
+    const { manualInput, manualInputActions, manualInputToggle } = this.elements;
     manualInput.hidden = !expanded;
+    manualInputActions.hidden = !expanded;
     manualInputToggle.setAttribute('aria-expanded', String(expanded));
     manualInputToggle.setAttribute(
       'aria-label',

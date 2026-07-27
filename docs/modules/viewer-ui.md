@@ -10,6 +10,7 @@ The viewer UI is the main-thread coordinator. It owns DOM rendering, user intera
 - `src/ui/viewTabs.js`
 - `src/ui/historyPanelResize.js`
 - `src/ui/styles.css`
+- `CHANGELOG.md`
 - `src/ui/searchHighlight.js`
 - `src/core/standalonePerformanceHint.js`
 - `src/viewer.js`
@@ -50,10 +51,14 @@ This is why row height and row DOM layout must remain stable.
 
 - Every paste into the manual JSON textarea immediately parses the resulting input.
 - The manual JSON textarea is 300px tall by default and remains vertically resizable.
-- A clickable divider directly below the textarea collapses or expands it without clearing its content. Its `Ctrl+\`` shortcut and inline `Toggle JSON input` hint expose the same action.
+- A bordered action card connects beneath the textarea and contains the complete manual-input action row plus a text-only toggle. Collapsing it hides the textarea and action row without clearing the input, leaving the `Ctrl+\`` / `Toggle JSON input` control visible.
 - Using the select-all shortcut while the manual input is unfocused expands it, focuses it, and selects all of its content.
 - Using the paste shortcut anywhere else in the standalone page expands the manual input when needed, clears it, redirects the clipboard text into it, and immediately parses it without changing focus.
 - `Parse input`: sends textarea text to `parse-root`; `cmd+enter` on macOS or `ctrl+enter` on Windows/Linux triggers it while the manual textarea has focus.
+- `Help`: opens a compact menu with `Keyboard shortcuts` and `Change log`.
+- `Keyboard shortcuts`: opens a modal grouped by Chrome state and focused viewer control. Platform-specific labels use `Cmd` on macOS and `Ctrl` elsewhere; standalone-only input groups are omitted in embedded mode.
+- `Open shortcut settings`: opens `chrome://extensions/shortcuts` so the extension command can be reassigned without requiring an additional permission.
+- `Change log`: opens the repository's published-version-only `CHANGELOG.md` on GitHub.
 - `Open file`: sends a File directly to `parse-root`.
 - `Sample`: loads the inline sample JSON.
 - `History`: opens a 320px right-side panel. The panel pages through successful manual-input and user-opened-file parses without loading their source content into the UI.
@@ -64,6 +69,7 @@ This is why row height and row DOM layout must remain stable.
 - The panel footer defaults to `Keep latest 10 records`; it shares a right-aligned row with `Clean history` when space permits and wraps responsively when narrow. Clicking the button or pressing Enter in the count input submits the same cleanup action. Cleaning explicitly deletes every older entry and its stored source content. No cleanup runs automatically.
 - Explicit grid-row anchors keep the panel aligned with the loader when the optional performance banner is dismissed.
 - The tab strip sits above the expansion/search row. Expansion controls align left; search controls share that row and align right.
+- The tab strip scrolls horizontally when needed and never becomes vertically scrollable.
 - New roots with at most 5,000 fully expanded rows open in `all` mode; larger roots open with only the root expanded.
 - `Collapse`, `Expand root`, and `Expand all`: replace the expansion mode and refresh rows from the worker.
 - Clicking an expandable row's chevron, indentation, or trailing blank area expands or collapses it; clicking or selecting row text does not.
