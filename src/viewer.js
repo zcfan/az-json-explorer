@@ -4,9 +4,11 @@ import { INTERNAL_LAUNCH_CLAIM_TYPE } from './core/externalLaunch.js';
 const params = new URLSearchParams(window.location.search);
 const embedded = params.get('embedded') === '1';
 const launchId = embedded ? null : params.get('launch');
+const currentVersion = globalThis.chrome?.runtime?.getManifest?.().version || '';
 
 const app = mountJsonViewer(document.getElementById('app'), {
   embedded,
+  currentVersion,
   sourceLabel: 'Standalone viewer',
   styleUrl: new URL('./ui/styles.css', import.meta.url).href,
   workerUrl: new URL('./worker/jsonWorker.js', import.meta.url).href,

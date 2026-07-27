@@ -297,6 +297,33 @@ test('viewer help exposes grouped shortcuts and the published changelog', async 
   assert.doesNotMatch(changelog, /Unreleased/i);
 });
 
+test('viewer shows a ten-second changelog notice once per extension version', async () => {
+  const entry = await readFile(new URL('../src/viewer.js', import.meta.url), 'utf8');
+  const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
+
+  assert.match(entry, /chrome\?\.runtime\?\.getManifest\?\.\(\)\.version/);
+  assert.match(entry, /currentVersion,/);
+  assert.match(viewer, /const VERSION_UPDATE_NOTICE_DURATION_MS = 10000;/);
+  assert.match(
+    viewer,
+    /class="jt-version-update-notice"[\s\S]*data-action="view-update-notes"[\s\S]*>See what’s new<\/a>/,
+  );
+  assert.match(viewer, /claimVersionUpdateNotice\(storage, currentVersion\)/);
+  assert.match(
+    viewer,
+    /setTimeout\(\(\) => \{[\s\S]*hideVersionUpdateNotice\(\);[\s\S]*VERSION_UPDATE_NOTICE_DURATION_MS/,
+  );
+  assert.match(
+    css,
+    /\.jt-version-update-notice::before\s*\{[^}]*inset:\s*0;[^}]*animation:\s*jt-version-update-countdown/s,
+  );
+  assert.match(
+    css,
+    /@keyframes jt-version-update-countdown\s*\{\s*from\s*\{\s*transform:\s*scaleX\(0\);\s*\}\s*to\s*\{\s*transform:\s*scaleX\(1\);/s,
+  );
+});
+
 test('viewer supports one-way manual JSON input without echoing file content', async () => {
   const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
   const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
@@ -478,10 +505,10 @@ test('viewer exposes a paged right-side parse history without refilling manual i
   );
   assert.match(
     css,
-    /\.jt-loader\s*\{[^}]*grid-row:\s*3;/s,
+    /\.jt-loader\s*\{[^}]*grid-row:\s*4;/s,
     'history and main content must keep the same row anchor when the optional banner is hidden',
   );
-  assert.match(css, /\.jt-history-panel\s*\{[^}]*grid-row:\s*3\s*\/\s*-1;/s);
+  assert.match(css, /\.jt-history-panel\s*\{[^}]*grid-row:\s*4\s*\/\s*-1;/s);
   assert.match(css, /\.jt-history-panel\[hidden\]\s*\{[^}]*display:\s*none;/s);
   assert.match(
     css,

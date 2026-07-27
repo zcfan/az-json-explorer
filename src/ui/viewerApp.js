@@ -13,6 +13,7 @@ import {
   dismissStandalonePerformanceHint,
   isStandalonePerformanceHintDismissed,
 } from '../core/standalonePerformanceHint.js';
+import { claimVersionUpdateNotice } from '../core/versionUpdateNotice.js';
 import { formatPath, pathKey } from '../core/treeModel.js';
 import {
   createAllExpansionState,
@@ -48,6 +49,7 @@ const AUTO_EXPAND_MAX_ROWS = 5000;
 const MAX_SEARCH_RESULTS = 500;
 const SEARCH_DEBOUNCE_MS = 250;
 const HISTORY_SESSION_SAVE_DEBOUNCE_MS = 300;
+const VERSION_UPDATE_NOTICE_DURATION_MS = 10000;
 const HISTORY_PAGE_SIZE = 50;
 const HISTORY_ENGAGEMENT_SELECTOR = [
   '.jt-tabs',
@@ -135,6 +137,7 @@ class JsonViewerApp {
     this.historyLoading = false;
     this.historySavePromise = Promise.resolve();
     this.historyResizeState = null;
+    this.versionUpdateNoticeTimer = 0;
   }
 
   mount() {
@@ -142,6 +145,7 @@ class JsonViewerApp {
     this.shadow.replaceChildren(this.createShell());
     this.bindElements();
     this.bindEvents();
+    this.showVersionUpdateNoticeIfNeeded();
     this.createWorker();
 
     if (this.options.embedded) {
@@ -168,6 +172,18 @@ class JsonViewerApp {
     const shell = document.createElement('main');
     shell.className = 'jt-app';
     shell.innerHTML = `
+      <div class="jt-version-update-notice" role="status" aria-live="polite" hidden>
+        <span>
+          AZ JSON Explorer <strong class="jt-version-update-version"></strong> is ready.
+        </span>
+        <a
+          class="jt-version-update-link"
+          data-action="view-update-notes"
+          href="https://github.com/zcfan/az-json-explorer/blob/main/CHANGELOG.md"
+          target="_blank"
+          rel="noreferrer"
+        >See what’s new</a>
+      </div>
       <div class="jt-direct-file-banner" role="note" hidden>
         <span class="jt-performance-banner-message">
           For very large JSON files, use Standalone Viewer > Open file for better performance.
@@ -202,6 +218,7 @@ class JsonViewerApp {
             >Keyboard shortcuts</button>
             <a
               class="jt-help-menu-item"
+              data-action="open-changelog"
               href="https://github.com/zcfan/az-json-explorer/blob/main/CHANGELOG.md"
               target="_blank"
               rel="noreferrer"
@@ -398,6 +415,11 @@ class JsonViewerApp {
 
   bindElements() {
     this.elements = {
+      versionUpdateNotice: this.shadow.querySelector('.jt-version-update-notice'),
+      versionUpdateVersion: this.shadow.querySelector('.jt-version-update-version'),
+      versionUpdateLink: this.shadow.querySelector(
+        '[data-action="view-update-notes"]',
+      ),
       directFileBanner: this.shadow.querySelector('.jt-direct-file-banner'),
       performanceBannerMessage: this.shadow.querySelector('.jt-performance-banner-message'),
       performanceBannerClose: this.shadow.querySelector(
@@ -408,9 +430,7 @@ class JsonViewerApp {
       helpButton: this.shadow.querySelector('[data-action="toggle-help"]'),
       helpMenu: this.shadow.querySelector('.jt-help-menu'),
       helpMenuFirstItem: this.shadow.querySelector('[data-action="show-shortcuts"]'),
-      changeLogLink: this.shadow.querySelector(
-        'a[href="https://github.com/zcfan/az-json-explorer/blob/main/CHANGELOG.md"]',
-      ),
+      changeLogLink: this.shadow.querySelector('[data-action="open-changelog"]'),
       shortcutsDialog: this.shadow.querySelector('.jt-shortcuts-dialog'),
       shortcutsCloseButton: this.shadow.querySelector('[data-action="close-shortcuts"]'),
       openShortcutSettingsButton: this.shadow.querySelector(
@@ -508,6 +528,10 @@ class JsonViewerApp {
 
     this.elements.performanceBannerClose.addEventListener('click', () => {
       this.dismissStandalonePerformanceBanner();
+    });
+
+    this.elements.versionUpdateLink.addEventListener('click', () => {
+      this.hideVersionUpdateNotice();
     });
 
     this.elements.helpButton.addEventListener('click', () => {
@@ -2340,6 +2364,38 @@ class JsonViewerApp {
 
   setStatus(message) {
     this.elements.status.textContent = message;
+  }
+
+  showVersionUpdateNoticeIfNeeded() {
+    let storage;
+    try {
+      storage = this.host.ownerDocument.defaultView?.localStorage;
+    } catch {
+      return;
+    }
+
+    const currentVersion = this.options.currentVersion;
+    if (!claimVersionUpdateNotice(storage, currentVersion)) {
+      return;
+    }
+
+    this.elements.versionUpdateVersion.textContent = currentVersion;
+    this.elements.versionUpdateNotice.style.setProperty(
+      '--jt-version-update-duration',
+      `${VERSION_UPDATE_NOTICE_DURATION_MS}ms`,
+    );
+    this.elements.versionUpdateNotice.hidden = false;
+    this.versionUpdateNoticeTimer = setTimeout(() => {
+      this.hideVersionUpdateNotice();
+    }, VERSION_UPDATE_NOTICE_DURATION_MS);
+  }
+
+  hideVersionUpdateNotice() {
+    if (this.versionUpdateNoticeTimer) {
+      clearTimeout(this.versionUpdateNoticeTimer);
+      this.versionUpdateNoticeTimer = 0;
+    }
+    this.elements.versionUpdateNotice.hidden = true;
   }
 
   showDirectFileBanner() {

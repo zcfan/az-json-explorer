@@ -13,6 +13,7 @@ The viewer UI is the main-thread coordinator. It owns DOM rendering, user intera
 - `CHANGELOG.md`
 - `src/ui/searchHighlight.js`
 - `src/core/standalonePerformanceHint.js`
+- `src/core/versionUpdateNotice.js`
 - `src/viewer.js`
 - `test/projectFiles.test.mjs`
 - `test/viewTabs.test.mjs`
@@ -20,6 +21,7 @@ The viewer UI is the main-thread coordinator. It owns DOM rendering, user intera
 - `test/stringSearchHighlight.test.mjs`
 - `test/historyPanelResize.test.mjs`
 - `test/standalonePerformanceHint.test.mjs`
+- `test/versionUpdateNotice.test.mjs`
 
 ## State Owned By `JsonViewerApp`
 
@@ -59,6 +61,7 @@ This is why row height and row DOM layout must remain stable.
 - `Keyboard shortcuts`: opens a modal grouped by Chrome state and focused viewer control. Platform-specific labels use `Cmd` on macOS and `Ctrl` elsewhere; standalone-only input groups are omitted in embedded mode.
 - `Open shortcut settings`: opens `chrome://extensions/shortcuts` so the extension command can be reassigned without requiring an additional permission.
 - `Change log`: opens the repository's published-version-only `CHANGELOG.md` on GitHub.
+- On the first viewer opened for each extension version, a top notice links to that changelog. Its background fills from left to right over a 10-second countdown, then the notice closes automatically. The claimed version is stored locally and requires no extension permission.
 - `Open file`: sends a File directly to `parse-root`.
 - `Sample`: loads the inline sample JSON.
 - `History`: opens a 320px right-side panel. The panel pages through successful manual-input and user-opened-file parses without loading their source content into the UI.
@@ -67,7 +70,7 @@ This is why row height and row DOM layout must remain stable.
 - Each history item renders three lines: its source title, a bounded beginning-of-content preview, and size/last-viewed metadata.
 - History is ordered by most recently engaged time. Selecting an item only restores it; the first subsequent click in the tabs, viewer controls/status, or active content area updates its timestamp and moves it to the top.
 - The panel footer defaults to `Keep latest 10 records`; it shares a right-aligned row with `Clean history` when space permits and wraps responsively when narrow. Clicking the button or pressing Enter in the count input submits the same cleanup action. Cleaning explicitly deletes every older entry and its stored source content. No cleanup runs automatically.
-- Explicit grid-row anchors keep the panel aligned with the loader when the optional performance banner is dismissed.
+- Explicit grid-row anchors keep the panel aligned with the loader when either optional top notice is dismissed.
 - The tab strip sits above the expansion/search row. Expansion controls align left; search controls share that row and align right.
 - The tab strip scrolls horizontally when needed and never becomes vertically scrollable.
 - New roots with at most 5,000 fully expanded rows open in `all` mode; larger roots open with only the root expanded.

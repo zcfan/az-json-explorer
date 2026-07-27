@@ -12,13 +12,14 @@
 .jt-app {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: auto auto auto auto auto auto auto auto minmax(0, 1fr);
+  grid-template-rows: auto auto auto auto auto auto auto auto auto minmax(0, 1fr);
   height: 100vh;
   min-height: 0;
   overflow: hidden;
   background: #f6f7f9;
 }
 
+.jt-version-update-notice,
 .jt-direct-file-banner,
 .jt-toolbar {
   grid-column: 1 / -1;
@@ -35,8 +36,70 @@
   grid-column: 1;
 }
 
-.jt-direct-file-banner {
+.jt-version-update-notice {
+  position: relative;
+  isolation: isolate;
   grid-row: 1;
+  display: flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  overflow: hidden;
+  padding: 8px 14px;
+  border-bottom: 1px solid #93c5fd;
+  color: #1e3a5f;
+  background: #eff6ff;
+  font-size: 13px;
+}
+
+.jt-version-update-notice::before {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  background: #bfdbfe;
+  content: "";
+  pointer-events: none;
+  transform-origin: left;
+  animation: jt-version-update-countdown var(--jt-version-update-duration, 10000ms)
+    linear forwards;
+}
+
+.jt-version-update-notice > * {
+  position: relative;
+  z-index: 1;
+}
+
+.jt-version-update-notice[hidden] {
+  display: none;
+}
+
+.jt-version-update-link {
+  border-radius: 4px;
+  padding: 2px 5px;
+  color: #175cd3;
+  font-weight: 700;
+  text-underline-offset: 2px;
+}
+
+.jt-version-update-link:hover,
+.jt-version-update-link:focus-visible {
+  outline: none;
+  background: rgb(255 255 255 / 55%);
+}
+
+@keyframes jt-version-update-countdown {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.jt-direct-file-banner {
+  grid-row: 2;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -75,7 +138,7 @@
 }
 
 .jt-toolbar {
-  grid-row: 2;
+  grid-row: 3;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -192,7 +255,7 @@
 }
 
 .jt-view-controls {
-  grid-row: 5;
+  grid-row: 6;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -317,7 +380,7 @@
 }
 
 .jt-loader {
-  grid-row: 3;
+  grid-row: 4;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -378,7 +441,7 @@
 .jt-history-panel {
   position: relative;
   grid-column: 2;
-  grid-row: 3 / -1;
+  grid-row: 4 / -1;
   display: flex;
   width: var(--jt-history-panel-width, 320px);
   min-height: 0;
@@ -590,7 +653,7 @@
 }
 
 .jt-status {
-  grid-row: 6;
+  grid-row: 7;
   min-height: 30px;
   padding: 7px 12px;
   border-bottom: 1px solid #d9dee8;
@@ -599,7 +662,7 @@
 }
 
 .jt-search-preview {
-  grid-row: 7;
+  grid-row: 8;
   overflow: auto;
   max-height: 120px;
   padding: 7px 12px;
@@ -612,7 +675,7 @@
 }
 
 .jt-error {
-  grid-row: 8;
+  grid-row: 9;
   padding: 8px 12px;
   border-bottom: 1px solid #fecaca;
   color: #991b1b;
@@ -622,7 +685,7 @@
 
 .jt-tree {
   position: relative;
-  grid-row: 9;
+  grid-row: 10;
   overflow: auto;
   min-height: 0;
   background: #ffffff;
@@ -631,7 +694,7 @@
 
 .jt-tabs {
   position: relative;
-  grid-row: 4;
+  grid-row: 5;
   display: flex;
   align-items: flex-end;
   gap: 3px;
@@ -1165,7 +1228,7 @@
 }
 
 .jt-string-view {
-  grid-row: 9;
+  grid-row: 10;
   display: grid;
   grid-template-rows: minmax(0, 1fr);
   min-height: 0;
