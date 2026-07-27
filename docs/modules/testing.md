@@ -30,6 +30,7 @@ The project uses Node's built-in test runner. There is no test build step.
 | `test/jsonWorker.test.mjs` | Worker parse, retained root, nested parse, copy text, visible rows, search messages, and history create/list/open/session restore. |
 | `test/viewTabs.test.mjs` | Permanent-root, isolation eligibility, raw/parsed modes, duplicate titles, close selection, and lightweight history-session snapshots. |
 | `test/historyPanelResize.test.mjs` | History-panel drag direction and width/viewer-space bounds. |
+| `test/i18n.test.mjs` | English/Simplified Chinese catalog parity, source key coverage, fallback behavior, Chrome UI-language propagation, and package inclusion. |
 | `test/externalLaunch.test.mjs` | Public launch validation, payload handoff, rate limiting, claim, timeout, and tab failures. |
 | `test/pageLaunchBridge.test.mjs` | Webpage discovery, trusted-click gating, and bridge errors. |
 | `test/integrationClient.test.mjs` | Shared webpage/extension transports, store-page fallback, and error behavior. |
@@ -51,3 +52,8 @@ Use Chrome's unpacked extension flow when a change affects actual browser behavi
 4. Open a raw JSON URL or click the extension icon to open the standalone viewer.
 
 Check expansion, virtual scrolling, `Parse as JSON`, parsed/raw toggle, search, and every applicable key context-menu action for interaction changes.
+
+For localization changes, run the same checks once with Chrome in English and once
+with Chrome in Simplified Chinese. Confirm the Manifest name/description, standalone
+viewer, embedded viewer, dynamic statuses, dialogs, context menus, and accessibility
+labels all follow the browser UI language.

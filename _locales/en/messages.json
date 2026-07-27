@@ -1,0 +1,605 @@
+{
+  "appName": {
+    "message": "AZ JSON Explorer"
+  },
+  "appDescription": {
+    "message": "View, format, search, and browse large JSON. Parse nested JSON strings into expandable trees with one click."
+  },
+  "openStandaloneViewerCommand": {
+    "message": "Open a new standalone JSON viewer"
+  },
+  "versionUpdateSuffix": {
+    "message": "adds faster shortcuts and smarter paste."
+  },
+  "seeWhatsNew": {
+    "message": "See what’s new"
+  },
+  "largeFileDirectHint": {
+    "message": "For very large JSON files, use Standalone Viewer > Open file for better performance."
+  },
+  "largeFileStandaloneHint": {
+    "message": "For very large JSON files, use Open file instead of pasting JSON for better performance."
+  },
+  "dismissPerformanceHint": {
+    "message": "Dismiss performance hint"
+  },
+  "help": {
+    "message": "Help"
+  },
+  "keyboardShortcuts": {
+    "message": "Keyboard shortcuts"
+  },
+  "changeLog": {
+    "message": "Change log"
+  },
+  "parseInput": {
+    "message": "Parse input"
+  },
+  "parseInputWithShortcut": {
+    "message": "Parse input ($shortcut$)",
+    "placeholders": {
+      "shortcut": {
+        "content": "$1"
+      }
+    }
+  },
+  "pasteJsonWithShortcut": {
+    "message": "Paste JSON, or press $shortcut$ anywhere to paste here",
+    "placeholders": {
+      "shortcut": {
+        "content": "$1"
+      }
+    }
+  },
+  "formatJson": {
+    "message": "Format JSON"
+  },
+  "openFile": {
+    "message": "Open file"
+  },
+  "sample": {
+    "message": "Sample"
+  },
+  "history": {
+    "message": "History"
+  },
+  "collapseJsonInput": {
+    "message": "Collapse JSON input"
+  },
+  "expandJsonInput": {
+    "message": "Expand JSON input"
+  },
+  "toggleJsonInput": {
+    "message": "Toggle JSON input"
+  },
+  "openJsonViews": {
+    "message": "Open JSON views"
+  },
+  "collapse": {
+    "message": "Collapse"
+  },
+  "expand": {
+    "message": "Expand"
+  },
+  "expandRoot": {
+    "message": "Expand root"
+  },
+  "expandAll": {
+    "message": "Expand all"
+  },
+  "copyAll": {
+    "message": "Copy all"
+  },
+  "search": {
+    "message": "Search"
+  },
+  "fullText": {
+    "message": "Full text"
+  },
+  "previous": {
+    "message": "Prev"
+  },
+  "next": {
+    "message": "Next"
+  },
+  "zeroMatches": {
+    "message": "0 matches"
+  },
+  "jsonTree": {
+    "message": "JSON tree"
+  },
+  "stringValue": {
+    "message": "String value"
+  },
+  "fullStringWithLineNumbers": {
+    "message": "Full string value with line numbers"
+  },
+  "copyValue": {
+    "message": "Copy value"
+  },
+  "copyPath": {
+    "message": "Copy path"
+  },
+  "copyStringAsJavaScriptLiteral": {
+    "message": "Copy string as JavaScript literal"
+  },
+  "copyStringAsJsonLiteral": {
+    "message": "Copy string as JSON literal"
+  },
+  "viewInIsolatedView": {
+    "message": "View in isolated view"
+  },
+  "expandRecursively": {
+    "message": "Expand recursively"
+  },
+  "shortcutsDescription": {
+    "message": "Open the viewer and move through JSON faster."
+  },
+  "closeKeyboardShortcuts": {
+    "message": "Close keyboard shortcuts"
+  },
+  "chromeRunningInBackground": {
+    "message": "Chrome running in the background"
+  },
+  "openNewStandaloneViewer": {
+    "message": "Open a new standalone viewer."
+  },
+  "chromeInFocus": {
+    "message": "Chrome in focus"
+  },
+  "customizeOpenShortcut": {
+    "message": "Customize the shortcut that opens AZ JSON Explorer."
+  },
+  "openShortcutSettings": {
+    "message": "Open shortcut settings"
+  },
+  "jsonInputNotFocused": {
+    "message": "JSON input not focused"
+  },
+  "shortcutPasteFromAnywhere": {
+    "message": "Show the input, clear it, paste clipboard text, and parse."
+  },
+  "shortcutSelectAll": {
+    "message": "Show the input, focus it, and select all content."
+  },
+  "shortcutToggleInput": {
+    "message": "Show or hide the JSON input."
+  },
+  "jsonInputFocused": {
+    "message": "JSON input focused"
+  },
+  "shortcutParseCurrent": {
+    "message": "Parse the current input."
+  },
+  "shortcutPasteSelection": {
+    "message": "Paste at the selection and parse the updated input."
+  },
+  "viewerFocused": {
+    "message": "Viewer focused"
+  },
+  "shortcutFocusSearch": {
+    "message": "Focus full-text search."
+  },
+  "searchFocused": {
+    "message": "Search focused"
+  },
+  "shortcutNextResult": {
+    "message": "Move to the next result."
+  },
+  "shortcutPreviousResult": {
+    "message": "Move to the previous result."
+  },
+  "parseHistory": {
+    "message": "Parse history"
+  },
+  "resizeHistoryPanel": {
+    "message": "Resize history panel"
+  },
+  "closeHistory": {
+    "message": "Close history"
+  },
+  "noHistoryYet": {
+    "message": "No history yet."
+  },
+  "loadMore": {
+    "message": "Load more"
+  },
+  "keepLatest": {
+    "message": "Keep latest"
+  },
+  "records": {
+    "message": "records"
+  },
+  "cleanHistory": {
+    "message": "Clean history"
+  },
+  "waitingForJsonPage": {
+    "message": "Waiting for JSON page..."
+  },
+  "gettingStarted": {
+    "message": "Paste JSON, open a file, or choose an item from History to get started."
+  },
+  "expandingAll": {
+    "message": "Expanding all..."
+  },
+  "pasteJsonToParse": {
+    "message": "Paste JSON input to parse."
+  },
+  "manualInput": {
+    "message": "Manual input"
+  },
+  "openShortcutSettingsStatus": {
+    "message": "Open $url$ in Chrome to customize the shortcut.",
+    "placeholders": {
+      "url": {
+        "content": "$1"
+      }
+    }
+  },
+  "pasteJsonToFormat": {
+    "message": "Paste JSON input to format."
+  },
+  "formattedJsonInput": {
+    "message": "Formatted JSON input."
+  },
+  "jsonFormatFailed": {
+    "message": "JSON format failed: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "loading": {
+    "message": "Loading..."
+  },
+  "historyUnavailable": {
+    "message": "History unavailable: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "historyMetadata": {
+    "message": "$size$ · Viewed $time$",
+    "placeholders": {
+      "size": {
+        "content": "$1"
+      },
+      "time": {
+        "content": "$2"
+      }
+    }
+  },
+  "loadingHistory": {
+    "message": "Loading history in worker..."
+  },
+  "historyLoadFailedDetails": {
+    "message": "History load failed: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "historyLoadFailed": {
+    "message": "History load failed."
+  },
+  "cleaning": {
+    "message": "Cleaning..."
+  },
+  "historyCleanupFailed": {
+    "message": "History cleanup failed: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "historyCleanupResultOne": {
+    "message": "Cleaned 1 history record."
+  },
+  "historyCleanupResultMany": {
+    "message": "Cleaned $count$ history records.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "parsingInWorker": {
+    "message": "Parsing in worker..."
+  },
+  "jsonParseFailed": {
+    "message": "JSON parse failed."
+  },
+  "historySaveFailed": {
+    "message": "JSON parsed, but history could not be saved: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "localFile": {
+    "message": "Local file"
+  },
+  "readingAndParsingFile": {
+    "message": "Reading and parsing file in worker..."
+  },
+  "preparingVisibleRows": {
+    "message": "Preparing visible rows..."
+  },
+  "visibleRowPreparationFailed": {
+    "message": "Visible row preparation failed."
+  },
+  "searching": {
+    "message": "Searching..."
+  },
+  "visibleRows": {
+    "message": "$count$ visible rows.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "visibleRowsTruncated": {
+    "message": "$count$ visible rows. Showing first $limit$ visible rows.",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "limit": {
+        "content": "$2"
+      }
+    }
+  },
+  "copyPathTitle": {
+    "message": "Copy path: $path$",
+    "placeholders": {
+      "path": {
+        "content": "$1"
+      }
+    }
+  },
+  "parseAsJson": {
+    "message": "Parse as JSON"
+  },
+  "parsed": {
+    "message": "parsed"
+  },
+  "raw": {
+    "message": "raw"
+  },
+  "originalString": {
+    "message": "original string"
+  },
+  "cachedParsedValue": {
+    "message": "cached parsed value"
+  },
+  "showValue": {
+    "message": "Show $value$",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "showValueInTab": {
+    "message": "Show $value$ in this tab",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "viewAll": {
+    "message": "View all"
+  },
+  "stringLength": {
+    "message": "$title$ · length $length$",
+    "placeholders": {
+      "title": {
+        "content": "$1"
+      },
+      "length": {
+        "content": "$2"
+      }
+    }
+  },
+  "unableToReadString": {
+    "message": "Unable to read string."
+  },
+  "unableToReadStringDetails": {
+    "message": "Unable to read string: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "copyFailed": {
+    "message": "Copy failed"
+  },
+  "unableToCopyFullValue": {
+    "message": "Unable to copy full value."
+  },
+  "copied": {
+    "message": "Copied"
+  },
+  "showModeInTab": {
+    "message": "Show $mode$ value in this tab",
+    "placeholders": {
+      "mode": {
+        "content": "$1"
+      }
+    }
+  },
+  "closeTab": {
+    "message": "Close $title$",
+    "placeholders": {
+      "title": {
+        "content": "$1"
+      }
+    }
+  },
+  "parsingTab": {
+    "message": "Parsing $title$ for this tab...",
+    "placeholders": {
+      "title": {
+        "content": "$1"
+      }
+    }
+  },
+  "tabRemainsRaw": {
+    "message": "$title$ remains in raw mode.",
+    "placeholders": {
+      "title": {
+        "content": "$1"
+      }
+    }
+  },
+  "parseFailed": {
+    "message": "Parse failed: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "copiedPath": {
+    "message": "Copied path: $path$",
+    "placeholders": {
+      "path": {
+        "content": "$1"
+      }
+    }
+  },
+  "copyPathFailed": {
+    "message": "Copy path failed: $error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "copyLabelFailed": {
+    "message": "Copy $label$ failed: $error$",
+    "placeholders": {
+      "label": {
+        "content": "$1"
+      },
+      "error": {
+        "content": "$2"
+      }
+    }
+  },
+  "copiedLabelAtPath": {
+    "message": "Copied $label$ at $path$.",
+    "placeholders": {
+      "label": {
+        "content": "$1"
+      },
+      "path": {
+        "content": "$2"
+      }
+    }
+  },
+  "valueLabel": {
+    "message": "value"
+  },
+  "javascriptStringLiteralLabel": {
+    "message": "JavaScript string literal"
+  },
+  "jsonStringLiteralLabel": {
+    "message": "JSON string literal"
+  },
+  "expandingRecursivelyAtPath": {
+    "message": "Expanding $path$ recursively...",
+    "placeholders": {
+      "path": {
+        "content": "$1"
+      }
+    }
+  },
+  "parsingStringAtPath": {
+    "message": "Parsing string at $path$...",
+    "placeholders": {
+      "path": {
+        "content": "$1"
+      }
+    }
+  },
+  "noJsonLoaded": {
+    "message": "No JSON loaded"
+  },
+  "searchFailed": {
+    "message": "Search failed"
+  },
+  "searchMatchPosition": {
+    "message": "$current$/$total$$suffix$ matches",
+    "placeholders": {
+      "current": {
+        "content": "$1"
+      },
+      "total": {
+        "content": "$2"
+      },
+      "suffix": {
+        "content": "$3"
+      }
+    }
+  },
+  "searchPreview": {
+    "message": "$path$ $source$: $preview$",
+    "placeholders": {
+      "path": {
+        "content": "$1"
+      },
+      "source": {
+        "content": "$2"
+      },
+      "preview": {
+        "content": "$3"
+      }
+    }
+  },
+  "keySource": {
+    "message": "key"
+  },
+  "valueSource": {
+    "message": "value"
+  },
+  "standaloneViewer": {
+    "message": "Standalone viewer"
+  },
+  "jsonPage": {
+    "message": "JSON page"
+  },
+  "loadingSharedJson": {
+    "message": "Loading shared JSON..."
+  },
+  "waitingForSharedJson": {
+    "message": "Waiting for shared JSON..."
+  },
+  "sharedJsonPayloadUnavailable": {
+    "message": "The shared JSON payload is unavailable."
+  },
+  "sharedJson": {
+    "message": "Shared JSON"
+  },
+  "externalLaunch": {
+    "message": "External launch"
+  },
+  "sharedJsonLoadFailed": {
+    "message": "Shared JSON could not be loaded. You can still paste JSON or open a file."
+  },
+  "invalidExternalLaunchClaim": {
+    "message": "Invalid external launch claim."
+  },
+  "sharedJsonPayloadNoLongerAvailable": {
+    "message": "The shared JSON payload is no longer available."
+  }
+}

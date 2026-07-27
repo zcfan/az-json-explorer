@@ -7,7 +7,9 @@ This module wires Chrome extension surfaces to the shared viewer. It should stay
 ## Key Files
 
 - `manifest.json`: MV3 declaration for the extension action, options page, content script, and web-accessible modules.
+- `_locales/en/messages.json` and `_locales/zh_CN/messages.json`: Chrome-native English and Simplified Chinese catalogs.
 - `src/background.js`: opens the standalone viewer from the extension action and brokers external launches.
+- `src/core/i18n.js`: translates dynamic copy, localizes annotated DOM copy, and exposes Chrome's UI language to the document.
 - `src/viewer.html`: full-page viewer shell with `#app`.
 - `src/viewer.js`: creates the viewer app and bridges embedded iframe messages.
 - `src/contentScript.js`: mounts the embedded iframe on detected JSON pages.
@@ -41,10 +43,14 @@ External launch:
 - Prefer file-like payloads for direct page previews. Large files should not be copied through the manual textarea path.
 - Keep external launch JSON out of URLs and persistent storage. The service worker may retain it only until a viewer claims it or the handoff times out.
 - Keep the standalone command permission-free. It opens an empty viewer and does not read the clipboard.
+- Keep English as `default_locale`; Chrome selects Simplified Chinese automatically from its UI language.
+- Every Manifest `__MSG_*__`, `translate(...)`, and `data-i18n*` key must exist in both locale catalogs with matching placeholders.
 - Webpage `open` requests require one recent trusted click; `ping` does not. Other extensions use `runtime.onMessageExternal` and are rate limited by sender ID.
 - `manifest.json` must keep `src/viewer.html`, `src/core/*.js`, `src/ui/*.js`, and `src/worker/*.js` web-accessible because the embedded iframe and dynamic imports depend on them.
+- Chrome Web Store packages must include `_locales` alongside `manifest.json`, `assets`, and `src`.
 
 ## Verification
 
 - `test/projectFiles.test.mjs` checks manifest shape, direct extension-action launch, viewer product naming, embedded message paths, and file-like direct preview behavior.
+- `test/i18n.test.mjs` checks locale parity, placeholder parity, source key coverage, fallback behavior, UI-language propagation, and release packaging.
 - `npm test` should pass after any entrypoint change.

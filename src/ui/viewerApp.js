@@ -1,4 +1,5 @@
 import { formatJsonText } from '../core/jsonFormat.js';
+import { localizeUi, translate } from '../core/i18n.js';
 import {
   getParseShortcutLabel,
   getPasteShortcutLabel,
@@ -150,14 +151,17 @@ class JsonViewerApp {
 
     if (this.options.embedded) {
       this.elements.loader.hidden = true;
-      this.setStatus('Waiting for JSON page...');
+      this.setStatus(translate('waitingForJsonPage', 'Waiting for JSON page...'));
     }
 
     if (this.options.initialText && this.options.autoParse) {
       this.parseText(this.options.initialText);
     } else if (!this.options.embedded) {
       this.setStatus(
-        'Paste JSON, open a file, or choose an item from History to get started.',
+        translate(
+          'gettingStarted',
+          'Paste JSON, open a file, or choose an item from History to get started.',
+        ),
       );
     }
   }
@@ -174,7 +178,8 @@ class JsonViewerApp {
     shell.innerHTML = `
       <div class="jt-version-update-notice" role="status" aria-live="polite" hidden>
         <span>
-          AZ JSON Explorer <strong class="jt-version-update-version"></strong> adds faster shortcuts and smarter paste.
+          AZ JSON Explorer <strong class="jt-version-update-version"></strong>
+          <span data-i18n="versionUpdateSuffix">adds faster shortcuts and smarter paste.</span>
         </span>
         <a
           class="jt-version-update-link"
@@ -182,10 +187,11 @@ class JsonViewerApp {
           href="https://github.com/zcfan/az-json-explorer/blob/main/CHANGELOG.md"
           target="_blank"
           rel="noreferrer"
+          data-i18n="seeWhatsNew"
         >See what’s new</a>
       </div>
       <div class="jt-direct-file-banner" role="note" hidden>
-        <span class="jt-performance-banner-message">
+        <span class="jt-performance-banner-message" data-i18n="largeFileDirectHint">
           For very large JSON files, use Standalone Viewer > Open file for better performance.
         </span>
         <button
@@ -193,6 +199,7 @@ class JsonViewerApp {
           data-action="dismiss-performance-hint"
           type="button"
           aria-label="Dismiss performance hint"
+          data-i18n-aria-label="dismissPerformanceHint"
           hidden
         >×</button>
       </div>
@@ -208,6 +215,7 @@ class JsonViewerApp {
             type="button"
             aria-haspopup="menu"
             aria-expanded="false"
+            data-i18n="help"
           >Help</button>
           <div class="jt-help-menu" role="menu" hidden>
             <button
@@ -215,6 +223,7 @@ class JsonViewerApp {
               data-action="show-shortcuts"
               type="button"
               role="menuitem"
+              data-i18n="keyboardShortcuts"
             >Keyboard shortcuts</button>
             <a
               class="jt-help-menu-item"
@@ -223,6 +232,7 @@ class JsonViewerApp {
               target="_blank"
               rel="noreferrer"
               role="menuitem"
+              data-i18n="changeLog"
             >Change log</a>
           </div>
         </div>
@@ -232,14 +242,14 @@ class JsonViewerApp {
           <textarea class="jt-manual-input" id="jt-manual-input" spellcheck="false" placeholder="Paste JSON"></textarea>
           <div class="jt-manual-input-card">
             <div class="jt-loader-actions" id="jt-manual-input-actions">
-              <button class="jt-button jt-button-primary" data-action="parse-manual" type="button">Parse input</button>
-              <button class="jt-button jt-button-secondary" data-action="format-manual" type="button">Format JSON</button>
+              <button class="jt-button jt-button-primary" data-action="parse-manual" type="button" data-i18n="parseInput">Parse input</button>
+              <button class="jt-button jt-button-secondary" data-action="format-manual" type="button" data-i18n="formatJson">Format JSON</button>
               <label class="jt-file-button">
-                Open file
+                <span data-i18n="openFile">Open file</span>
                 <input class="jt-file-input" type="file" accept=".json,application/json,text/plain">
               </label>
-              <button class="jt-button jt-button-secondary" data-action="load-sample" type="button">Sample</button>
-              <button class="jt-button jt-button-secondary jt-history-button" data-action="toggle-history" type="button" aria-expanded="false">History</button>
+              <button class="jt-button jt-button-secondary" data-action="load-sample" type="button" data-i18n="sample">Sample</button>
+              <button class="jt-button jt-button-secondary jt-history-button" data-action="toggle-history" type="button" aria-expanded="false" data-i18n="history">History</button>
             </div>
             <button
               class="jt-manual-input-toggle"
@@ -248,167 +258,172 @@ class JsonViewerApp {
               aria-controls="jt-manual-input jt-manual-input-actions"
               aria-expanded="true"
               aria-label="Collapse JSON input"
+              data-i18n-aria-label="collapseJsonInput"
             >
               <span class="jt-manual-input-toggle-content" aria-hidden="true">
-                <span class="jt-manual-input-toggle-label"><kbd>Ctrl+&#96;</kbd> Toggle JSON input</span>
+                <span class="jt-manual-input-toggle-label"><kbd>Ctrl+&#96;</kbd> <span data-i18n="toggleJsonInput">Toggle JSON input</span></span>
               </span>
             </button>
           </div>
         </div>
       </section>
-      <nav class="jt-tabs" role="tablist" aria-label="Open JSON views" hidden></nav>
+      <nav class="jt-tabs" role="tablist" aria-label="Open JSON views" data-i18n-aria-label="openJsonViews" hidden></nav>
       <section class="jt-view-controls">
         <div class="jt-expansion-controls">
-          <button class="jt-button jt-button-secondary" data-action="collapse-all" type="button">Collapse</button>
-          <button class="jt-button jt-button-secondary" data-action="expand-root" type="button">Expand root</button>
-          <button class="jt-button jt-button-secondary" data-action="expand-all" type="button">Expand all</button>
+          <button class="jt-button jt-button-secondary" data-action="collapse-all" type="button" data-i18n="collapse">Collapse</button>
+          <button class="jt-button jt-button-secondary" data-action="expand-root" type="button" data-i18n="expandRoot">Expand root</button>
+          <button class="jt-button jt-button-secondary" data-action="expand-all" type="button" data-i18n="expandAll">Expand all</button>
         </div>
         <div class="jt-string-controls" hidden>
-          <button class="jt-button jt-copy-all-button" data-action="string-view-copy-all" type="button">Copy all</button>
+          <button class="jt-button jt-copy-all-button" data-action="string-view-copy-all" type="button" data-i18n="copyAll">Copy all</button>
         </div>
         <div class="jt-search-controls">
           <label class="jt-search">
-            <span>Search</span>
-            <input class="jt-search-input" type="search" placeholder="Full text" autocomplete="off">
+            <span data-i18n="search">Search</span>
+            <input class="jt-search-input" type="search" placeholder="Full text" data-i18n-placeholder="fullText" autocomplete="off">
           </label>
-          <button class="jt-button jt-button-secondary jt-search-prev" data-action="search-prev" type="button" disabled>Prev</button>
-          <button class="jt-button jt-button-secondary jt-search-next" data-action="search-next" type="button" disabled>Next</button>
-          <span class="jt-search-count">0 matches</span>
+          <button class="jt-button jt-button-secondary jt-search-prev" data-action="search-prev" type="button" data-i18n="previous" disabled>Prev</button>
+          <button class="jt-button jt-button-secondary jt-search-next" data-action="search-next" type="button" data-i18n="next" disabled>Next</button>
+          <span class="jt-search-count" data-i18n="zeroMatches">0 matches</span>
         </div>
       </section>
       <div class="jt-status" role="status"></div>
       <div class="jt-search-preview" hidden></div>
       <div class="jt-error" hidden></div>
-      <section class="jt-tree" tabindex="0" aria-label="JSON tree">
+      <section class="jt-tree" tabindex="0" aria-label="JSON tree" data-i18n-aria-label="jsonTree">
         <div class="jt-spacer"></div>
         <div class="jt-row-layer"></div>
       </section>
-      <section class="jt-string-view" aria-label="String value" hidden>
+      <section class="jt-string-view" aria-label="String value" data-i18n-aria-label="stringValue" hidden>
         <div
           class="jt-string-view-text"
           tabindex="0"
           role="region"
           aria-label="Full string value with line numbers"
+          data-i18n-aria-label="fullStringWithLineNumbers"
         ></div>
       </section>
       <div class="jt-context-menu" role="menu" hidden>
-        <button class="jt-context-menu-item" data-action="copy-value" type="button" role="menuitem">Copy value</button>
-        <button class="jt-context-menu-item" data-action="copy-path" type="button" role="menuitem">Copy path</button>
-        <button class="jt-context-menu-item" data-action="copy-javascript-string-literal" type="button" role="menuitem">Copy string as JavaScript literal</button>
-        <button class="jt-context-menu-item" data-action="copy-json-string-literal" type="button" role="menuitem">Copy string as JSON literal</button>
-        <button class="jt-context-menu-item" data-action="open-isolated-view" type="button" role="menuitem">View in isolated view</button>
+        <button class="jt-context-menu-item" data-action="copy-value" type="button" role="menuitem" data-i18n="copyValue">Copy value</button>
+        <button class="jt-context-menu-item" data-action="copy-path" type="button" role="menuitem" data-i18n="copyPath">Copy path</button>
+        <button class="jt-context-menu-item" data-action="copy-javascript-string-literal" type="button" role="menuitem" data-i18n="copyStringAsJavaScriptLiteral">Copy string as JavaScript literal</button>
+        <button class="jt-context-menu-item" data-action="copy-json-string-literal" type="button" role="menuitem" data-i18n="copyStringAsJsonLiteral">Copy string as JSON literal</button>
+        <button class="jt-context-menu-item" data-action="open-isolated-view" type="button" role="menuitem" data-i18n="viewInIsolatedView">View in isolated view</button>
         <div class="jt-context-menu-separator" role="separator"></div>
-        <button class="jt-context-menu-item" data-action="expand-recursively" type="button" role="menuitem">Expand recursively</button>
+        <button class="jt-context-menu-item" data-action="expand-recursively" type="button" role="menuitem" data-i18n="expandRecursively">Expand recursively</button>
       </div>
       <dialog class="jt-shortcuts-dialog" aria-labelledby="jt-shortcuts-title">
         <header class="jt-shortcuts-header">
           <div>
-            <h2 id="jt-shortcuts-title">Keyboard shortcuts</h2>
-            <p>Open the viewer and move through JSON faster.</p>
+            <h2 id="jt-shortcuts-title" data-i18n="keyboardShortcuts">Keyboard shortcuts</h2>
+            <p data-i18n="shortcutsDescription">Open the viewer and move through JSON faster.</p>
           </div>
           <button
             class="jt-shortcuts-close"
             data-action="close-shortcuts"
             type="button"
             aria-label="Close keyboard shortcuts"
+            data-i18n-aria-label="closeKeyboardShortcuts"
           >×</button>
         </header>
         <div class="jt-shortcuts-body">
           <section class="jt-shortcut-group">
-            <h3>Chrome running in the background</h3>
+            <h3 data-i18n="chromeRunningInBackground">Chrome running in the background</h3>
             <div class="jt-shortcut-row">
               <kbd data-shortcut="open-viewer"></kbd>
-              <span>Open a new standalone viewer.</span>
+              <span data-i18n="openNewStandaloneViewer">Open a new standalone viewer.</span>
             </div>
           </section>
           <section class="jt-shortcut-group">
-            <h3>Chrome in focus</h3>
+            <h3 data-i18n="chromeInFocus">Chrome in focus</h3>
             <div class="jt-shortcut-settings">
-              <span>Customize the shortcut that opens AZ JSON Explorer.</span>
-              <button data-action="open-shortcut-settings" type="button">
+              <span data-i18n="customizeOpenShortcut">Customize the shortcut that opens AZ JSON Explorer.</span>
+              <button data-action="open-shortcut-settings" type="button" data-i18n="openShortcutSettings">
                 Open shortcut settings
               </button>
               <code>chrome://extensions/shortcuts</code>
             </div>
           </section>
           <section class="jt-shortcut-group" data-standalone-shortcuts>
-            <h3>JSON input not focused</h3>
+            <h3 data-i18n="jsonInputNotFocused">JSON input not focused</h3>
             <div class="jt-shortcut-row">
               <kbd data-shortcut="paste"></kbd>
-              <span>Show the input, clear it, paste clipboard text, and parse.</span>
+              <span data-i18n="shortcutPasteFromAnywhere">Show the input, clear it, paste clipboard text, and parse.</span>
             </div>
             <div class="jt-shortcut-row">
               <kbd data-shortcut="select-all"></kbd>
-              <span>Show the input, focus it, and select all content.</span>
+              <span data-i18n="shortcutSelectAll">Show the input, focus it, and select all content.</span>
             </div>
             <div class="jt-shortcut-row">
               <kbd>Ctrl+&#96;</kbd>
-              <span>Show or hide the JSON input.</span>
+              <span data-i18n="shortcutToggleInput">Show or hide the JSON input.</span>
             </div>
           </section>
           <section class="jt-shortcut-group" data-standalone-shortcuts>
-            <h3>JSON input focused</h3>
+            <h3 data-i18n="jsonInputFocused">JSON input focused</h3>
             <div class="jt-shortcut-row">
               <kbd data-shortcut="parse"></kbd>
-              <span>Parse the current input.</span>
+              <span data-i18n="shortcutParseCurrent">Parse the current input.</span>
             </div>
             <div class="jt-shortcut-row">
               <kbd data-shortcut="paste"></kbd>
-              <span>Paste at the selection and parse the updated input.</span>
+              <span data-i18n="shortcutPasteSelection">Paste at the selection and parse the updated input.</span>
             </div>
           </section>
           <section class="jt-shortcut-group">
-            <h3>Viewer focused</h3>
+            <h3 data-i18n="viewerFocused">Viewer focused</h3>
             <div class="jt-shortcut-row">
               <kbd data-shortcut="search"></kbd>
-              <span>Focus full-text search.</span>
+              <span data-i18n="shortcutFocusSearch">Focus full-text search.</span>
             </div>
           </section>
           <section class="jt-shortcut-group">
-            <h3>Search focused</h3>
+            <h3 data-i18n="searchFocused">Search focused</h3>
             <div class="jt-shortcut-row">
               <kbd>Enter</kbd>
-              <span>Move to the next result.</span>
+              <span data-i18n="shortcutNextResult">Move to the next result.</span>
             </div>
             <div class="jt-shortcut-row">
               <kbd>Shift+Enter</kbd>
-              <span>Move to the previous result.</span>
+              <span data-i18n="shortcutPreviousResult">Move to the previous result.</span>
             </div>
           </section>
         </div>
       </dialog>
-      <aside class="jt-history-panel" aria-label="Parse history" hidden>
+      <aside class="jt-history-panel" aria-label="Parse history" data-i18n-aria-label="parseHistory" hidden>
         <div
           class="jt-history-resizer"
           role="separator"
           aria-orientation="vertical"
           aria-label="Resize history panel"
+          data-i18n-aria-label="resizeHistoryPanel"
           aria-valuemin="${MIN_HISTORY_PANEL_WIDTH}"
           aria-valuemax="${MAX_HISTORY_PANEL_WIDTH}"
           aria-valuenow="320"
           tabindex="0"
         ></div>
         <header class="jt-history-header">
-          <h2>History</h2>
-          <button class="jt-history-close" data-action="close-history" type="button" aria-label="Close history">
+          <h2 data-i18n="history">History</h2>
+          <button class="jt-history-close" data-action="close-history" type="button" aria-label="Close history" data-i18n-aria-label="closeHistory">
             <svg class="jt-history-close-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
               <path d="M3.5 3.5 12.5 12.5 M12.5 3.5 3.5 12.5"></path>
             </svg>
           </button>
         </header>
         <div class="jt-history-list" role="list"></div>
-        <div class="jt-history-empty">No history yet.</div>
-        <button class="jt-button jt-button-secondary jt-history-more" data-action="load-more-history" type="button" hidden>Load more</button>
+        <div class="jt-history-empty" data-i18n="noHistoryYet">No history yet.</div>
+        <button class="jt-button jt-button-secondary jt-history-more" data-action="load-more-history" type="button" data-i18n="loadMore" hidden>Load more</button>
         <form class="jt-history-retention">
           <label>
-            Keep latest
+            <span data-i18n="keepLatest">Keep latest</span>
             <input class="jt-history-keep-count" data-action="history-keep-count" type="number" min="0" step="1" value="10">
-            records
+            <span data-i18n="records">records</span>
           </label>
-          <button class="jt-button jt-history-clean-button" data-action="cleanup-history" type="submit">Clean history</button>
+          <button class="jt-button jt-history-clean-button" data-action="cleanup-history" type="submit" data-i18n="cleanHistory">Clean history</button>
         </form>
       </aside>
     `;
+    localizeUi(shell);
     fragment.append(shell);
     return fragment;
   }
@@ -499,9 +514,16 @@ class JsonViewerApp {
     this.elements.source.textContent = this.options.sourceLabel || '';
     const parseShortcut = getParseShortcutLabel();
     const pasteShortcut = getPasteShortcutLabel();
-    this.elements.parseManualButton.textContent = `Parse input (${parseShortcut})`;
-    this.elements.manualInput.placeholder =
-      `Paste JSON, or press ${pasteShortcut} anywhere to paste here`;
+    this.elements.parseManualButton.textContent = translate(
+      'parseInputWithShortcut',
+      `Parse input (${parseShortcut})`,
+      parseShortcut,
+    );
+    this.elements.manualInput.placeholder = translate(
+      'pasteJsonWithShortcut',
+      `Paste JSON, or press ${pasteShortcut} anywhere to paste here`,
+      pasteShortcut,
+    );
 
     const primaryModifier = pasteShortcut.startsWith('cmd') ? 'Cmd' : 'Ctrl';
     const shortcutLabels = {
@@ -715,11 +737,16 @@ class JsonViewerApp {
 
     this.elements.expandAllButton.addEventListener('click', () => {
       this.expansion = createAllExpansionState();
-      this.refreshRows({ pendingStatus: 'Expanding all...' });
+      this.refreshRows({
+        pendingStatus: translate('expandingAll', 'Expanding all...'),
+      });
     });
 
     this.elements.copyValueButton.addEventListener('click', () => {
-      this.copyContextMenuNode('value', 'value');
+      this.copyContextMenuNode(
+        'value',
+        translate('valueLabel', 'value'),
+      );
     });
 
     this.elements.copyPathButton.addEventListener('click', () => {
@@ -727,11 +754,17 @@ class JsonViewerApp {
     });
 
     this.elements.copyJavaScriptStringLiteralButton.addEventListener('click', () => {
-      this.copyContextMenuNode('javascript-string-literal', 'JavaScript string literal');
+      this.copyContextMenuNode(
+        'javascript-string-literal',
+        translate('javascriptStringLiteralLabel', 'JavaScript string literal'),
+      );
     });
 
     this.elements.copyJsonStringLiteralButton.addEventListener('click', () => {
-      this.copyContextMenuNode('json-string-literal', 'JSON string literal');
+      this.copyContextMenuNode(
+        'json-string-literal',
+        translate('jsonStringLiteralLabel', 'JSON string literal'),
+      );
     });
 
     this.elements.expandRecursivelyButton.addEventListener('click', () => {
@@ -799,15 +832,16 @@ class JsonViewerApp {
     const text = this.elements.manualInput.value;
     if (!text.trim()) {
       this.clearError();
-      this.setStatus('Paste JSON input to parse.');
+      this.setStatus(translate('pasteJsonToParse', 'Paste JSON input to parse.'));
       return;
     }
 
-    this.setSourceLabel('Manual input');
+    const manualInputLabel = translate('manualInput', 'Manual input');
+    this.setSourceLabel(manualInputLabel);
     this.parseText(text, {
       historyEntry: {
         sourceType: 'manual',
-        title: 'Manual input',
+        title: manualInputLabel,
       },
     });
   }
@@ -843,7 +877,13 @@ class JsonViewerApp {
       return;
     }
 
-    this.setStatus(`Open ${url} in Chrome to customize the shortcut.`);
+    this.setStatus(
+      translate(
+        'openShortcutSettingsStatus',
+        `Open ${url} in Chrome to customize the shortcut.`,
+        url,
+      ),
+    );
   }
 
   toggleManualInput() {
@@ -857,7 +897,9 @@ class JsonViewerApp {
     manualInputToggle.setAttribute('aria-expanded', String(expanded));
     manualInputToggle.setAttribute(
       'aria-label',
-      expanded ? 'Collapse JSON input' : 'Expand JSON input',
+      expanded
+        ? translate('collapseJsonInput', 'Collapse JSON input')
+        : translate('expandJsonInput', 'Expand JSON input'),
     );
   }
 
@@ -865,17 +907,19 @@ class JsonViewerApp {
     const text = this.elements.manualInput.value;
     if (!text.trim()) {
       this.clearError();
-      this.setStatus('Paste JSON input to format.');
+      this.setStatus(translate('pasteJsonToFormat', 'Paste JSON input to format.'));
       return;
     }
 
     try {
       this.elements.manualInput.value = formatJsonText(text);
       this.clearError();
-      this.setStatus('Formatted JSON input.');
+      this.setStatus(translate('formattedJsonInput', 'Formatted JSON input.'));
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      this.showError(`JSON format failed: ${message}`);
+      this.showError(
+        translate('jsonFormatFailed', `JSON format failed: ${message}`, message),
+      );
     }
   }
 
@@ -985,7 +1029,7 @@ class JsonViewerApp {
 
     this.historyLoading = true;
     this.elements.historyMoreButton.disabled = true;
-    this.elements.historyMoreButton.textContent = 'Loading...';
+    this.elements.historyMoreButton.textContent = translate('loading', 'Loading...');
     const response = await this.requestWorker('list-history', {
       cursor: this.historyCursor,
       limit: HISTORY_PAGE_SIZE,
@@ -993,11 +1037,15 @@ class JsonViewerApp {
     this.historyLoading = false;
     this.historyLoaded = true;
     this.elements.historyMoreButton.disabled = false;
-    this.elements.historyMoreButton.textContent = 'Load more';
+    this.elements.historyMoreButton.textContent = translate('loadMore', 'Load more');
 
     if (!response.ok) {
       this.elements.historyEmpty.hidden = false;
-      this.elements.historyEmpty.textContent = `History unavailable: ${response.error}`;
+      this.elements.historyEmpty.textContent = translate(
+        'historyUnavailable',
+        `History unavailable: ${response.error}`,
+        response.error,
+      );
       this.elements.historyMoreButton.hidden = true;
       return;
     }
@@ -1036,11 +1084,13 @@ class JsonViewerApp {
       preview.textContent = item.preview;
       const metadata = document.createElement('span');
       metadata.className = 'jt-history-item-metadata';
-      metadata.textContent = `${formatHistorySize(
-        item.size,
-      )} · Viewed ${formatHistoryTime(
-        item.lastViewedAt,
-      )}`;
+      const size = formatHistorySize(item.size);
+      const time = formatHistoryTime(item.lastViewedAt);
+      metadata.textContent = translate(
+        'historyMetadata',
+        `${size} · Viewed ${time}`,
+        [size, time],
+      );
       button.append(title, preview, metadata);
       listItem.append(button);
       fragment.append(listItem);
@@ -1049,21 +1099,30 @@ class JsonViewerApp {
     this.elements.historyList.replaceChildren(fragment);
     this.elements.historyList.hidden = this.historyItems.length === 0;
     this.elements.historyEmpty.hidden = this.historyItems.length > 0;
-    this.elements.historyEmpty.textContent = 'No history yet.';
+    this.elements.historyEmpty.textContent = translate(
+      'noHistoryYet',
+      'No history yet.',
+    );
     this.elements.historyMoreButton.hidden = !this.historyCursor;
   }
 
   async openHistoryEntry(historyId) {
     await this.flushHistorySessionSave();
     this.clearError();
-    this.setStatus('Loading history in worker...');
+    this.setStatus(translate('loadingHistory', 'Loading history in worker...'));
     const response = await this.requestWorker('open-history', {
       historyId,
       nodeCountLimit: AUTO_EXPAND_MAX_ROWS,
     });
     if (!response.ok) {
-      this.showError(`History load failed: ${response.error}`);
-      this.setStatus('History load failed.');
+      this.showError(
+        translate(
+          'historyLoadFailedDetails',
+          `History load failed: ${response.error}`,
+          response.error,
+        ),
+      );
+      this.setStatus(translate('historyLoadFailed', 'History load failed.'));
       return;
     }
 
@@ -1118,7 +1177,10 @@ class JsonViewerApp {
     );
     this.elements.historyKeepCount.value = String(keepCount);
     this.elements.historyCleanupButton.disabled = true;
-    this.elements.historyCleanupButton.textContent = 'Cleaning...';
+    this.elements.historyCleanupButton.textContent = translate(
+      'cleaning',
+      'Cleaning...',
+    );
 
     try {
       await this.flushHistorySessionSave();
@@ -1126,7 +1188,13 @@ class JsonViewerApp {
         keep: keepCount,
       });
       if (!response.ok) {
-        this.showError(`History cleanup failed: ${response.error}`);
+        this.showError(
+          translate(
+            'historyCleanupFailed',
+            `History cleanup failed: ${response.error}`,
+            response.error,
+          ),
+        );
         return;
       }
 
@@ -1134,15 +1202,23 @@ class JsonViewerApp {
         this.currentHistoryId = null;
         this.pendingHistoryViewId = null;
       }
+      const deletedCount = response.deletedCount.toLocaleString();
       this.setStatus(
-        `Cleaned ${response.deletedCount.toLocaleString()} history record${
-          response.deletedCount === 1 ? '' : 's'
-        }.`,
+        response.deletedCount === 1
+          ? translate('historyCleanupResultOne', 'Cleaned 1 history record.')
+          : translate(
+              'historyCleanupResultMany',
+              `Cleaned ${deletedCount} history records.`,
+              deletedCount,
+            ),
       );
       await this.loadHistoryPage({ reset: true });
     } finally {
       this.elements.historyCleanupButton.disabled = false;
-      this.elements.historyCleanupButton.textContent = 'Clean history';
+      this.elements.historyCleanupButton.textContent = translate(
+        'cleanHistory',
+        'Clean history',
+      );
     }
   }
 
@@ -1198,7 +1274,7 @@ class JsonViewerApp {
     this.resetViewTabs();
     this.clearSearchResults();
     this.clearError();
-    this.setStatus('Parsing in worker...');
+    this.setStatus(translate('parsingInWorker', 'Parsing in worker...'));
     this.elements.rowLayer.replaceChildren();
     this.elements.spacer.style.height = '0px';
 
@@ -1211,7 +1287,7 @@ class JsonViewerApp {
       this.hasParsedRoot = false;
       this.rows = [];
       this.showError(response.error);
-      this.setStatus('JSON parse failed.');
+      this.setStatus(translate('jsonParseFailed', 'JSON parse failed.'));
       return;
     }
 
@@ -1220,7 +1296,13 @@ class JsonViewerApp {
     this.expansion = createInitialExpansionState(response.nodeCount, pathKey([]));
     await this.refreshRowsAndSearch();
     if (response.historyError) {
-      this.showError(`JSON parsed, but history could not be saved: ${response.historyError}`);
+      this.showError(
+        translate(
+          'historySaveFailed',
+          `JSON parsed, but history could not be saved: ${response.historyError}`,
+          response.historyError,
+        ),
+      );
     }
     if (this.currentHistoryId) {
       this.scheduleHistorySessionSave();
@@ -1235,8 +1317,15 @@ class JsonViewerApp {
     this.resetViewTabs();
     this.clearSearchResults();
     this.clearError();
-    this.setSourceLabel(sourceLabel || file.name || 'Local file');
-    this.setStatus('Reading and parsing file in worker...');
+    this.setSourceLabel(
+      sourceLabel || file.name || translate('localFile', 'Local file'),
+    );
+    this.setStatus(
+      translate(
+        'readingAndParsingFile',
+        'Reading and parsing file in worker...',
+      ),
+    );
     this.elements.rowLayer.replaceChildren();
     this.elements.spacer.style.height = '0px';
 
@@ -1256,7 +1345,7 @@ class JsonViewerApp {
       this.hasParsedRoot = false;
       this.rows = [];
       this.showError(response.error);
-      this.setStatus('JSON parse failed.');
+      this.setStatus(translate('jsonParseFailed', 'JSON parse failed.'));
       return;
     }
 
@@ -1265,7 +1354,13 @@ class JsonViewerApp {
     this.expansion = createInitialExpansionState(response.nodeCount, pathKey([]));
     await this.refreshRowsAndSearch();
     if (response.historyError) {
-      this.showError(`JSON parsed, but history could not be saved: ${response.historyError}`);
+      this.showError(
+        translate(
+          'historySaveFailed',
+          `JSON parsed, but history could not be saved: ${response.historyError}`,
+          response.historyError,
+        ),
+      );
     }
     if (this.currentHistoryId) {
       this.scheduleHistorySessionSave();
@@ -1280,7 +1375,10 @@ class JsonViewerApp {
 
     const activeTabId = this.viewTabs.activeTabId;
     const token = ++this.renderToken;
-    this.setStatus(options.pendingStatus || 'Preparing visible rows...');
+    this.setStatus(
+      options.pendingStatus ||
+        translate('preparingVisibleRows', 'Preparing visible rows...'),
+    );
     const response = await this.requestWorker('collect-visible-rows', {
       rootPath: this.getActiveTab().path,
       rootMode: this.getActiveTab().mode,
@@ -1299,7 +1397,12 @@ class JsonViewerApp {
 
     if (!response.ok) {
       this.showError(response.error);
-      this.setStatus('Visible row preparation failed.');
+      this.setStatus(
+        translate(
+          'visibleRowPreparationFailed',
+          'Visible row preparation failed.',
+        ),
+      );
       return;
     }
 
@@ -1313,7 +1416,7 @@ class JsonViewerApp {
   async refreshRowsAndSearch() {
     const query = this.elements.searchInput.value.trim();
     if (query) {
-      this.clearSearchResults('Searching...');
+      this.clearSearchResults(translate('searching', 'Searching...'));
     }
 
     await this.refreshRows();
@@ -1323,10 +1426,17 @@ class JsonViewerApp {
   }
 
   createStatusText() {
-    const suffix = this.hasRowLimit
-      ? ` Showing first ${MAX_VISIBLE_ROWS.toLocaleString()} visible rows.`
-      : '';
-    return `${this.rows.length.toLocaleString()} visible rows.${suffix}`;
+    const count = this.rows.length.toLocaleString();
+    if (!this.hasRowLimit) {
+      return translate('visibleRows', `${count} visible rows.`, count);
+    }
+
+    const limit = MAX_VISIBLE_ROWS.toLocaleString();
+    return translate(
+      'visibleRowsTruncated',
+      `${count} visible rows. Showing first ${limit} visible rows.`,
+      [count, limit],
+    );
   }
 
   renderVisibleRows() {
@@ -1387,8 +1497,11 @@ class JsonViewerApp {
     toggle.type = 'button';
     toggle.disabled = !row.expandable;
     if (row.expandable) {
-      toggle.setAttribute('aria-label', row.expanded ? 'Collapse' : 'Expand');
-      toggle.title = row.expanded ? 'Collapse' : 'Expand';
+      const toggleLabel = row.expanded
+        ? translate('collapse', 'Collapse')
+        : translate('expand', 'Expand');
+      toggle.setAttribute('aria-label', toggleLabel);
+      toggle.title = toggleLabel;
 
       const chevron = document.createElement('span');
       chevron.className = 'jt-toggle-chevron';
@@ -1404,7 +1517,11 @@ class JsonViewerApp {
     const key = document.createElement('span');
     key.className = row.key === '$' ? 'jt-key' : 'jt-key jt-key-copyable';
     if (row.key !== '$') {
-      key.title = `Copy path: ${row.copyPath}`;
+      key.title = translate(
+        'copyPathTitle',
+        `Copy path: ${row.copyPath}`,
+        row.copyPath,
+      );
     }
     this.appendHighlightedText(key, row.key === '$' ? '$' : JSON.stringify(row.key), {
       active: searchState.keyMatched,
@@ -1422,7 +1539,7 @@ class JsonViewerApp {
       const parseButton = document.createElement('button');
       parseButton.className = 'jt-parse-button';
       parseButton.type = 'button';
-      parseButton.textContent = 'Parse as JSON';
+      parseButton.textContent = translate('parseAsJson', 'Parse as JSON');
       parseButton.addEventListener('click', () => this.parseStringRow(row));
       element.append(parseButton);
     }
@@ -1432,11 +1549,19 @@ class JsonViewerApp {
       const badge = document.createElement('button');
       badge.className = row.parsed ? 'jt-badge jt-badge-parsed' : 'jt-badge jt-badge-raw';
       badge.type = 'button';
-      badge.textContent = row.parsed ? 'parsed' : 'raw';
-      const nextModeLabel = row.parsed ? 'original string' : 'cached parsed value';
+      badge.textContent = row.parsed
+        ? translate('parsed', 'parsed')
+        : translate('raw', 'raw');
+      const nextModeLabel = row.parsed
+        ? translate('originalString', 'original string')
+        : translate('cachedParsedValue', 'cached parsed value');
       badge.title = activeTab.closable
-        ? `Show ${nextModeLabel} in this tab`
-        : `Show ${nextModeLabel}`;
+        ? translate(
+            'showValueInTab',
+            `Show ${nextModeLabel} in this tab`,
+            nextModeLabel,
+          )
+        : translate('showValue', `Show ${nextModeLabel}`, nextModeLabel);
       badge.addEventListener('click', () => {
         if (activeTab.closable) {
           this.toggleTabParsedDisplay(row);
@@ -1458,7 +1583,7 @@ class JsonViewerApp {
       const viewAllButton = document.createElement('button');
       viewAllButton.className = 'jt-view-all-button';
       viewAllButton.type = 'button';
-      viewAllButton.textContent = 'View all';
+      viewAllButton.textContent = translate('viewAll', 'View all');
       viewAllButton.addEventListener('click', (event) => {
         event.stopPropagation();
         this.openRowInIsolatedView(row);
@@ -1521,9 +1646,19 @@ class JsonViewerApp {
     };
     this.elements.stringViewText.textContent = '';
     this.elements.stringViewCopyAllButton.disabled = true;
-    this.elements.stringViewCopyAllButton.textContent = 'Copy all';
+    this.elements.stringViewCopyAllButton.textContent = translate(
+      'copyAll',
+      'Copy all',
+    );
     this.elements.stringViewCopyAllButton.title = '';
-    this.setStatus(`${tab.title} · length ${tab.valueLength.toLocaleString()}`);
+    const length = tab.valueLength.toLocaleString();
+    this.setStatus(
+      translate(
+        'stringLength',
+        `${tab.title} · length ${length}`,
+        [tab.title, length],
+      ),
+    );
 
     await this.loadStringViewPage(0, 1);
   }
@@ -1555,7 +1690,8 @@ class JsonViewerApp {
 
       if (!response.ok) {
         this.elements.stringViewText.textContent =
-          response.error || 'Unable to read string.';
+          response.error ||
+          translate('unableToReadString', 'Unable to read string.');
         state.loading = false;
         return;
       }
@@ -1595,7 +1731,11 @@ class JsonViewerApp {
       }
 
       const message = error instanceof Error ? error.message : String(error);
-      this.elements.stringViewText.textContent = `Unable to read string: ${message}`;
+      this.elements.stringViewText.textContent = translate(
+        'unableToReadStringDetails',
+        `Unable to read string: ${message}`,
+        message,
+      );
       state.loading = false;
     }
   }
@@ -1743,15 +1883,22 @@ class JsonViewerApp {
       }
 
       if (!response.ok) {
-        this.elements.stringViewCopyAllButton.textContent = 'Copy failed';
+        this.elements.stringViewCopyAllButton.textContent = translate(
+          'copyFailed',
+          'Copy failed',
+        );
         this.elements.stringViewCopyAllButton.title =
-          response.error || 'Unable to copy full value.';
+          response.error ||
+          translate('unableToCopyFullValue', 'Unable to copy full value.');
         return;
       }
 
       await navigator.clipboard.writeText(response.text);
       if (state === this.stringViewState) {
-        this.elements.stringViewCopyAllButton.textContent = 'Copied';
+        this.elements.stringViewCopyAllButton.textContent = translate(
+          'copied',
+          'Copied',
+        );
       }
     } catch (error) {
       if (state !== this.stringViewState) {
@@ -1759,7 +1906,10 @@ class JsonViewerApp {
       }
 
       const message = error instanceof Error ? error.message : String(error);
-      this.elements.stringViewCopyAllButton.textContent = 'Copy failed';
+      this.elements.stringViewCopyAllButton.textContent = translate(
+        'copyFailed',
+        'Copy failed',
+      );
       this.elements.stringViewCopyAllButton.title = message;
     } finally {
       if (state === this.stringViewState) {
@@ -1773,7 +1923,10 @@ class JsonViewerApp {
     this.stringViewState = null;
     this.elements.stringViewText.textContent = '';
     this.elements.stringViewCopyAllButton.disabled = true;
-    this.elements.stringViewCopyAllButton.textContent = 'Copy all';
+    this.elements.stringViewCopyAllButton.textContent = translate(
+      'copyAll',
+      'Copy all',
+    );
     this.elements.stringViewCopyAllButton.title = '';
   }
 
@@ -1852,12 +2005,23 @@ class JsonViewerApp {
         mode.className = `jt-tab-mode jt-badge jt-badge-${tab.mode}`;
         mode.type = 'button';
         mode.disabled = this.parsingViewTabIds.has(tab.id);
-        mode.textContent = tab.mode;
+        mode.textContent =
+          tab.mode === 'parsed'
+            ? translate('parsed', 'parsed')
+            : translate('raw', 'raw');
+        const nextMode = tab.mode === 'parsed'
+          ? translate('raw', 'raw')
+          : translate('parsed', 'parsed');
+        const modeLabel = translate(
+          'showModeInTab',
+          `Show ${nextMode} value in this tab`,
+          nextMode,
+        );
         mode.setAttribute(
           'aria-label',
-          `Show ${tab.mode === 'parsed' ? 'raw' : 'parsed'} value in this tab`,
+          modeLabel,
         );
-        mode.title = `Show ${tab.mode === 'parsed' ? 'raw' : 'parsed'} value in this tab`;
+        mode.title = modeLabel;
         mode.addEventListener('click', () => this.toggleIsolatedTabMode(tab.id));
         item.append(mode);
       }
@@ -1867,7 +2031,10 @@ class JsonViewerApp {
         close.className = 'jt-tab-close';
         close.type = 'button';
         close.textContent = '×';
-        close.setAttribute('aria-label', `Close ${tab.title}`);
+        close.setAttribute(
+          'aria-label',
+          translate('closeTab', `Close ${tab.title}`, tab.title),
+        );
         close.addEventListener('click', () => this.closeViewTab(tab.id));
         item.append(close);
       }
@@ -1905,7 +2072,13 @@ class JsonViewerApp {
       this.parsingViewTabIds.add(tabId);
       this.renderTabs();
       if (tab.id === this.viewTabs.activeTabId) {
-        this.setStatus(`Parsing ${tab.title} for this tab...`);
+        this.setStatus(
+          translate(
+            'parsingTab',
+            `Parsing ${tab.title} for this tab...`,
+            tab.title,
+          ),
+        );
       }
 
       try {
@@ -1917,7 +2090,13 @@ class JsonViewerApp {
         if (!response.ok) {
           this.showError(response.error);
           if (tab.id === this.viewTabs.activeTabId) {
-            this.setStatus(`${tab.title} remains in raw mode.`);
+            this.setStatus(
+              translate(
+                'tabRemainsRaw',
+                `${tab.title} remains in raw mode.`,
+                tab.title,
+              ),
+            );
           }
           return;
         }
@@ -1934,9 +2113,17 @@ class JsonViewerApp {
         this.scheduleHistorySessionSave();
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        this.showError(`Parse failed: ${message}`);
+        this.showError(
+          translate('parseFailed', `Parse failed: ${message}`, message),
+        );
         if (tab.id === this.viewTabs.activeTabId) {
-          this.setStatus(`${tab.title} remains in raw mode.`);
+          this.setStatus(
+            translate(
+              'tabRemainsRaw',
+              `${tab.title} remains in raw mode.`,
+              tab.title,
+            ),
+          );
         }
       } finally {
         this.parsingViewTabIds.delete(tabId);
@@ -2081,10 +2268,14 @@ class JsonViewerApp {
     try {
       await navigator.clipboard.writeText(copyPath);
       this.clearError();
-      this.setStatus(`Copied path: ${copyPath}`);
+      this.setStatus(
+        translate('copiedPath', `Copied path: ${copyPath}`, copyPath),
+      );
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      this.showError(`Copy path failed: ${message}`);
+      this.showError(
+        translate('copyPathFailed', `Copy path failed: ${message}`, message),
+      );
     }
   }
 
@@ -2103,16 +2294,35 @@ class JsonViewerApp {
         format,
       });
       if (!response.ok) {
-        this.showError(`Copy ${label} failed: ${response.error}`);
+        this.showError(
+          translate(
+            'copyLabelFailed',
+            `Copy ${label} failed: ${response.error}`,
+            [label, response.error],
+          ),
+        );
         return;
       }
 
       await navigator.clipboard.writeText(response.text);
       this.clearError();
-      this.setStatus(`Copied ${label} at ${formatPath(row.path)}.`);
+      const path = formatPath(row.path);
+      this.setStatus(
+        translate(
+          'copiedLabelAtPath',
+          `Copied ${label} at ${path}.`,
+          [label, path],
+        ),
+      );
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      this.showError(`Copy ${label} failed: ${message}`);
+      this.showError(
+        translate(
+          'copyLabelFailed',
+          `Copy ${label} failed: ${message}`,
+          [label, message],
+        ),
+      );
     }
   }
 
@@ -2125,7 +2335,14 @@ class JsonViewerApp {
     }
 
     this.expansion = expandRecursively(this.expansion, row.pathKey);
-    this.refreshRows({ pendingStatus: `Expanding ${formatPath(row.path)} recursively...` });
+    const path = formatPath(row.path);
+    this.refreshRows({
+      pendingStatus: translate(
+        'expandingRecursivelyAtPath',
+        `Expanding ${path} recursively...`,
+        path,
+      ),
+    });
   }
 
   toggleExpanded(row) {
@@ -2140,7 +2357,14 @@ class JsonViewerApp {
   }
 
   async parseStringRow(row) {
-    this.setStatus(`Parsing string at ${formatPath(row.path)}...`);
+    const path = formatPath(row.path);
+    this.setStatus(
+      translate(
+        'parsingStringAtPath',
+        `Parsing string at ${path}...`,
+        path,
+      ),
+    );
     const response = await this.requestWorker('parse-string', {
       path: row.path,
       displayModeOverrides: this.getActiveTab().displayModeOverrides,
@@ -2220,11 +2444,11 @@ class JsonViewerApp {
     }
 
     if (!this.hasParsedRoot) {
-      this.clearSearchResults('No JSON loaded');
+      this.clearSearchResults(translate('noJsonLoaded', 'No JSON loaded'));
       return;
     }
 
-    this.clearSearchResults('Searching...');
+    this.clearSearchResults(translate('searching', 'Searching...'));
     this.searchTimer = window.setTimeout(() => {
       this.runFullTextSearch(query);
     }, SEARCH_DEBOUNCE_MS);
@@ -2259,7 +2483,9 @@ class JsonViewerApp {
     }
 
     if (!response.ok) {
-      this.clearSearchResults(response.error || 'Search failed');
+      this.clearSearchResults(
+        response.error || translate('searchFailed', 'Search failed'),
+      );
       return;
     }
 
@@ -2270,7 +2496,7 @@ class JsonViewerApp {
     await this.updateSearchUi(response.result.truncated, { reveal: true });
   }
 
-  clearSearchResults(message = '0 matches') {
+  clearSearchResults(message = translate('zeroMatches', '0 matches')) {
     window.clearTimeout(this.searchTimer);
     this.searchToken += 1;
     this.searchResults = [];
@@ -2306,7 +2532,13 @@ class JsonViewerApp {
     const selected = this.selectedSearchIndex;
     const suffix = truncated ? '+' : '';
     this.elements.searchCount.textContent =
-      total > 0 ? `${selected + 1}/${total}${suffix} matches` : '0 matches';
+      total > 0
+        ? translate(
+            'searchMatchPosition',
+            `${selected + 1}/${total}${suffix} matches`,
+            [selected + 1, total, suffix],
+          )
+        : translate('zeroMatches', '0 matches');
     this.elements.searchPrevButton.disabled = total === 0;
     this.elements.searchNextButton.disabled = total === 0;
 
@@ -2317,8 +2549,16 @@ class JsonViewerApp {
     }
 
     const match = this.searchResults[selected];
+    const source =
+      match.source === 'key'
+        ? translate('keySource', 'key')
+        : translate('valueSource', 'value');
     this.elements.searchPreview.hidden = false;
-    this.elements.searchPreview.textContent = `${match.pathLabel} ${match.source}: ${match.preview}`;
+    this.elements.searchPreview.textContent = translate(
+      'searchPreview',
+      `${match.pathLabel} ${source}: ${match.preview}`,
+      [match.pathLabel, source, match.preview],
+    );
 
     if (options.reveal) {
       if (this.getActiveTab().type === 'string') {
@@ -2399,8 +2639,10 @@ class JsonViewerApp {
   }
 
   showDirectFileBanner() {
-    this.elements.performanceBannerMessage.textContent =
-      'For very large JSON files, use Standalone Viewer > Open file for better performance.';
+    this.elements.performanceBannerMessage.textContent = translate(
+      'largeFileDirectHint',
+      'For very large JSON files, use Standalone Viewer > Open file for better performance.',
+    );
     this.elements.performanceBannerClose.hidden = true;
     this.elements.directFileBanner.hidden = false;
   }
@@ -2410,8 +2652,10 @@ class JsonViewerApp {
       return;
     }
 
-    this.elements.performanceBannerMessage.textContent =
-      'For very large JSON files, use Open file instead of pasting JSON for better performance.';
+    this.elements.performanceBannerMessage.textContent = translate(
+      'largeFileStandaloneHint',
+      'For very large JSON files, use Open file instead of pasting JSON for better performance.',
+    );
     this.elements.performanceBannerClose.hidden = false;
     this.elements.directFileBanner.hidden = false;
   }

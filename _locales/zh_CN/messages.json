@@ -1,0 +1,605 @@
+{
+  "appName": {
+    "message": "AZ JSON Explorer"
+  },
+  "appDescription": {
+    "message": "查看、格式化、搜索和浏览大型 JSON；一键将嵌套的 JSON 字符串解析为可展开的树。"
+  },
+  "openStandaloneViewerCommand": {
+    "message": "打开新的独立 JSON 查看器"
+  },
+  "versionUpdateSuffix": {
+    "message": "新增了更快捷的快捷键和更智能的粘贴体验。"
+  },
+  "seeWhatsNew": {
+    "message": "查看新功能"
+  },
+  "largeFileDirectHint": {
+    "message": "处理超大 JSON 文件时，请使用“独立查看器 > 打开文件”以获得更好性能。"
+  },
+  "largeFileStandaloneHint": {
+    "message": "处理超大 JSON 文件时，请使用“打开文件”，不要直接粘贴，以获得更好性能。"
+  },
+  "dismissPerformanceHint": {
+    "message": "关闭性能提示"
+  },
+  "help": {
+    "message": "帮助"
+  },
+  "keyboardShortcuts": {
+    "message": "键盘快捷键"
+  },
+  "changeLog": {
+    "message": "更新日志"
+  },
+  "parseInput": {
+    "message": "解析输入"
+  },
+  "parseInputWithShortcut": {
+    "message": "解析输入（$shortcut$）",
+    "placeholders": {
+      "shortcut": {
+        "content": "$1"
+      }
+    }
+  },
+  "pasteJsonWithShortcut": {
+    "message": "粘贴 JSON，或在任意位置按 $shortcut$ 粘贴到这里",
+    "placeholders": {
+      "shortcut": {
+        "content": "$1"
+      }
+    }
+  },
+  "formatJson": {
+    "message": "格式化 JSON"
+  },
+  "openFile": {
+    "message": "打开文件"
+  },
+  "sample": {
+    "message": "示例"
+  },
+  "history": {
+    "message": "历史记录"
+  },
+  "collapseJsonInput": {
+    "message": "收起 JSON 输入框"
+  },
+  "expandJsonInput": {
+    "message": "展开 JSON 输入框"
+  },
+  "toggleJsonInput": {
+    "message": "显示或隐藏 JSON 输入框"
+  },
+  "openJsonViews": {
+    "message": "已打开的 JSON 视图"
+  },
+  "collapse": {
+    "message": "收起"
+  },
+  "expand": {
+    "message": "展开"
+  },
+  "expandRoot": {
+    "message": "展开根节点"
+  },
+  "expandAll": {
+    "message": "全部展开"
+  },
+  "copyAll": {
+    "message": "全部复制"
+  },
+  "search": {
+    "message": "搜索"
+  },
+  "fullText": {
+    "message": "全文"
+  },
+  "previous": {
+    "message": "上一个"
+  },
+  "next": {
+    "message": "下一个"
+  },
+  "zeroMatches": {
+    "message": "0 个匹配项"
+  },
+  "jsonTree": {
+    "message": "JSON 树"
+  },
+  "stringValue": {
+    "message": "字符串值"
+  },
+  "fullStringWithLineNumbers": {
+    "message": "带行号的完整字符串值"
+  },
+  "copyValue": {
+    "message": "复制值"
+  },
+  "copyPath": {
+    "message": "复制路径"
+  },
+  "copyStringAsJavaScriptLiteral": {
+    "message": "将字符串复制为 JavaScript 字面量"
+  },
+  "copyStringAsJsonLiteral": {
+    "message": "将字符串复制为 JSON 字面量"
+  },
+  "viewInIsolatedView": {
+    "message": "在独立视图中查看"
+  },
+  "expandRecursively": {
+    "message": "递归展开"
+  },
+  "shortcutsDescription": {
+    "message": "使用快捷键更快地打开查看器和浏览 JSON。"
+  },
+  "closeKeyboardShortcuts": {
+    "message": "关闭键盘快捷键"
+  },
+  "chromeRunningInBackground": {
+    "message": "Chrome 在后台运行时"
+  },
+  "openNewStandaloneViewer": {
+    "message": "打开新的独立查看器。"
+  },
+  "chromeInFocus": {
+    "message": "Chrome 处于前台时"
+  },
+  "customizeOpenShortcut": {
+    "message": "自定义打开 AZ JSON Explorer 的快捷键。"
+  },
+  "openShortcutSettings": {
+    "message": "打开快捷键设置"
+  },
+  "jsonInputNotFocused": {
+    "message": "JSON 输入框未聚焦时"
+  },
+  "shortcutPasteFromAnywhere": {
+    "message": "显示并清空输入框，粘贴剪贴板文本后解析。"
+  },
+  "shortcutSelectAll": {
+    "message": "显示并聚焦输入框，然后全选内容。"
+  },
+  "shortcutToggleInput": {
+    "message": "显示或隐藏 JSON 输入框。"
+  },
+  "jsonInputFocused": {
+    "message": "JSON 输入框已聚焦时"
+  },
+  "shortcutParseCurrent": {
+    "message": "解析当前输入。"
+  },
+  "shortcutPasteSelection": {
+    "message": "在选区粘贴并解析更新后的输入。"
+  },
+  "viewerFocused": {
+    "message": "查看器已聚焦时"
+  },
+  "shortcutFocusSearch": {
+    "message": "聚焦全文搜索。"
+  },
+  "searchFocused": {
+    "message": "搜索框已聚焦时"
+  },
+  "shortcutNextResult": {
+    "message": "跳到下一个结果。"
+  },
+  "shortcutPreviousResult": {
+    "message": "跳到上一个结果。"
+  },
+  "parseHistory": {
+    "message": "解析历史记录"
+  },
+  "resizeHistoryPanel": {
+    "message": "调整历史记录面板宽度"
+  },
+  "closeHistory": {
+    "message": "关闭历史记录"
+  },
+  "noHistoryYet": {
+    "message": "暂无历史记录。"
+  },
+  "loadMore": {
+    "message": "加载更多"
+  },
+  "keepLatest": {
+    "message": "保留最近"
+  },
+  "records": {
+    "message": "条记录"
+  },
+  "cleanHistory": {
+    "message": "清理历史记录"
+  },
+  "waitingForJsonPage": {
+    "message": "正在等待 JSON 页面..."
+  },
+  "gettingStarted": {
+    "message": "粘贴 JSON、打开文件或从历史记录中选择一项以开始使用。"
+  },
+  "expandingAll": {
+    "message": "正在全部展开..."
+  },
+  "pasteJsonToParse": {
+    "message": "请粘贴要解析的 JSON。"
+  },
+  "manualInput": {
+    "message": "手动输入"
+  },
+  "openShortcutSettingsStatus": {
+    "message": "请在 Chrome 中打开 $url$ 自定义快捷键。",
+    "placeholders": {
+      "url": {
+        "content": "$1"
+      }
+    }
+  },
+  "pasteJsonToFormat": {
+    "message": "请粘贴要格式化的 JSON。"
+  },
+  "formattedJsonInput": {
+    "message": "JSON 已格式化。"
+  },
+  "jsonFormatFailed": {
+    "message": "JSON 格式化失败：$error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "loading": {
+    "message": "正在加载..."
+  },
+  "historyUnavailable": {
+    "message": "历史记录不可用：$error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "historyMetadata": {
+    "message": "$size$ · 查看于 $time$",
+    "placeholders": {
+      "size": {
+        "content": "$1"
+      },
+      "time": {
+        "content": "$2"
+      }
+    }
+  },
+  "loadingHistory": {
+    "message": "正在加载历史记录..."
+  },
+  "historyLoadFailedDetails": {
+    "message": "历史记录加载失败：$error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "historyLoadFailed": {
+    "message": "历史记录加载失败。"
+  },
+  "cleaning": {
+    "message": "正在清理..."
+  },
+  "historyCleanupFailed": {
+    "message": "历史记录清理失败：$error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "historyCleanupResultOne": {
+    "message": "已清理 1 条历史记录。"
+  },
+  "historyCleanupResultMany": {
+    "message": "已清理 $count$ 条历史记录。",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "parsingInWorker": {
+    "message": "正在解析..."
+  },
+  "jsonParseFailed": {
+    "message": "JSON 解析失败。"
+  },
+  "historySaveFailed": {
+    "message": "JSON 已解析，但无法保存历史记录：$error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "localFile": {
+    "message": "本地文件"
+  },
+  "readingAndParsingFile": {
+    "message": "正在读取并解析文件..."
+  },
+  "preparingVisibleRows": {
+    "message": "正在准备可见行..."
+  },
+  "visibleRowPreparationFailed": {
+    "message": "可见行准备失败。"
+  },
+  "searching": {
+    "message": "正在搜索..."
+  },
+  "visibleRows": {
+    "message": "$count$ 行可见。",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "visibleRowsTruncated": {
+    "message": "$count$ 行可见。仅显示前 $limit$ 行。",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      },
+      "limit": {
+        "content": "$2"
+      }
+    }
+  },
+  "copyPathTitle": {
+    "message": "复制路径：$path$",
+    "placeholders": {
+      "path": {
+        "content": "$1"
+      }
+    }
+  },
+  "parseAsJson": {
+    "message": "解析为 JSON"
+  },
+  "parsed": {
+    "message": "已解析"
+  },
+  "raw": {
+    "message": "原始"
+  },
+  "originalString": {
+    "message": "原始字符串"
+  },
+  "cachedParsedValue": {
+    "message": "缓存的解析值"
+  },
+  "showValue": {
+    "message": "显示$value$",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "showValueInTab": {
+    "message": "在此标签页中显示$value$",
+    "placeholders": {
+      "value": {
+        "content": "$1"
+      }
+    }
+  },
+  "viewAll": {
+    "message": "查看全部"
+  },
+  "stringLength": {
+    "message": "$title$ · 长度 $length$",
+    "placeholders": {
+      "title": {
+        "content": "$1"
+      },
+      "length": {
+        "content": "$2"
+      }
+    }
+  },
+  "unableToReadString": {
+    "message": "无法读取字符串。"
+  },
+  "unableToReadStringDetails": {
+    "message": "无法读取字符串：$error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "copyFailed": {
+    "message": "复制失败"
+  },
+  "unableToCopyFullValue": {
+    "message": "无法复制完整值。"
+  },
+  "copied": {
+    "message": "已复制"
+  },
+  "showModeInTab": {
+    "message": "在此标签页中显示$mode$值",
+    "placeholders": {
+      "mode": {
+        "content": "$1"
+      }
+    }
+  },
+  "closeTab": {
+    "message": "关闭 $title$",
+    "placeholders": {
+      "title": {
+        "content": "$1"
+      }
+    }
+  },
+  "parsingTab": {
+    "message": "正在为此标签页解析 $title$...",
+    "placeholders": {
+      "title": {
+        "content": "$1"
+      }
+    }
+  },
+  "tabRemainsRaw": {
+    "message": "$title$ 仍处于原始模式。",
+    "placeholders": {
+      "title": {
+        "content": "$1"
+      }
+    }
+  },
+  "parseFailed": {
+    "message": "解析失败：$error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "copiedPath": {
+    "message": "已复制路径：$path$",
+    "placeholders": {
+      "path": {
+        "content": "$1"
+      }
+    }
+  },
+  "copyPathFailed": {
+    "message": "复制路径失败：$error$",
+    "placeholders": {
+      "error": {
+        "content": "$1"
+      }
+    }
+  },
+  "copyLabelFailed": {
+    "message": "复制$label$失败：$error$",
+    "placeholders": {
+      "label": {
+        "content": "$1"
+      },
+      "error": {
+        "content": "$2"
+      }
+    }
+  },
+  "copiedLabelAtPath": {
+    "message": "已复制 $path$ 处的$label$。",
+    "placeholders": {
+      "label": {
+        "content": "$1"
+      },
+      "path": {
+        "content": "$2"
+      }
+    }
+  },
+  "valueLabel": {
+    "message": "值"
+  },
+  "javascriptStringLiteralLabel": {
+    "message": "JavaScript 字符串字面量"
+  },
+  "jsonStringLiteralLabel": {
+    "message": "JSON 字符串字面量"
+  },
+  "expandingRecursivelyAtPath": {
+    "message": "正在递归展开 $path$...",
+    "placeholders": {
+      "path": {
+        "content": "$1"
+      }
+    }
+  },
+  "parsingStringAtPath": {
+    "message": "正在解析 $path$ 处的字符串...",
+    "placeholders": {
+      "path": {
+        "content": "$1"
+      }
+    }
+  },
+  "noJsonLoaded": {
+    "message": "尚未加载 JSON"
+  },
+  "searchFailed": {
+    "message": "搜索失败"
+  },
+  "searchMatchPosition": {
+    "message": "$current$/$total$$suffix$ 个匹配项",
+    "placeholders": {
+      "current": {
+        "content": "$1"
+      },
+      "total": {
+        "content": "$2"
+      },
+      "suffix": {
+        "content": "$3"
+      }
+    }
+  },
+  "searchPreview": {
+    "message": "$path$ $source$：$preview$",
+    "placeholders": {
+      "path": {
+        "content": "$1"
+      },
+      "source": {
+        "content": "$2"
+      },
+      "preview": {
+        "content": "$3"
+      }
+    }
+  },
+  "keySource": {
+    "message": "键"
+  },
+  "valueSource": {
+    "message": "值"
+  },
+  "standaloneViewer": {
+    "message": "独立查看器"
+  },
+  "jsonPage": {
+    "message": "JSON 页面"
+  },
+  "loadingSharedJson": {
+    "message": "正在加载共享 JSON..."
+  },
+  "waitingForSharedJson": {
+    "message": "正在等待共享 JSON..."
+  },
+  "sharedJsonPayloadUnavailable": {
+    "message": "共享的 JSON 数据不可用。"
+  },
+  "sharedJson": {
+    "message": "共享 JSON"
+  },
+  "externalLaunch": {
+    "message": "外部启动"
+  },
+  "sharedJsonLoadFailed": {
+    "message": "无法加载共享 JSON。你仍可粘贴 JSON 或打开文件。"
+  },
+  "invalidExternalLaunchClaim": {
+    "message": "外部启动请求无效。"
+  },
+  "sharedJsonPayloadNoLongerAvailable": {
+    "message": "共享的 JSON 数据已不可用。"
+  }
+}

@@ -4,6 +4,7 @@ import {
   createExternalLaunchErrorResponse,
   createLaunchBroker,
 } from './core/externalLaunch.js';
+import { translate } from './core/i18n.js';
 
 const viewerUrl = chrome.runtime.getURL('src/viewer.html');
 const OPEN_STANDALONE_VIEWER_COMMAND = 'open-standalone-viewer';
@@ -53,7 +54,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         ok: false,
         error: {
           code: 'INVALID_REQUEST',
-          message: 'Invalid external launch claim.',
+          message: translate(
+            'invalidExternalLaunchClaim',
+            'Invalid external launch claim.',
+          ),
         },
       });
       return false;
@@ -66,7 +70,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           ok: false,
           error: {
             code: 'HANDOFF_TIMEOUT',
-            message: 'The shared JSON payload is no longer available.',
+            message: translate(
+              'sharedJsonPayloadNoLongerAvailable',
+              'The shared JSON payload is no longer available.',
+            ),
           },
         });
     return false;

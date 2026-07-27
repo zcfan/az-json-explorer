@@ -48,6 +48,7 @@ For very large local files, prefer the standalone viewer's `Open file` flow over
 - Shows `Parse as JSON` for string values whose trimmed content starts with `{` or `[`.
 - Caches parsed nested string values and toggles them between `parsed` and `raw`.
 - Supports expand/collapse, root expansion, path-aware row titles, and full-text search.
+- Supports English and Simplified Chinese, following Chrome's UI language automatically.
 - Keeps JSON processing local in the browser. There is no backend service.
 
 This project is intentionally not a JSON editor. It does not modify, upload, sync, or store your JSON on an external server.
@@ -109,6 +110,7 @@ npm run store-assets
 - `manifest.json`: Chrome MV3 extension manifest.
 - `src/contentScript.js`: detects raw JSON pages and mounts the viewer iframe.
 - `src/core/pageJsonDetection.js`: decides whether the current page is raw JSON.
+- `src/core/i18n.js` and `_locales/`: Chrome UI-language detection and English/Simplified Chinese messages.
 - `src/viewer.html` and `src/viewer.js`: shared standalone and embedded viewer shell.
 - `src/ui/viewerApp.js`: virtualized tree UI, user actions, search UI, and file/manual input flows.
 - `src/worker/jsonWorker.js`: root parsing, nested string parsing, visible row collection, and search.

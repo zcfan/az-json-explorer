@@ -9,15 +9,16 @@ test('manifest is valid MV3 JSON and exposes viewer resources to content pages',
   const manifest = JSON.parse(await readFile(new URL('../manifest.json', import.meta.url), 'utf8'));
 
   assert.equal(manifest.manifest_version, 3);
-  assert.equal(manifest.name, PRODUCT_NAME);
-  assert.equal(manifest.action.default_title, PRODUCT_NAME);
+  assert.equal(manifest.default_locale, 'en');
+  assert.equal(manifest.name, '__MSG_appName__');
+  assert.equal(manifest.action.default_title, '__MSG_appName__');
   assert.equal(manifest.action.default_popup, undefined);
   assert.deepEqual(manifest.commands['open-standalone-viewer'], {
     suggested_key: {
       default: 'Ctrl+Shift+6',
       mac: 'Command+Shift+6',
     },
-    description: 'Open a new standalone JSON viewer',
+    description: '__MSG_openStandaloneViewerCommand__',
     global: true,
   });
   assert.equal(manifest.content_scripts[0].js[0], 'src/contentScript.js');
@@ -194,7 +195,7 @@ test('viewer exposes isolated tree and paged string tabs', async () => {
   assert.match(viewer, /getIsolationViewType\(row,\s*this\.getActiveTab\(\)\.path\)/);
   assert.doesNotMatch(viewer, /beginStringDialogResize/);
   assert.match(viewer, /if \(row\.valueTruncated\)/);
-  assert.match(viewer, /textContent = 'View all'/);
+  assert.match(viewer, /translate\('viewAll', 'View all'\)/);
   assert.match(viewer, /this\.requestWorker\('read-string-range'/);
   assert.match(viewer, /handleStringViewScroll\(\)/);
   assert.match(viewer, /renderStringViewLines\(\s*response\.text,/);
@@ -312,7 +313,7 @@ test('viewer shows a ten-second changelog notice once per extension version', as
   );
   assert.match(
     viewer,
-    /AZ JSON Explorer <strong class="jt-version-update-version"><\/strong> adds faster shortcuts and smarter paste\./,
+    /AZ JSON Explorer <strong class="jt-version-update-version"><\/strong>[\s\S]*data-i18n="versionUpdateSuffix"[\s\S]*adds faster shortcuts and smarter paste\./,
   );
   assert.match(viewer, /claimVersionUpdateNotice\(storage, currentVersion\)/);
   assert.match(
@@ -343,7 +344,10 @@ test('viewer supports one-way manual JSON input without echoing file content', a
     viewer,
     /aria-controls="jt-manual-input jt-manual-input-actions"/,
   );
-  assert.match(viewer, /<kbd>Ctrl\+&#96;<\/kbd> Toggle JSON input/);
+  assert.match(
+    viewer,
+    /<kbd>Ctrl\+&#96;<\/kbd> <span data-i18n="toggleJsonInput">Toggle JSON input<\/span>/,
+  );
   assert.doesNotMatch(viewer, /jt-manual-input-toggle-icon/);
   assert.match(
     viewer,
@@ -376,7 +380,10 @@ test('viewer supports one-way manual JSON input without echoing file content', a
   assert.match(viewer, /formatJsonText/);
   assert.match(viewer, /manualInput\.value\s*=\s*formatJsonText\(text\)/);
   assert.match(viewer, /this\.parseText\(text,\s*\{[\s\S]*historyEntry:/);
-  assert.match(viewer, /setSourceLabel\('Manual input'\)/);
+  assert.match(
+    viewer,
+    /const manualInputLabel = translate\('manualInput', 'Manual input'\);[\s\S]*setSourceLabel\(manualInputLabel\)/,
+  );
   assert.doesNotMatch(viewer, /file\.text\(\)/);
   assert.doesNotMatch(viewer, /manualInput\.value\s*=\s*await\s+file\.text/);
   assert.match(viewer, /parseFile\(file,\s*'',\s*\{\s*recordHistory:\s*true\s*\}\)/);
@@ -445,7 +452,7 @@ test('viewer exposes a paged right-side parse history without refilling manual i
   assert.match(viewer, /preview\.textContent = item\.preview/);
   assert.match(
     viewer,
-    /metadata\.textContent = `\$\{formatHistorySize\([\s\S]*item\.lastViewedAt/,
+    /const size = formatHistorySize\(item\.size\);[\s\S]*const time = formatHistoryTime\(item\.lastViewedAt\);[\s\S]*metadata\.textContent = translate\(/,
   );
   assert.doesNotMatch(
     viewer,
@@ -646,7 +653,7 @@ test('direct page previews pass file-like payloads instead of raw JSON text stri
   assert.match(contentScript, /type:\s*'load-json-file'/);
   assert.doesNotMatch(contentScript, /text:\s*rawText/);
   assert.match(viewer, /load-json-file/);
-  assert.match(viewer, /parseFile\(event\.data\.file/);
+  assert.match(viewer, /parseFile\(\s*event\.data\.file/);
 });
 
 test('direct page previews show a standalone viewer performance banner', async () => {
@@ -807,7 +814,10 @@ test('viewer wires Expand all through compact expansion state', async () => {
   assert.match(viewer, /createAllExpansionState/);
   assert.match(viewer, /expansionMode:\s*this\.expansion\.mode/);
   assert.match(viewer, /collapsedKeys:\s*Array\.from\(this\.expansion\.collapsedKeys\)/);
-  assert.match(viewer, /pendingStatus:\s*'Expanding all\.\.\.'/);
+  assert.match(
+    viewer,
+    /pendingStatus:\s*translate\('expandingAll', 'Expanding all\.\.\.'\)/,
+  );
   assert.match(viewer, /this\.expansion\s*=\s*ensureExpanded\(this\.expansion, row\.pathKey\)/);
   assert.match(
     viewer,

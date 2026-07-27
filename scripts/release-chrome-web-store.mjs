@@ -209,7 +209,15 @@ async function buildPackage(version) {
   await mkdir(dirname(artifactPath), { recursive: true });
   await rm(artifactPath, { force: true });
   const artifactRelativePath = relative(ROOT, artifactPath);
-  run('zip', ['-r', '-X', artifactRelativePath, 'manifest.json', 'assets', 'src']);
+  run('zip', [
+    '-r',
+    '-X',
+    artifactRelativePath,
+    'manifest.json',
+    '_locales',
+    'assets',
+    'src',
+  ]);
   run('unzip', ['-t', artifactRelativePath]);
   return artifactPath;
 }

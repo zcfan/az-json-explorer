@@ -10,6 +10,9 @@ The viewer UI is the main-thread coordinator. It owns DOM rendering, user intera
 - `src/ui/viewTabs.js`
 - `src/ui/historyPanelResize.js`
 - `src/ui/styles.css`
+- `src/core/i18n.js`
+- `_locales/en/messages.json`
+- `_locales/zh_CN/messages.json`
 - `CHANGELOG.md`
 - `src/ui/searchHighlight.js`
 - `src/core/standalonePerformanceHint.js`
@@ -100,6 +103,7 @@ This is why row height and row DOM layout must remain stable.
 - Expandable rows expose `Expand recursively`, which opens only that subtree and keeps the 100,000-row cap.
 - Recursive expansion never parses raw strings; already parsed string subtrees participate when displayed as parsed.
 - Standalone performance hint: the close button hides it immediately and stores a local dismissed preference; direct-page warnings ignore that preference and remain non-dismissible.
+- Static and dynamic UI copy follows Chrome's UI language. English is the fallback and Simplified Chinese is selected automatically by `chrome.i18n`.
 
 ## Contracts
 
@@ -113,6 +117,7 @@ This is why row height and row DOM layout must remain stable.
 - Close transient context menus on scroll, outside click, and Escape.
 - Search reveal must add explicit ancestors or remove all-mode collapsed exceptions before scrolling to the matching row.
 - Keep standalone hint dismissal local to the extension origin and independent from direct-page warnings.
+- Keep user-visible copy behind `data-i18n*` attributes or `translate(...)`; preserve English fallbacks and matching placeholders in both locale catalogs.
 
 ## Verification
 
