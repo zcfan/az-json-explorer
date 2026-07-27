@@ -39,6 +39,29 @@ export function isSearchShortcut(event, platform = getRuntimePlatform()) {
   );
 }
 
+export function isSelectAllShortcut(event, platform = getRuntimePlatform()) {
+  const primaryModifier = isMacPlatform(platform)
+    ? event.metaKey && !event.ctrlKey
+    : event.ctrlKey && !event.metaKey;
+  return Boolean(
+    String(event.key).toLowerCase() === 'a' &&
+      primaryModifier &&
+      !event.altKey &&
+      !event.shiftKey,
+  );
+}
+
+export function isManualInputToggleShortcut(event) {
+  return Boolean(
+    (event.code === 'Backquote' || event.key === '`') &&
+      event.ctrlKey &&
+      !event.metaKey &&
+      !event.altKey &&
+      !event.shiftKey &&
+      !event.repeat,
+  );
+}
+
 export function getSearchNavigationDelta(event) {
   if (
     event.key !== 'Enter' ||

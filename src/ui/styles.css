@@ -159,6 +159,12 @@
   font: inherit;
 }
 
+.jt-manual-input-region {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
 .jt-manual-input {
   display: block;
   width: 100%;
@@ -171,6 +177,71 @@
   color: #111827;
   background: #ffffff;
   font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.jt-manual-input[hidden] {
+  display: none;
+}
+
+.jt-manual-input-toggle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 14px;
+  border: 0;
+  padding: 0;
+  color: #667085;
+  background: transparent;
+  cursor: pointer;
+}
+
+.jt-manual-input-toggle::before {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  border-top: 1px solid #cbd5e1;
+  content: "";
+}
+
+.jt-manual-input-toggle-content {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 6px;
+  background: #eef2f7;
+}
+
+.jt-manual-input-toggle-icon {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateY(2px) rotate(225deg);
+}
+
+.jt-manual-input-toggle[aria-expanded="false"] .jt-manual-input-toggle-icon {
+  transform: translateY(-2px) rotate(45deg);
+}
+
+.jt-manual-input-toggle-label {
+  color: #667085;
+  font-size: 11px;
+  line-height: 14px;
+}
+
+.jt-manual-input-toggle-label kbd {
+  font: inherit;
+  font-weight: 600;
+}
+
+.jt-manual-input-toggle:hover,
+.jt-manual-input-toggle:focus-visible {
+  color: #175cd3;
 }
 
 .jt-search-count {

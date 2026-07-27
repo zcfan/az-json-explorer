@@ -10,8 +10,7 @@
     "128": "assets/icon-128.png"
   },
   "action": {
-    "default_title": "AZ JSON Explorer",
-    "default_popup": "src/popup.html"
+    "default_title": "AZ JSON Explorer"
   },
   "options_page": "src/viewer.html",
   "background": {

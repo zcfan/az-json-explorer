@@ -5,8 +5,10 @@ import {
   getParseShortcutLabel,
   getPasteShortcutLabel,
   getSearchNavigationDelta,
+  isManualInputToggleShortcut,
   isParseShortcut,
   isSearchShortcut,
+  isSelectAllShortcut,
   shouldRedirectPaste,
 } from '../src/core/inputShortcuts.js';
 
@@ -41,6 +43,48 @@ test('search shortcut matches the platform equivalent of browser find', () => {
   assert.equal(isSearchShortcut({ key: 'f', metaKey: true }, 'Windows'), false);
   assert.equal(
     isSearchShortcut({ key: 'f', ctrlKey: true, shiftKey: true }, 'Windows'),
+    false,
+  );
+});
+
+test('select-all shortcut requires the current platform primary modifier', () => {
+  assert.equal(isSelectAllShortcut({ key: 'a', metaKey: true }, 'MacIntel'), true);
+  assert.equal(isSelectAllShortcut({ key: 'A', metaKey: true }, 'MacIntel'), true);
+  assert.equal(isSelectAllShortcut({ key: 'a', ctrlKey: true }, 'MacIntel'), false);
+  assert.equal(isSelectAllShortcut({ key: 'a', ctrlKey: true }, 'Windows'), true);
+  assert.equal(isSelectAllShortcut({ key: 'a', metaKey: true }, 'Windows'), false);
+  assert.equal(
+    isSelectAllShortcut({ key: 'a', ctrlKey: true, shiftKey: true }, 'Windows'),
+    false,
+  );
+});
+
+test('manual input toggle shortcut is Ctrl+Backquote on every platform', () => {
+  assert.equal(
+    isManualInputToggleShortcut({ key: '`', code: 'Backquote', ctrlKey: true }),
+    true,
+  );
+  assert.equal(isManualInputToggleShortcut({ code: 'Backquote', ctrlKey: true }), true);
+  assert.equal(
+    isManualInputToggleShortcut({ key: '`', code: 'Backquote', metaKey: true }),
+    false,
+  );
+  assert.equal(
+    isManualInputToggleShortcut({
+      key: '`',
+      code: 'Backquote',
+      ctrlKey: true,
+      shiftKey: true,
+    }),
+    false,
+  );
+  assert.equal(
+    isManualInputToggleShortcut({
+      key: '`',
+      code: 'Backquote',
+      ctrlKey: true,
+      repeat: true,
+    }),
     false,
   );
 });

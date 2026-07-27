@@ -11,6 +11,7 @@ test('manifest is valid MV3 JSON and exposes viewer resources to content pages',
   assert.equal(manifest.manifest_version, 3);
   assert.equal(manifest.name, PRODUCT_NAME);
   assert.equal(manifest.action.default_title, PRODUCT_NAME);
+  assert.equal(manifest.action.default_popup, undefined);
   assert.equal(manifest.content_scripts[0].js[0], 'src/contentScript.js');
   assert.ok(manifest.content_scripts[0].matches.includes('file:///*'));
   assert.ok(manifest.web_accessible_resources[0].resources.includes('src/viewer.html'));
@@ -32,6 +33,10 @@ test('manifest exposes external launch messaging without adding permissions', as
   assert.match(background, /chrome\.tabs\.create/);
   assert.match(background, /getURL\('src\/viewer\.html'\)/);
   assert.match(background, /\?launch=/);
+  assert.match(
+    background,
+    /chrome\.action\.onClicked\.addListener\(\(\) => openViewerTab\(\)\)/,
+  );
 });
 
 test('content script installs the webpage launch bridge before page detection can exit', async () => {
@@ -90,22 +95,17 @@ test('public docs expose copyable webpage and extension integration paths', asyn
 });
 
 test('visible extension surfaces use the product name', async () => {
-  const popup = await readFile(new URL('../src/popup.html', import.meta.url), 'utf8');
   const viewerHtml = await readFile(new URL('../src/viewer.html', import.meta.url), 'utf8');
   const viewerApp = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
 
-  assert.match(popup, new RegExp(`<title>${PRODUCT_NAME}</title>`));
-  assert.match(popup, new RegExp(`Open ${PRODUCT_NAME}`));
   assert.match(viewerHtml, new RegExp(`<title>${PRODUCT_NAME}</title>`));
   assert.match(viewerApp, new RegExp(`<strong>${PRODUCT_NAME}</strong>`));
 });
 
 test('local file usage documents Chrome file URL access requirement', async () => {
   const readme = await readFile(new URL('../README.md', import.meta.url), 'utf8');
-  const popup = await readFile(new URL('../src/popup.html', import.meta.url), 'utf8');
 
   assert.match(readme, /Allow access to file URLs/);
-  assert.match(popup, /Allow access to file URLs/);
 });
 
 test('sample fixture is valid JSON and includes nested stringified JSON', async () => {
@@ -257,6 +257,29 @@ test('viewer supports one-way manual JSON input without echoing file content', a
     /Paste JSON, open a file, or choose an item from History to get started\./,
   );
   assert.match(viewer, /<textarea class="jt-manual-input"/);
+  assert.match(viewer, /data-action="toggle-manual-input"/);
+  assert.match(viewer, /aria-controls="jt-manual-input"/);
+  assert.match(viewer, /<kbd>Ctrl\+&#96;<\/kbd> Toggle JSON input/);
+  assert.match(
+    viewer,
+    /manualInputToggle\.addEventListener\('click',[\s\S]*this\.toggleManualInput\(\)/,
+  );
+  assert.match(
+    viewer,
+    /toggleManualInput\(\) \{[\s\S]*setManualInputExpanded\(this\.elements\.manualInput\.hidden\)/,
+  );
+  assert.match(
+    viewer,
+    /setManualInputExpanded\(expanded\) \{[\s\S]*manualInput\.hidden = !expanded;[\s\S]*setAttribute\('aria-expanded', String\(expanded\)\)/,
+  );
+  assert.match(
+    viewer,
+    /isSelectAllShortcut\(event\)[\s\S]*setManualInputExpanded\(true\);[\s\S]*manualInput\.focus\(\);[\s\S]*manualInput\.select\(\)/,
+  );
+  assert.match(
+    viewer,
+    /isManualInputToggleShortcut\(event\)[\s\S]*this\.toggleManualInput\(\)/,
+  );
   assert.match(viewer, /data-action="parse-manual"/);
   assert.match(viewer, /data-action="format-manual"/);
   assert.match(viewer, /parseManualInput\(\)/);
@@ -270,6 +293,11 @@ test('viewer supports one-way manual JSON input without echoing file content', a
   assert.match(viewer, /parseFile\(file,\s*'',\s*\{\s*recordHistory:\s*true\s*\}\)/);
   assert.match(viewer, /this\.requestWorker\('parse-root', \{\s*file,/);
   assert.match(css, /\.jt-manual-input\s*\{[^}]*height:\s*300px;/s);
+  assert.match(
+    css,
+    /\.jt-manual-input-toggle::before\s*\{[^}]*border-top:\s*1px solid #cbd5e1;/s,
+  );
+  assert.match(css, /\.jt-manual-input\[hidden\]\s*\{[^}]*display:\s*none;/s);
 });
 
 test('viewer exposes a paged right-side parse history without refilling manual input', async () => {
@@ -414,14 +442,13 @@ test('viewer redirects page paste and exposes the platform parse shortcut', asyn
   assert.match(viewer, /clipboardData\?\.getData\('text\/plain'\)/);
   assert.match(
     viewer,
-    /if \(replaceAll\) \{\s*manualInput\.value = '';\s*manualInput\.setSelectionRange\(0, 0\);/,
+    /if \(replaceAll\) \{\s*this\.setManualInputExpanded\(true\);\s*manualInput\.value = '';\s*manualInput\.setSelectionRange\(0, 0\);/,
   );
   assert.match(viewer, /manualInput\.setRangeText/);
   assert.match(
     viewer,
     /manualInput\.dispatchEvent\([\s\S]*this\.parseManualInput\(\);/,
   );
-  assert.doesNotMatch(viewer, /manualInput\.focus\(\)/);
   assert.match(viewer, /manualInput\.addEventListener\('keydown'/);
   assert.match(viewer, /this\.parseManualInput\(\)/);
 });

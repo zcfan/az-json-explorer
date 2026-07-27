@@ -40,7 +40,7 @@ For very large local files, prefer the standalone viewer's `Open file` flow over
 ## Features
 
 - Replaces raw JSON pages with an interactive tree viewer.
-- Opens a standalone viewer from the extension popup.
+- Opens a standalone viewer directly from the extension icon.
 - Supports manual paste, sample JSON, and local file loading.
 - Lets webpages and other Chrome extensions add an `Open in AZ JSON Explorer` action.
 - Shows `Parse as JSON` for string values whose trimmed content starts with `{` or `[`.
@@ -61,7 +61,7 @@ For local development, there is no build step. Chrome loads the repository files
 3. Enable `Developer mode`.
 4. Click `Load unpacked`.
 5. Select this repository folder.
-6. Open a raw JSON URL, or click the extension action and choose `Open AZ JSON Explorer`.
+6. Open a raw JSON URL, or click the extension icon to open the standalone viewer.
 
 To preview local `file://` JSON pages directly:
 
@@ -69,11 +69,10 @@ To preview local `file://` JSON pages directly:
 2. Enable `Allow access to file URLs`.
 3. Open a local `.json` file in Chrome.
 
-To test without changing Chrome file permissions, use the extension popup:
+To test without changing Chrome file permissions, use the standalone viewer:
 
 1. Click the AZ JSON Explorer extension icon.
-2. Choose `Open AZ JSON Explorer`.
-3. Click `Sample`, paste JSON and click `Parse input`, or click `Open file`.
+2. Click `Sample`, paste JSON and click `Parse input`, or click `Open file`.
 
 To open JSON from another webpage or Chrome extension, see the integration guide:
 [English](docs/integrations/open-in-az-json-explorer.md) ·

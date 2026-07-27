@@ -12,7 +12,7 @@ Public webpage and extension integration is documented in
 
 | Module | Start Here | Owns |
 | --- | --- | --- |
-| Extension entrypoints | `modules/extension-entrypoints.md` | Manifest, popup, standalone viewer boot, embedded viewer message bridge. |
+| Extension entrypoints | `modules/extension-entrypoints.md` | Manifest, extension action, standalone viewer boot, embedded viewer message bridge. |
 | Page detection | `modules/page-detection.md` | Deciding whether a browser page is likely raw JSON and safe to replace. |
 | Core tree model | `modules/core-tree-model.md` | Path arrays, row flattening, parsed-string cache semantics, copy path formatting. |
 | Worker protocol | `modules/worker-protocol.md` | Retained parsed root, nested parse operations, visible-row summaries, search requests. |

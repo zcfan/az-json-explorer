@@ -3,8 +3,10 @@ import {
   getParseShortcutLabel,
   getPasteShortcutLabel,
   getSearchNavigationDelta,
+  isManualInputToggleShortcut,
   isParseShortcut,
   isSearchShortcut,
+  isSelectAllShortcut,
   shouldRedirectPaste,
 } from '../core/inputShortcuts.js';
 import {
@@ -185,7 +187,22 @@ class JsonViewerApp {
         </div>
       </header>
       <section class="jt-loader">
-        <textarea class="jt-manual-input" spellcheck="false" placeholder="Paste JSON"></textarea>
+        <div class="jt-manual-input-region">
+          <textarea class="jt-manual-input" id="jt-manual-input" spellcheck="false" placeholder="Paste JSON"></textarea>
+          <button
+            class="jt-manual-input-toggle"
+            data-action="toggle-manual-input"
+            type="button"
+            aria-controls="jt-manual-input"
+            aria-expanded="true"
+            aria-label="Collapse JSON input"
+          >
+            <span class="jt-manual-input-toggle-content" aria-hidden="true">
+              <span class="jt-manual-input-toggle-icon"></span>
+              <span class="jt-manual-input-toggle-label"><kbd>Ctrl+&#96;</kbd> Toggle JSON input</span>
+            </span>
+          </button>
+        </div>
         <div class="jt-loader-actions">
           <button class="jt-button jt-button-primary" data-action="parse-manual" type="button">Parse input</button>
           <button class="jt-button jt-button-secondary" data-action="format-manual" type="button">Format JSON</button>
@@ -287,6 +304,9 @@ class JsonViewerApp {
       source: this.shadow.querySelector('.jt-source'),
       loader: this.shadow.querySelector('.jt-loader'),
       manualInput: this.shadow.querySelector('.jt-manual-input'),
+      manualInputToggle: this.shadow.querySelector(
+        '[data-action="toggle-manual-input"]',
+      ),
       parseManualButton: this.shadow.querySelector('[data-action="parse-manual"]'),
       formatManualButton: this.shadow.querySelector('[data-action="format-manual"]'),
       fileInput: this.shadow.querySelector('.jt-file-input'),
@@ -360,6 +380,10 @@ class JsonViewerApp {
       this.parseManualInput();
     });
 
+    this.elements.manualInputToggle.addEventListener('click', () => {
+      this.toggleManualInput();
+    });
+
     this.elements.manualInput.addEventListener('keydown', (event) => {
       if (!isParseShortcut(event)) {
         return;
@@ -370,12 +394,29 @@ class JsonViewerApp {
     });
 
     this.host.ownerDocument.addEventListener('keydown', (event) => {
-      if (!isSearchShortcut(event)) {
+      const target = event.composedPath?.()[0] || event.target;
+      if (
+        !this.options.embedded &&
+        isSelectAllShortcut(event) &&
+        target !== this.elements.manualInput
+      ) {
+        event.preventDefault();
+        this.setManualInputExpanded(true);
+        this.elements.manualInput.focus();
+        this.elements.manualInput.select();
         return;
       }
 
-      event.preventDefault();
-      this.elements.searchInput.focus();
+      if (!this.options.embedded && isManualInputToggleShortcut(event)) {
+        event.preventDefault();
+        this.toggleManualInput();
+        return;
+      }
+
+      if (isSearchShortcut(event)) {
+        event.preventDefault();
+        this.elements.searchInput.focus();
+      }
     });
 
     if (!this.options.embedded) {
@@ -390,6 +431,7 @@ class JsonViewerApp {
         const { manualInput } = this.elements;
         const replaceAll = shouldRedirectPaste(target, manualInput);
         if (replaceAll) {
+          this.setManualInputExpanded(true);
           manualInput.value = '';
           manualInput.setSelectionRange(0, 0);
         }
@@ -585,6 +627,20 @@ class JsonViewerApp {
         title: 'Manual input',
       },
     });
+  }
+
+  toggleManualInput() {
+    this.setManualInputExpanded(this.elements.manualInput.hidden);
+  }
+
+  setManualInputExpanded(expanded) {
+    const { manualInput, manualInputToggle } = this.elements;
+    manualInput.hidden = !expanded;
+    manualInputToggle.setAttribute('aria-expanded', String(expanded));
+    manualInputToggle.setAttribute(
+      'aria-label',
+      expanded ? 'Collapse JSON input' : 'Expand JSON input',
+    );
   }
 
   formatManualInput() {

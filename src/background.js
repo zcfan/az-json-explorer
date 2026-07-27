@@ -6,12 +6,21 @@ import {
 } from './core/externalLaunch.js';
 
 const viewerUrl = chrome.runtime.getURL('src/viewer.html');
-const broker = createLaunchBroker({
-  openTab: async (launchId) => chrome.tabs.create({
+
+function openViewerTab(url = viewerUrl) {
+  return chrome.tabs.create({
     active: true,
-    url: `${viewerUrl}?launch=${encodeURIComponent(launchId)}`,
-  }),
+    url,
+  });
+}
+
+const broker = createLaunchBroker({
+  openTab: async (launchId) => openViewerTab(
+    `${viewerUrl}?launch=${encodeURIComponent(launchId)}`,
+  ),
 });
+
+chrome.action.onClicked.addListener(() => openViewerTab());
 
 function respondAsync(responsePromise, request, sendResponse) {
   Promise.resolve(responsePromise).then(

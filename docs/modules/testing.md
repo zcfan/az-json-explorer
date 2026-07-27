@@ -48,6 +48,6 @@ Use Chrome's unpacked extension flow when a change affects actual browser behavi
 1. Open `chrome://extensions`.
 2. Enable Developer mode.
 3. Load this repository folder.
-4. Open a raw JSON URL or use the popup's standalone viewer.
+4. Open a raw JSON URL or click the extension icon to open the standalone viewer.
 
 Check expansion, virtual scrolling, `Parse as JSON`, parsed/raw toggle, search, and every applicable key context-menu action for interaction changes.
