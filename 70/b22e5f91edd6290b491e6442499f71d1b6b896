@@ -1,0 +1,21 @@
+CHANGELOG.md
+  s_a1e539ce1158d1::t_93962ae4a28b71 1-60
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "70b22e5f91edd6290b491e6442499f71d1b6b896",
+  "prompts": {},
+  "sessions": {
+    "s_a1e539ce1158d1": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa246-6373-76c1-b8aa-aae825e01d4e",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
