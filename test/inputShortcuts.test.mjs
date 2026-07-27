@@ -55,9 +55,11 @@ test('Enter navigates search results forward and Shift+Enter navigates backward'
   assert.equal(getSearchNavigationDelta({ key: 'NumpadEnter' }), 0);
 });
 
-test('paste redirects unless its real target is an input or textarea', () => {
-  assert.equal(shouldRedirectPaste({ tagName: 'DIV' }), true);
-  assert.equal(shouldRedirectPaste({ tagName: 'INPUT' }), false);
-  assert.equal(shouldRedirectPaste({ tagName: 'textarea' }), false);
-  assert.equal(shouldRedirectPaste(null), true);
+test('paste redirects whenever the manual JSON input is not the real target', () => {
+  const manualInput = { tagName: 'TEXTAREA' };
+
+  assert.equal(shouldRedirectPaste(manualInput, manualInput), false);
+  assert.equal(shouldRedirectPaste({ tagName: 'INPUT' }, manualInput), true);
+  assert.equal(shouldRedirectPaste({ tagName: 'TEXTAREA' }, manualInput), true);
+  assert.equal(shouldRedirectPaste(null, manualInput), true);
 });

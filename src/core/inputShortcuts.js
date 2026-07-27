@@ -53,7 +53,6 @@ export function getSearchNavigationDelta(event) {
   return event.shiftKey ? -1 : 1;
 }
 
-export function shouldRedirectPaste(target) {
-  const tagName = String(target?.tagName || '').toLowerCase();
-  return tagName !== 'input' && tagName !== 'textarea';
+export function shouldRedirectPaste(target, manualInput) {
+  return target !== manualInput;
 }

@@ -48,7 +48,9 @@ This is why row height and row DOM layout must remain stable.
 
 ## User Interactions
 
-- Pasting anywhere in the standalone page redirects the clipboard text into the manual JSON textarea, unless an `input` or `textarea` already owns focus.
+- Every paste into the manual JSON textarea immediately parses the resulting input.
+- The manual JSON textarea is 300px tall by default and remains vertically resizable.
+- Using the paste shortcut anywhere else in the standalone page clears the manual JSON textarea, redirects the clipboard text into it, and immediately parses it without changing focus.
 - `Parse input`: sends textarea text to `parse-root`; `cmd+enter` on macOS or `ctrl+enter` on Windows/Linux triggers it while the manual textarea has focus.
 - `Open file`: sends a File directly to `parse-root`.
 - `Sample`: loads the inline sample JSON.

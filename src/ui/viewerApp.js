@@ -381,10 +381,6 @@ class JsonViewerApp {
     if (!this.options.embedded) {
       this.host.ownerDocument.addEventListener('paste', (event) => {
         const target = event.composedPath?.()[0] || event.target;
-        if (!shouldRedirectPaste(target)) {
-          return;
-        }
-
         const text = event.clipboardData?.getData('text/plain');
         if (typeof text !== 'string') {
           return;
@@ -392,11 +388,17 @@ class JsonViewerApp {
 
         event.preventDefault();
         const { manualInput } = this.elements;
-        manualInput.focus();
+        const replaceAll = shouldRedirectPaste(target, manualInput);
+        if (replaceAll) {
+          manualInput.value = '';
+          manualInput.setSelectionRange(0, 0);
+        }
+
         const start = manualInput.selectionStart ?? manualInput.value.length;
         const end = manualInput.selectionEnd ?? manualInput.value.length;
         manualInput.setRangeText(text, start, end, 'end');
         manualInput.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+        this.parseManualInput();
       });
     }
 

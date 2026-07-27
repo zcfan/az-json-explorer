@@ -250,6 +250,7 @@ test('viewer exposes isolated tree and paged string tabs instead of a modal', as
 
 test('viewer supports one-way manual JSON input without echoing file content', async () => {
   const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
 
   assert.match(
     viewer,
@@ -268,6 +269,7 @@ test('viewer supports one-way manual JSON input without echoing file content', a
   assert.doesNotMatch(viewer, /manualInput\.value\s*=\s*await\s+file\.text/);
   assert.match(viewer, /parseFile\(file,\s*'',\s*\{\s*recordHistory:\s*true\s*\}\)/);
   assert.match(viewer, /this\.requestWorker\('parse-root', \{\s*file,/);
+  assert.match(css, /\.jt-manual-input\s*\{[^}]*height:\s*300px;/s);
 });
 
 test('viewer exposes a paged right-side parse history without refilling manual input', async () => {
@@ -410,7 +412,16 @@ test('viewer redirects page paste and exposes the platform parse shortcut', asyn
   assert.match(viewer, /Paste JSON, or press \$\{pasteShortcut\} anywhere/);
   assert.match(viewer, /shouldRedirectPaste/);
   assert.match(viewer, /clipboardData\?\.getData\('text\/plain'\)/);
+  assert.match(
+    viewer,
+    /if \(replaceAll\) \{\s*manualInput\.value = '';\s*manualInput\.setSelectionRange\(0, 0\);/,
+  );
   assert.match(viewer, /manualInput\.setRangeText/);
+  assert.match(
+    viewer,
+    /manualInput\.dispatchEvent\([\s\S]*this\.parseManualInput\(\);/,
+  );
+  assert.doesNotMatch(viewer, /manualInput\.focus\(\)/);
   assert.match(viewer, /manualInput\.addEventListener\('keydown'/);
   assert.match(viewer, /this\.parseManualInput\(\)/);
 });
