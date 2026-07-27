@@ -49,7 +49,8 @@ Before publishing any new version, follow the release checklist in
 
 - `manifest.json` and `package.json` contain the same new version.
 - `CHANGELOG.md` has a dated section for that exact version, summarizing only
-  changes included in the release. Do not add an `Unreleased` section.
+  changes included in the release. Write all changelog content in English and
+  do not add an `Unreleased` section.
 - After drafting the new `CHANGELOG.md` section, stop and ask the user to
   review it. Do not continue release preparation, packaging, uploading, or
   publishing until the user explicitly approves the current draft. If the

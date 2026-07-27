@@ -17,9 +17,9 @@ Complete these steps before uploading or submitting a new version:
 
 1. Set the same new version in `manifest.json` and `package.json`.
 2. Add a dated section for that exact version to `CHANGELOG.md`. Summarize only
-   shipped changes, ordered by user value. Keep the file limited to published
-   versions; do not add an `Unreleased` section and do not substitute a GitHub
-   Releases page.
+   shipped changes in English, ordered by user value. Keep the file limited to
+   published versions; do not add an `Unreleased` section and do not substitute
+   a GitHub Releases page.
 3. Stop and present the new changelog section to the user for manual review.
    Explicit approval of the current draft is required before continuing with
    release preparation, packaging, upload, or publication. If the draft

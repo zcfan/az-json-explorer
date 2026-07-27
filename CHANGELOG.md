@@ -2,6 +2,13 @@
 
 This file records published AZ JSON Explorer versions. It is updated only when a version is released.
 
+## 0.1.10 — 2026-07-27
+
+- Open the standalone viewer directly from the extension icon or with the global `Cmd/Ctrl+Shift+6` shortcut.
+- Paste, select all, or show and hide the JSON input without focusing it first; redirected paste now replaces the existing input and parses immediately.
+- Added a Help menu with grouped keyboard-shortcut guidance and direct changelog access.
+- Added a one-time update notice for each new version, with a 10-second progress indicator and a link to what changed.
+
 ## 0.1.9 — 2026-07-25
 
 - Added isolated view tabs for opening objects, arrays, and strings without leaving the full document.

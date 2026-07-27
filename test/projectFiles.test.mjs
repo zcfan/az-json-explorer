@@ -292,6 +292,7 @@ test('viewer help exposes grouped shortcuts and the published changelog', async 
   assert.match(css, /\.jt-help-menu\s*\{[^}]*position:\s*absolute;/s);
   assert.match(css, /\.jt-shortcuts-dialog::backdrop\s*\{[^}]*background:/s);
   assert.match(changelog, /^# Changelog/m);
+  assert.match(changelog, /^## 0\.1\.10 — 2026-07-27/m);
   assert.match(changelog, /^## 0\.1\.9 — 2026-07-25/m);
   assert.match(changelog, /^## 0\.1\.0 — 2026-07-05/m);
   assert.doesNotMatch(changelog, /Unreleased/i);
@@ -308,6 +309,10 @@ test('viewer shows a ten-second changelog notice once per extension version', as
   assert.match(
     viewer,
     /class="jt-version-update-notice"[\s\S]*data-action="view-update-notes"[\s\S]*>See what’s new<\/a>/,
+  );
+  assert.match(
+    viewer,
+    /AZ JSON Explorer <strong class="jt-version-update-version"><\/strong> adds faster shortcuts and smarter paste\./,
   );
   assert.match(viewer, /claimVersionUpdateNotice\(storage, currentVersion\)/);
   assert.match(

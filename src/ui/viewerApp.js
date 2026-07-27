@@ -174,7 +174,7 @@ class JsonViewerApp {
     shell.innerHTML = `
       <div class="jt-version-update-notice" role="status" aria-live="polite" hidden>
         <span>
-          AZ JSON Explorer <strong class="jt-version-update-version"></strong> is ready.
+          AZ JSON Explorer <strong class="jt-version-update-version"></strong> adds faster shortcuts and smarter paste.
         </span>
         <a
           class="jt-version-update-link"
