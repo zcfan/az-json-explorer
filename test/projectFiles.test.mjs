@@ -12,6 +12,14 @@ test('manifest is valid MV3 JSON and exposes viewer resources to content pages',
   assert.equal(manifest.name, PRODUCT_NAME);
   assert.equal(manifest.action.default_title, PRODUCT_NAME);
   assert.equal(manifest.action.default_popup, undefined);
+  assert.deepEqual(manifest.commands['open-standalone-viewer'], {
+    suggested_key: {
+      default: 'Ctrl+Shift+6',
+      mac: 'Command+Shift+6',
+    },
+    description: 'Open a new standalone JSON viewer',
+    global: true,
+  });
   assert.equal(manifest.content_scripts[0].js[0], 'src/contentScript.js');
   assert.ok(manifest.content_scripts[0].matches.includes('file:///*'));
   assert.ok(manifest.web_accessible_resources[0].resources.includes('src/viewer.html'));
@@ -36,6 +44,10 @@ test('manifest exposes external launch messaging without adding permissions', as
   assert.match(
     background,
     /chrome\.action\.onClicked\.addListener\(\(\) => openViewerTab\(\)\)/,
+  );
+  assert.match(
+    background,
+    /chrome\.commands\.onCommand\.addListener\([\s\S]*OPEN_STANDALONE_VIEWER_COMMAND[\s\S]*openViewerTab\(\)/,
   );
 });
 
@@ -296,6 +308,14 @@ test('viewer supports one-way manual JSON input without echoing file content', a
   assert.match(
     css,
     /\.jt-manual-input-toggle::before\s*\{[^}]*border-top:\s*1px solid #cbd5e1;/s,
+  );
+  assert.match(
+    css,
+    /\.jt-manual-input-toggle:hover,[\s\S]*\.jt-manual-input-toggle:focus-visible\s*\{[^}]*background:\s*#dfe7f1;/s,
+  );
+  assert.match(
+    css,
+    /\.jt-manual-input-toggle-content\s*\{[^}]*background:\s*inherit;/s,
   );
   assert.match(css, /\.jt-manual-input\[hidden\]\s*\{[^}]*display:\s*none;/s);
 });

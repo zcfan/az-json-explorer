@@ -192,7 +192,7 @@
   border: 0;
   padding: 0;
   color: #667085;
-  background: transparent;
+  background: #eef2f7;
   cursor: pointer;
 }
 
@@ -212,7 +212,7 @@
   align-items: center;
   gap: 7px;
   padding: 0 6px;
-  background: #eef2f7;
+  background: inherit;
 }
 
 .jt-manual-input-toggle-icon {
@@ -242,6 +242,7 @@
 .jt-manual-input-toggle:hover,
 .jt-manual-input-toggle:focus-visible {
   color: #175cd3;
+  background: #dfe7f1;
 }
 
 .jt-search-count {

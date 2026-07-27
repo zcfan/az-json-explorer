@@ -41,6 +41,8 @@ For very large local files, prefer the standalone viewer's `Open file` flow over
 
 - Replaces raw JSON pages with an interactive tree viewer.
 - Opens a standalone viewer directly from the extension icon.
+- Opens a new standalone viewer with the global `Ctrl+Shift+6` shortcut
+  (`Command+Shift+6` on macOS).
 - Supports manual paste, sample JSON, and local file loading.
 - Lets webpages and other Chrome extensions add an `Open in AZ JSON Explorer` action.
 - Shows `Parse as JSON` for string values whose trimmed content starts with `{` or `[`.
@@ -62,6 +64,10 @@ For local development, there is no build step. Chrome loads the repository files
 4. Click `Load unpacked`.
 5. Select this repository folder.
 6. Open a raw JSON URL, or click the extension icon to open the standalone viewer.
+
+The global `Ctrl+Shift+6` shortcut (`Command+Shift+6` on macOS) also opens a new
+standalone viewer while Chrome is running. It can be remapped from
+`chrome://extensions/shortcuts`.
 
 To preview local `file://` JSON pages directly:
 

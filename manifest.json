@@ -12,6 +12,16 @@
   "action": {
     "default_title": "AZ JSON Explorer"
   },
+  "commands": {
+    "open-standalone-viewer": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+6",
+        "mac": "Command+Shift+6"
+      },
+      "description": "Open a new standalone JSON viewer",
+      "global": true
+    }
+  },
   "options_page": "src/viewer.html",
   "background": {
     "service_worker": "src/background.js",

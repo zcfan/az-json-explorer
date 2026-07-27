@@ -6,6 +6,7 @@ import {
 } from './core/externalLaunch.js';
 
 const viewerUrl = chrome.runtime.getURL('src/viewer.html');
+const OPEN_STANDALONE_VIEWER_COMMAND = 'open-standalone-viewer';
 
 function openViewerTab(url = viewerUrl) {
   return chrome.tabs.create({
@@ -21,6 +22,13 @@ const broker = createLaunchBroker({
 });
 
 chrome.action.onClicked.addListener(() => openViewerTab());
+chrome.commands.onCommand.addListener((command) => {
+  if (command === OPEN_STANDALONE_VIEWER_COMMAND) {
+    return openViewerTab();
+  }
+
+  return undefined;
+});
 
 function respondAsync(responsePromise, request, sendResponse) {
   Promise.resolve(responsePromise).then(
