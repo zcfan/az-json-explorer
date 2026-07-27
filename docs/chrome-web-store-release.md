@@ -11,6 +11,45 @@
 
 The command does not update Store Listing, Privacy, or distribution settings. Keep those settings current in the Chrome Web Store Developer Dashboard.
 
+## Per-release checklist
+
+Complete these steps before uploading or submitting a new version:
+
+1. Set the same new version in `manifest.json` and `package.json`.
+2. Add a dated section for that exact version to `CHANGELOG.md`. Summarize only
+   shipped changes, ordered by user value. Keep the file limited to published
+   versions; do not add an `Unreleased` section and do not substitute a GitHub
+   Releases page.
+3. Stop and present the new changelog section to the user for manual review.
+   Explicit approval of the current draft is required before continuing with
+   release preparation, packaging, upload, or publication. If the draft
+   changes after approval, present it again and wait for renewed approval.
+4. Update the visible version-update notice in `src/ui/viewerApp.js` for this
+   release. Use one concise message that highlights its most useful change,
+   and keep `See what’s new` linked to the repository `CHANGELOG.md`.
+5. Load the unpacked extension and verify the notice in standalone and
+   embedded viewers. It must appear once for the new version, fill from left
+   to right over 10 seconds, close automatically, and remain hidden on the
+   next open of the same version.
+6. If user-facing behavior, permissions, data handling, or screenshots have
+   changed, update the Chrome Web Store listing, permission disclosures,
+   privacy information, and generated store assets as applicable.
+7. Run `npm test`, then run the package rehearsal:
+
+   ```bash
+   npm run release:chrome -- --dry-run
+   ```
+
+8. Review and commit the complete release preparation before publishing. The
+   real release command rejects a dirty worktree.
+
+For repeated local testing of the version notice, open viewer DevTools and run:
+
+```js
+localStorage.removeItem('json-tools.last-version-update-notice');
+location.reload();
+```
+
 ## One-time credential setup
 
 Use a service account rather than a personal OAuth refresh token. Chrome Web Store API V2 supports service accounts specifically for automated publishing.

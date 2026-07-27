@@ -41,3 +41,25 @@ This repo is a dependency-free Chrome MV3 extension for browsing JSON. It replac
 ## Verification Rule
 
 Run `npm test` before finishing any code or behavior change. For docs-only edits, run at least `git diff --check`.
+
+## Release Rule
+
+Before publishing any new version, follow the release checklist in
+`docs/chrome-web-store-release.md`. A release is not ready until:
+
+- `manifest.json` and `package.json` contain the same new version.
+- `CHANGELOG.md` has a dated section for that exact version, summarizing only
+  changes included in the release. Do not add an `Unreleased` section.
+- After drafting the new `CHANGELOG.md` section, stop and ask the user to
+  review it. Do not continue release preparation, packaging, uploading, or
+  publishing until the user explicitly approves the current draft. If the
+  draft changes afterward, request approval again.
+- The visible version-update notice in `src/ui/viewerApp.js` is updated for
+  that release to highlight its most useful change; keep the copy concise and
+  keep its link pointed at the repository `CHANGELOG.md`.
+- The notice is verified in both standalone and embedded viewers. It must
+  appear once for the new version, fill from left to right for 10 seconds, and
+  then close automatically.
+- Store listing text, screenshots, permission disclosures, and privacy
+  information are updated when the release changes anything they describe.
+- `npm test` and `npm run release:chrome -- --dry-run` pass before publishing.
