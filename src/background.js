@@ -16,6 +16,12 @@ function openViewerTab(url = viewerUrl) {
   });
 }
 
+async function openFocusedViewerTab() {
+  const tab = await openViewerTab();
+  await chrome.windows.update(tab.windowId, { focused: true });
+  return tab;
+}
+
 const broker = createLaunchBroker({
   openTab: async (launchId) => openViewerTab(
     `${viewerUrl}?launch=${encodeURIComponent(launchId)}`,
@@ -25,7 +31,7 @@ const broker = createLaunchBroker({
 chrome.action.onClicked.addListener(() => openViewerTab());
 chrome.commands.onCommand.addListener((command) => {
   if (command === OPEN_STANDALONE_VIEWER_COMMAND) {
-    return openViewerTab();
+    return openFocusedViewerTab();
   }
 
   return undefined;

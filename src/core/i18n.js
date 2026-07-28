@@ -1,5 +1,7 @@
-const CHANGELOG_BASE_URL =
+const REPOSITORY_BLOB_BASE_URL =
   'https://github.com/zcfan/az-json-explorer/blob/main/';
+const INTEGRATION_GUIDE_BASE_URL =
+  `${REPOSITORY_BLOB_BASE_URL}docs/integrations/open-in-az-json-explorer`;
 
 function normalizeSubstitutions(substitutions) {
   if (substitutions === undefined) {
@@ -64,5 +66,13 @@ export function getLocalizedChangelogUrl() {
     translate('documentationLocale', 'en') === 'zh-CN'
       ? 'CHANGELOG.zh-CN.md'
       : 'CHANGELOG.md';
-  return `${CHANGELOG_BASE_URL}${fileName}`;
+  return `${REPOSITORY_BLOB_BASE_URL}${fileName}`;
+}
+
+export function getLocalizedIntegrationGuideUrl() {
+  const localeSuffix =
+    translate('documentationLocale', 'en') === 'zh-CN'
+      ? '.zh-CN'
+      : '';
+  return `${INTEGRATION_GUIDE_BASE_URL}${localeSuffix}.md`;
 }

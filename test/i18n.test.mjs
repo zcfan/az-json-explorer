@@ -4,6 +4,7 @@ import test from 'node:test';
 
 import {
   getLocalizedChangelogUrl,
+  getLocalizedIntegrationGuideUrl,
   localizeDocument,
   localizeUi,
   translate,
@@ -57,6 +58,98 @@ test('manual input toggle copy also explains drag resizing', async () => {
   assert.equal(
     chinese.toggleJsonInput.message,
     '显示或隐藏 JSON 输入框 · 拖拽可调整高度',
+  );
+});
+
+test('Pro Tips copy preserves shortcut, paste, isolated-view, and integration semantics', async () => {
+  const [english, chinese] = await Promise.all([
+    readJson('_locales/en/messages.json'),
+    readJson('_locales/zh_CN/messages.json'),
+  ]);
+
+  assert.deepEqual(
+    {
+      title: english.proTips.message,
+      quickOpen: english.proTipQuickOpenOutcome.message,
+      customShortcut: english.proTipCustomShortcutForeground.message,
+      paste: english.proTipPasteAnywhereOutcome.message,
+      replace: english.proTipReplaceInputOutcome.message,
+      resize: english.proTipResizeInput.message,
+      subtree: english.proTipIsolateSubtree.message,
+      longString: english.proTipIsolateLongString.message,
+      integration: english.proTipIntegrationLink.message,
+    },
+    {
+      title: 'Pro Tips',
+      quickOpen:
+        'As long as Chrome is running in the background, AZ JSON Explorer opens, comes to the front, and parses it.',
+      customShortcut:
+        'Custom shortcuts work only while Chrome is in the foreground.',
+      paste: 'anywhere in the viewer to paste and parse immediately.',
+      replace:
+        'replaces all existing content. When focused, paste behaves like normal editing: it inserts at the cursor or replaces the selection.',
+      resize:
+        'JSON input taking too much space? Drag the divider to resize it, or press',
+      subtree:
+        'Want to focus on one subtree? Right-click it and choose “View in isolated view.” You can open the same subtree in multiple tabs.',
+      longString:
+        'Need the full, untruncated text of a long string? Open it in an isolated view. If the string contains JSON, switch between raw and parsed directly on its tab.',
+      integration: 'Read the integration guide',
+    },
+  );
+  assert.deepEqual(
+    {
+      title: chinese.proTips.message,
+      quickOpen: chinese.proTipQuickOpenOutcome.message,
+      customShortcut: chinese.proTipCustomShortcutForeground.message,
+      paste: chinese.proTipPasteAnywhereOutcome.message,
+      replace: chinese.proTipReplaceInputOutcome.message,
+      resize: chinese.proTipResizeInput.message,
+      subtree: chinese.proTipIsolateSubtree.message,
+      longString: chinese.proTipIsolateLongString.message,
+      integration: chinese.proTipIntegrationLink.message,
+    },
+    {
+      title: '使用技巧',
+      quickOpen:
+        '只要 Chrome 仍在后台运行，AZ JSON Explorer 就会打开、切到前台并解析剪贴板内容。',
+      customShortcut:
+        '请注意：自定义快捷键仅在 Chrome 位于前台时有效。',
+      paste: '即可粘贴并立即解析。',
+      replace:
+        '会替换输入框中的全部现有内容；输入框已聚焦时，则遵循常规编辑逻辑：在光标处插入，或替换选中内容。',
+      resize:
+        'JSON 输入框占用太多空间？拖拽分隔线调整高度，或按',
+      subtree:
+        '想单独查看某个子树？右键点击它并选择“在独立视图中查看”。同一个子树可以同时打开多个标签页。',
+      longString:
+        '想查看超长字符串的完整内容且不被省略？在独立视图中打开它。如果字符串包含 JSON，还可以直接在标签页上切换原始/已解析视图。',
+      integration: '查看集成文档',
+    },
+  );
+});
+
+test('Pro Tips punctuation follows the active locale around shortcut badges', async () => {
+  const [english, chinese] = await Promise.all([
+    readJson('_locales/en/messages.json'),
+    readJson('_locales/zh_CN/messages.json'),
+  ]);
+
+  assert.deepEqual(
+    [
+      english.proTipThen.message,
+      english.proTipQuestionMark.message,
+      english.proTipPeriod.message,
+    ],
+    [', followed by', '?', '.'],
+  );
+  assert.deepEqual(
+    [
+      chinese.proTipThen.message,
+      chinese.proTipQuestionMark.message,
+      chinese.proTipPeriod.message,
+    ],
+    ['，再按', '？', '。'],
   );
 });
 
@@ -167,6 +260,34 @@ test('changelog links follow the locale selected by Chrome i18n', () => {
     assert.equal(
       getLocalizedChangelogUrl(),
       'https://github.com/zcfan/az-json-explorer/blob/main/CHANGELOG.md',
+    );
+  } finally {
+    if (previousChrome === undefined) {
+      delete globalThis.chrome;
+    } else {
+      globalThis.chrome = previousChrome;
+    }
+  }
+});
+
+test('integration guide links follow the locale selected by Chrome i18n', () => {
+  const previousChrome = globalThis.chrome;
+  globalThis.chrome = {
+    i18n: {
+      getMessage: (key) => (key === 'documentationLocale' ? 'zh-CN' : ''),
+    },
+  };
+
+  try {
+    assert.equal(
+      getLocalizedIntegrationGuideUrl(),
+      'https://github.com/zcfan/az-json-explorer/blob/main/docs/integrations/open-in-az-json-explorer.zh-CN.md',
+    );
+    globalThis.chrome.i18n.getMessage = (key) =>
+      key === 'documentationLocale' ? 'en' : '';
+    assert.equal(
+      getLocalizedIntegrationGuideUrl(),
+      'https://github.com/zcfan/az-json-explorer/blob/main/docs/integrations/open-in-az-json-explorer.md',
     );
   } finally {
     if (previousChrome === undefined) {

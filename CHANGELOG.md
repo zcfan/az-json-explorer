@@ -4,6 +4,15 @@
 
 This file records published AZ JSON Explorer versions. It is updated only when a version is released.
 
+## 0.1.11 — 2026-07-28
+
+- Added a localized Pro Tips guide for faster shortcut-and-paste workflows, input resizing, isolated views, and project integration.
+- Added complete English and Simplified Chinese localization across extension surfaces and the viewer, following Chrome's UI language automatically.
+- Made the manual JSON input vertically resizable, remembered its height across refreshes, and limited it to 30% of the viewport height.
+- Remembered whether History is open and its width across refreshes, limited it to half the viewport width, and added a full-area shortcut for restoring the most recent history entry.
+- Simplified embedded JSON pages by hiding standalone input controls, preserved native select-all behavior in editable fields, and restored the connecting line beneath view tabs.
+- Ensured the global viewer shortcut brings its Chrome window to the foreground.
+
 ## 0.1.10 — 2026-07-27
 
 - Open the standalone viewer directly from the extension icon or with the global `Cmd/Ctrl+Shift+6` shortcut.

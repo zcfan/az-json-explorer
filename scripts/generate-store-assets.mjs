@@ -44,7 +44,7 @@ Category:
 Developer Tools
 
 Language:
-English
+English, Simplified Chinese
 
 ## Detailed Description
 
@@ -58,6 +58,8 @@ Key features:
 - History: reopen successfully parsed manual inputs and files from local history, together with restored tabs and per-tab view state.
 
 AZ JSON Explorer can replace raw JSON pages directly in Chrome or open manual input and local files in its standalone viewer. Web Worker parsing and virtual scrolling keep large trees responsive.
+
+The interface is available in English and Simplified Chinese and follows Chrome's UI language automatically.
 
 History is stored locally in your browser until you clean it. JSON content is never uploaded or synced to an external server.
 

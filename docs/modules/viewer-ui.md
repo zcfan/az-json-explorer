@@ -64,7 +64,8 @@ This is why row height and row DOM layout must remain stable.
 - Using the select-all shortcut outside editable controls expands the manual input, focuses it, and selects all of its content. Search, manual-input, and other editable controls keep their native select-all behavior.
 - Using the paste shortcut anywhere else in the standalone page expands the manual input when needed, clears it, redirects the clipboard text into it, and immediately parses it without changing focus.
 - `Parse input`: sends textarea text to `parse-root`; `cmd+enter` on macOS or `ctrl+enter` on Windows/Linux triggers it while the manual textarea has focus.
-- `Help`: opens a compact menu with `Keyboard shortcuts` and `Change log`.
+- `Help`: opens a compact menu with `Pro Tips`, `Keyboard shortcuts`, and `Change log`.
+- `Pro Tips`: opens a localized modal covering the fastest copy → global shortcut → paste workflow, focused versus unfocused paste behavior, input resizing/toggling, isolated subtree and full-string tabs, shortcut customization, and the localized project-integration guide.
 - `Keyboard shortcuts`: opens a modal grouped by Chrome state and focused viewer control. Platform-specific labels use `Cmd` on macOS and `Ctrl` elsewhere; standalone-only input groups are omitted in embedded mode.
 - `Open shortcut settings`: opens `chrome://extensions/shortcuts` so the extension command can be reassigned without requiring an additional permission.
 - `Change log`: opens the repository's published-version-only changelog on GitHub, selecting `CHANGELOG.md` or `CHANGELOG.zh-CN.md` to match the active extension language.

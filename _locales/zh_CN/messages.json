@@ -13,7 +13,7 @@
     "message": "打开新的独立 JSON 查看器"
   },
   "versionUpdateSuffix": {
-    "message": "新增了更快捷的快捷键和更智能的粘贴体验。"
+    "message": "新增使用技巧，并记住查看器布局。"
   },
   "seeWhatsNew": {
     "message": "查看新功能"
@@ -32,6 +32,78 @@
   },
   "keyboardShortcuts": {
     "message": "键盘快捷键"
+  },
+  "proTips": {
+    "message": "使用技巧"
+  },
+  "proTipsDescription": {
+    "message": "掌握这些小技巧，更高效地查看 JSON。"
+  },
+  "closeProTips": {
+    "message": "关闭使用技巧"
+  },
+  "proTipsViewJsonFaster": {
+    "message": "高效查看 JSON"
+  },
+  "proTipQuickOpenIntro": {
+    "message": "在任意应用中复制 JSON，然后按"
+  },
+  "proTipThen": {
+    "message": "，再按"
+  },
+  "proTipQuestionMark": {
+    "message": "？"
+  },
+  "proTipPeriod": {
+    "message": "。"
+  },
+  "proTipQuickOpenOutcome": {
+    "message": "只要 Chrome 仍在后台运行，AZ JSON Explorer 就会打开、切到前台并解析剪贴板内容。"
+  },
+  "proTipCustomizeShortcutIntro": {
+    "message": "不喜欢"
+  },
+  "proTipCustomizeShortcutAction": {
+    "message": "在 Chrome 中自定义"
+  },
+  "proTipCustomShortcutForeground": {
+    "message": "请注意：自定义快捷键仅在 Chrome 位于前台时有效。"
+  },
+  "proTipPasteAnywhereIntro": {
+    "message": "无需点击 JSON 输入框；在查看器任意位置按"
+  },
+  "proTipPasteAnywhereOutcome": {
+    "message": "即可粘贴并立即解析。"
+  },
+  "proTipReplaceInputIntro": {
+    "message": "当 JSON 输入框未聚焦时，"
+  },
+  "proTipReplaceInputOutcome": {
+    "message": "会替换输入框中的全部现有内容；输入框已聚焦时，则遵循常规编辑逻辑：在光标处插入，或替换选中内容。"
+  },
+  "proTipResizeInput": {
+    "message": "JSON 输入框占用太多空间？拖拽分隔线调整高度，或按"
+  },
+  "proTipToggleInputOutcome": {
+    "message": "隐藏或显示输入框。"
+  },
+  "proTipsIsolatedViews": {
+    "message": "独立视图"
+  },
+  "proTipIsolateSubtree": {
+    "message": "想单独查看某个子树？右键点击它并选择“在独立视图中查看”。同一个子树可以同时打开多个标签页。"
+  },
+  "proTipIsolateLongString": {
+    "message": "想查看超长字符串的完整内容且不被省略？在独立视图中打开它。如果字符串包含 JSON，还可以直接在标签页上切换原始/已解析视图。"
+  },
+  "proTipsOther": {
+    "message": "其他"
+  },
+  "proTipIntegrationIntro": {
+    "message": "想把 AZ JSON Explorer 集成到自己的项目中？"
+  },
+  "proTipIntegrationLink": {
+    "message": "查看集成文档"
   },
   "changeLog": {
     "message": "更新日志"

@@ -48,7 +48,7 @@ test('manifest exposes external launch messaging without adding permissions', as
   );
   assert.match(
     background,
-    /chrome\.commands\.onCommand\.addListener\([\s\S]*OPEN_STANDALONE_VIEWER_COMMAND[\s\S]*openViewerTab\(\)/,
+    /chrome\.commands\.onCommand\.addListener\([\s\S]*OPEN_STANDALONE_VIEWER_COMMAND[\s\S]*openFocusedViewerTab\(\)/,
   );
 });
 
@@ -297,7 +297,10 @@ test('viewer help exposes grouped shortcuts and the published changelog', async 
     /globalThis\.chrome\.tabs\.create\(\{ url \}\)/,
   );
   assert.match(css, /\.jt-help-menu\s*\{[^}]*position:\s*absolute;/s);
-  assert.match(css, /\.jt-shortcuts-dialog::backdrop\s*\{[^}]*background:/s);
+  assert.match(
+    css,
+    /\.jt-shortcuts-dialog::backdrop,\s*\.jt-pro-tips-dialog::backdrop\s*\{[^}]*background:/s,
+  );
   assert.match(changelog, /^# Changelog/m);
   assert.match(changelog, /^## 0\.1\.10 — 2026-07-27/m);
   assert.match(changelog, /^## 0\.1\.9 — 2026-07-25/m);
@@ -319,7 +322,7 @@ test('viewer shows a ten-second changelog notice once per extension version', as
   );
   assert.match(
     viewer,
-    /AZ JSON Explorer <strong class="jt-version-update-version"><\/strong>[\s\S]*data-i18n="versionUpdateSuffix"[\s\S]*adds faster shortcuts and smarter paste\./,
+    /AZ JSON Explorer <strong class="jt-version-update-version"><\/strong>[\s\S]*data-i18n="versionUpdateSuffix"[\s\S]*adds Pro Tips and remembers your viewer layout\./,
   );
   assert.match(viewer, /claimVersionUpdateNotice\(storage, currentVersion\)/);
   assert.match(
@@ -334,6 +337,29 @@ test('viewer shows a ten-second changelog notice once per extension version', as
     css,
     /@keyframes jt-version-update-countdown\s*\{\s*from\s*\{\s*transform:\s*scaleX\(0\);\s*\}\s*to\s*\{\s*transform:\s*scaleX\(1\);/s,
   );
+});
+
+test('Help opens a localized Pro Tips dialog with three practical sections', async () => {
+  const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
+
+  assert.match(
+    viewer,
+    /class="jt-help-menu-item"[\s\S]*data-action="show-pro-tips"[\s\S]*data-i18n="proTips"/,
+  );
+  assert.match(
+    viewer,
+    /class="jt-pro-tips-dialog" aria-labelledby="jt-pro-tips-title"/,
+  );
+  assert.match(viewer, /data-i18n="proTipsViewJsonFaster"/);
+  assert.match(viewer, /data-i18n="proTipsIsolatedViews"/);
+  assert.match(viewer, /data-i18n="proTipsOther"/);
+  assert.match(viewer, /data-action="open-shortcut-settings"/);
+  assert.match(viewer, /class="jt-pro-tips-integration-link"/);
+  assert.match(viewer, /integrationGuideLink\.href = getLocalizedIntegrationGuideUrl\(\)/);
+  assert.match(viewer, /this\.elements\.proTipsDialog\.showModal\(\)/);
+  assert.match(viewer, /this\.elements\.proTipsDialog\.close\(\)/);
+  assert.match(css, /\.jt-pro-tips-dialog::backdrop\s*\{[^}]*background:/s);
 });
 
 test('viewer supports one-way manual JSON input without echoing file content', async () => {

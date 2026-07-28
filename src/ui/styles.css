@@ -1163,7 +1163,8 @@
   background: #e5e7eb;
 }
 
-.jt-shortcuts-dialog {
+.jt-shortcuts-dialog,
+.jt-pro-tips-dialog {
   width: min(680px, calc(100vw - 32px));
   max-height: min(760px, calc(100vh - 32px));
   margin: auto;
@@ -1176,11 +1177,13 @@
   box-shadow: 0 24px 64px rgb(15 23 42 / 26%);
 }
 
-.jt-shortcuts-dialog::backdrop {
+.jt-shortcuts-dialog::backdrop,
+.jt-pro-tips-dialog::backdrop {
   background: rgb(15 23 42 / 42%);
 }
 
-.jt-shortcuts-header {
+.jt-shortcuts-header,
+.jt-pro-tips-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -1189,18 +1192,21 @@
   border-bottom: 1px solid #e2e8f0;
 }
 
-.jt-shortcuts-header h2 {
+.jt-shortcuts-header h2,
+.jt-pro-tips-header h2 {
   margin: 0;
   font-size: 18px;
   line-height: 1.35;
 }
 
-.jt-shortcuts-header p {
+.jt-shortcuts-header p,
+.jt-pro-tips-header p {
   margin: 4px 0 0;
   color: #667085;
 }
 
-.jt-shortcuts-close {
+.jt-shortcuts-close,
+.jt-pro-tips-close {
   display: inline-flex;
   width: 28px;
   height: 28px;
@@ -1219,15 +1225,88 @@
 }
 
 .jt-shortcuts-close:hover,
-.jt-shortcuts-close:focus-visible {
+.jt-shortcuts-close:focus-visible,
+.jt-pro-tips-close:hover,
+.jt-pro-tips-close:focus-visible {
   outline: none;
   background: #e2e8f0;
 }
 
-.jt-shortcuts-body {
+.jt-shortcuts-body,
+.jt-pro-tips-body {
   max-height: calc(100vh - 132px);
   overflow: auto;
   padding: 8px 20px 20px;
+}
+
+.jt-pro-tips-group {
+  padding-top: 14px;
+}
+
+.jt-pro-tips-group + .jt-pro-tips-group {
+  margin-top: 8px;
+  border-top: 1px solid #edf0f4;
+}
+
+.jt-pro-tips-group h3 {
+  margin: 0 0 8px;
+  color: #344054;
+  font-size: 14px;
+}
+
+.jt-pro-tips-group ul {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.jt-pro-tips-group li,
+.jt-pro-tips-group p {
+  margin: 0;
+  color: #475467;
+  line-height: 1.55;
+}
+
+.jt-pro-tips-group kbd {
+  display: inline-block;
+  border: 1px solid #cbd5e1;
+  border-bottom-color: #94a3b8;
+  border-radius: 5px;
+  padding: 2px 6px;
+  color: #1f2937;
+  background: #f8fafc;
+  box-shadow: 0 1px 0 #cbd5e1;
+  font: 12px/1.25 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: nowrap;
+}
+
+.jt-pro-tips-action {
+  border: 0;
+  padding: 0;
+  color: #175cd3;
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.jt-pro-tips-action:hover,
+.jt-pro-tips-action:focus-visible,
+.jt-pro-tips-integration-link:hover,
+.jt-pro-tips-integration-link:focus-visible {
+  outline: none;
+  color: #1d4ed8;
+  background: #eff6ff;
+}
+
+.jt-pro-tips-integration-link {
+  border-radius: 3px;
+  color: #175cd3;
+  font-weight: 600;
+  text-underline-offset: 2px;
 }
 
 .jt-shortcut-group {

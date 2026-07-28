@@ -13,7 +13,7 @@
     "message": "Open a new standalone JSON viewer"
   },
   "versionUpdateSuffix": {
-    "message": "adds faster shortcuts and smarter paste."
+    "message": "adds Pro Tips and remembers your viewer layout."
   },
   "seeWhatsNew": {
     "message": "See what’s new"
@@ -32,6 +32,78 @@
   },
   "keyboardShortcuts": {
     "message": "Keyboard shortcuts"
+  },
+  "proTips": {
+    "message": "Pro Tips"
+  },
+  "proTipsDescription": {
+    "message": "Small workflows that make JSON work faster."
+  },
+  "closeProTips": {
+    "message": "Close Pro Tips"
+  },
+  "proTipsViewJsonFaster": {
+    "message": "View JSON faster"
+  },
+  "proTipQuickOpenIntro": {
+    "message": "Copy JSON in any app, then press"
+  },
+  "proTipThen": {
+    "message": ", followed by"
+  },
+  "proTipQuestionMark": {
+    "message": "?"
+  },
+  "proTipPeriod": {
+    "message": "."
+  },
+  "proTipQuickOpenOutcome": {
+    "message": "As long as Chrome is running in the background, AZ JSON Explorer opens, comes to the front, and parses it."
+  },
+  "proTipCustomizeShortcutIntro": {
+    "message": "Prefer something other than"
+  },
+  "proTipCustomizeShortcutAction": {
+    "message": "Customize it in Chrome"
+  },
+  "proTipCustomShortcutForeground": {
+    "message": "Custom shortcuts work only while Chrome is in the foreground."
+  },
+  "proTipPasteAnywhereIntro": {
+    "message": "No need to click the input. Press"
+  },
+  "proTipPasteAnywhereOutcome": {
+    "message": "anywhere in the viewer to paste and parse immediately."
+  },
+  "proTipReplaceInputIntro": {
+    "message": "When the input is not focused,"
+  },
+  "proTipReplaceInputOutcome": {
+    "message": "replaces all existing content. When focused, paste behaves like normal editing: it inserts at the cursor or replaces the selection."
+  },
+  "proTipResizeInput": {
+    "message": "JSON input taking too much space? Drag the divider to resize it, or press"
+  },
+  "proTipToggleInputOutcome": {
+    "message": "to show or hide it."
+  },
+  "proTipsIsolatedViews": {
+    "message": "Isolated views"
+  },
+  "proTipIsolateSubtree": {
+    "message": "Want to focus on one subtree? Right-click it and choose “View in isolated view.” You can open the same subtree in multiple tabs."
+  },
+  "proTipIsolateLongString": {
+    "message": "Need the full, untruncated text of a long string? Open it in an isolated view. If the string contains JSON, switch between raw and parsed directly on its tab."
+  },
+  "proTipsOther": {
+    "message": "Other"
+  },
+  "proTipIntegrationIntro": {
+    "message": "Want to integrate AZ JSON Explorer into your own project?"
+  },
+  "proTipIntegrationLink": {
+    "message": "Read the integration guide"
   },
   "changeLog": {
     "message": "Change log"

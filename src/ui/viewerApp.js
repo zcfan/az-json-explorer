@@ -1,6 +1,7 @@
 import { formatJsonText } from '../core/jsonFormat.js';
 import {
   getLocalizedChangelogUrl,
+  getLocalizedIntegrationGuideUrl,
   localizeUi,
   translate,
 } from '../core/i18n.js';
@@ -197,7 +198,7 @@ class JsonViewerApp {
       <div class="jt-version-update-notice" role="status" aria-live="polite" hidden>
         <span>
           AZ JSON Explorer <strong class="jt-version-update-version"></strong>
-          <span data-i18n="versionUpdateSuffix">adds faster shortcuts and smarter paste.</span>
+          <span data-i18n="versionUpdateSuffix">adds Pro Tips and remembers your viewer layout.</span>
         </span>
         <a
           class="jt-version-update-link"
@@ -236,6 +237,13 @@ class JsonViewerApp {
             data-i18n="help"
           >Help</button>
           <div class="jt-help-menu" role="menu" hidden>
+            <button
+              class="jt-help-menu-item"
+              data-action="show-pro-tips"
+              type="button"
+              role="menuitem"
+              data-i18n="proTips"
+            >Pro Tips</button>
             <button
               class="jt-help-menu-item"
               data-action="show-shortcuts"
@@ -417,6 +425,80 @@ class JsonViewerApp {
           </section>
         </div>
       </dialog>
+      <dialog class="jt-pro-tips-dialog" aria-labelledby="jt-pro-tips-title">
+        <header class="jt-pro-tips-header">
+          <div>
+            <h2 id="jt-pro-tips-title" data-i18n="proTips">Pro Tips</h2>
+            <p data-i18n="proTipsDescription">Small workflows that make JSON work faster.</p>
+          </div>
+          <button
+            class="jt-pro-tips-close"
+            data-action="close-pro-tips"
+            type="button"
+            aria-label="Close Pro Tips"
+            data-i18n-aria-label="closeProTips"
+          >×</button>
+        </header>
+        <div class="jt-pro-tips-body">
+          <section class="jt-pro-tips-group">
+            <h3 data-i18n="proTipsViewJsonFaster">View JSON faster</h3>
+            <ul>
+              <li>
+                <span data-i18n="proTipQuickOpenIntro">Copy JSON in any app, then press</span>
+                <kbd data-shortcut="open-viewer"></kbd><span data-i18n="proTipThen">, followed by</span>
+                <kbd data-shortcut="paste"></kbd><span data-i18n="proTipPeriod">.</span>
+                <span data-i18n="proTipQuickOpenOutcome">As long as Chrome is running in the background, AZ JSON Explorer opens, comes to the front, and parses it.</span>
+              </li>
+              <li>
+                <span data-i18n="proTipCustomizeShortcutIntro">Prefer something other than</span>
+                <kbd data-shortcut="open-viewer"></kbd><span data-i18n="proTipQuestionMark">?</span>
+                <button
+                  class="jt-pro-tips-action"
+                  data-action="open-shortcut-settings"
+                  type="button"
+                  data-i18n="proTipCustomizeShortcutAction"
+                >Customize it in Chrome</button><span data-i18n="proTipPeriod">.</span>
+                <span data-i18n="proTipCustomShortcutForeground">Custom shortcuts work only while Chrome is in the foreground.</span>
+              </li>
+              <li>
+                <span data-i18n="proTipPasteAnywhereIntro">No need to click the input. Press</span>
+                <kbd data-shortcut="paste"></kbd>
+                <span data-i18n="proTipPasteAnywhereOutcome">anywhere in the viewer to paste and parse immediately.</span>
+              </li>
+              <li>
+                <span data-i18n="proTipReplaceInputIntro">When the input is not focused,</span>
+                <kbd data-shortcut="paste"></kbd>
+                <span data-i18n="proTipReplaceInputOutcome">replaces all existing content. When focused, paste behaves like normal editing: it inserts at the cursor or replaces the selection.</span>
+              </li>
+              <li>
+                <span data-i18n="proTipResizeInput">JSON input taking too much space? Drag the divider to resize it, or press</span>
+                <kbd>Ctrl+&#96;</kbd>
+                <span data-i18n="proTipToggleInputOutcome">to show or hide it.</span>
+              </li>
+            </ul>
+          </section>
+          <section class="jt-pro-tips-group">
+            <h3 data-i18n="proTipsIsolatedViews">Isolated views</h3>
+            <ul>
+              <li data-i18n="proTipIsolateSubtree">Want to focus on one subtree? Right-click it and choose “View in isolated view.” You can open the same subtree in multiple tabs.</li>
+              <li data-i18n="proTipIsolateLongString">Need the full, untruncated text of a long string? Open it in an isolated view. If the string contains JSON, switch between raw and parsed directly on its tab.</li>
+            </ul>
+          </section>
+          <section class="jt-pro-tips-group">
+            <h3 data-i18n="proTipsOther">Other</h3>
+            <p>
+              <span data-i18n="proTipIntegrationIntro">Want to integrate AZ JSON Explorer into your own project?</span>
+              <a
+                class="jt-pro-tips-integration-link"
+                href="https://github.com/zcfan/az-json-explorer/blob/main/docs/integrations/open-in-az-json-explorer.md"
+                target="_blank"
+                rel="noreferrer"
+                data-i18n="proTipIntegrationLink"
+              >Read the integration guide</a><span data-i18n="proTipPeriod">.</span>
+            </p>
+          </section>
+        </div>
+      </dialog>
       <aside class="jt-history-panel" aria-label="Parse history" data-i18n-aria-label="parseHistory" hidden>
         <div
           class="jt-history-resizer"
@@ -471,13 +553,17 @@ class JsonViewerApp {
       help: this.shadow.querySelector('.jt-help'),
       helpButton: this.shadow.querySelector('[data-action="toggle-help"]'),
       helpMenu: this.shadow.querySelector('.jt-help-menu'),
-      helpMenuFirstItem: this.shadow.querySelector('[data-action="show-shortcuts"]'),
+      shortcutsMenuItem: this.shadow.querySelector('[data-action="show-shortcuts"]'),
+      proTipsMenuItem: this.shadow.querySelector('[data-action="show-pro-tips"]'),
       changeLogLink: this.shadow.querySelector('[data-action="open-changelog"]'),
       shortcutsDialog: this.shadow.querySelector('.jt-shortcuts-dialog'),
       shortcutsCloseButton: this.shadow.querySelector('[data-action="close-shortcuts"]'),
-      openShortcutSettingsButton: this.shadow.querySelector(
+      openShortcutSettingsButtons: this.shadow.querySelectorAll(
         '[data-action="open-shortcut-settings"]',
       ),
+      proTipsDialog: this.shadow.querySelector('.jt-pro-tips-dialog'),
+      proTipsCloseButton: this.shadow.querySelector('[data-action="close-pro-tips"]'),
+      integrationGuideLink: this.shadow.querySelector('.jt-pro-tips-integration-link'),
       shortcutLabels: this.shadow.querySelectorAll('[data-shortcut]'),
       standaloneShortcutGroups: this.shadow.querySelectorAll(
         '[data-standalone-shortcuts]',
@@ -545,6 +631,7 @@ class JsonViewerApp {
     const changelogUrl = getLocalizedChangelogUrl();
     this.elements.versionUpdateLink.href = changelogUrl;
     this.elements.changeLogLink.href = changelogUrl;
+    this.elements.integrationGuideLink.href = getLocalizedIntegrationGuideUrl();
     this.elements.source.textContent = this.options.sourceLabel || '';
     const parseShortcut = getParseShortcutLabel();
     const pasteShortcut = getPasteShortcutLabel();
@@ -594,8 +681,12 @@ class JsonViewerApp {
       this.toggleHelpMenu();
     });
 
-    this.elements.helpMenuFirstItem.addEventListener('click', () => {
+    this.elements.shortcutsMenuItem.addEventListener('click', () => {
       this.openShortcutsDialog();
+    });
+
+    this.elements.proTipsMenuItem.addEventListener('click', () => {
+      this.openProTipsDialog();
     });
 
     this.elements.changeLogLink.addEventListener('click', () => {
@@ -606,9 +697,15 @@ class JsonViewerApp {
       this.closeShortcutsDialog();
     });
 
-    this.elements.openShortcutSettingsButton.addEventListener('click', () => {
-      this.openChromeShortcutSettings();
+    this.elements.proTipsCloseButton.addEventListener('click', () => {
+      this.closeProTipsDialog();
     });
+
+    for (const button of this.elements.openShortcutSettingsButtons) {
+      button.addEventListener('click', () => {
+        this.openChromeShortcutSettings();
+      });
+    }
 
     this.elements.parseManualButton.addEventListener('click', () => {
       this.parseManualInput();
@@ -922,6 +1019,19 @@ class JsonViewerApp {
   closeShortcutsDialog() {
     if (this.elements.shortcutsDialog.open) {
       this.elements.shortcutsDialog.close();
+    }
+  }
+
+  openProTipsDialog() {
+    this.closeHelpMenu();
+    if (!this.elements.proTipsDialog.open) {
+      this.elements.proTipsDialog.showModal();
+    }
+  }
+
+  closeProTipsDialog() {
+    if (this.elements.proTipsDialog.open) {
+      this.elements.proTipsDialog.close();
     }
   }
 
