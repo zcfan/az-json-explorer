@@ -144,12 +144,22 @@ test('store presentation centers on parse, isolated views, and history', async (
   assert.match(listing, /History:/);
   assert.match(listing, /Star the project on GitHub:/);
   assert.match(listing, /github\.com\/zcfan\/az-json-explorer/);
-  assert.match(listingZh, /解析为 JSON：/);
+  assert.match(listingZh, /解析嵌套 JSON：/);
   assert.match(listingZh, /独立视图：/);
   assert.match(listingZh, /历史记录：/);
-  assert.match(listingZh, /JSON 内容不会上传、同步或发送到任何外部服务器/);
+  assert.match(listingZh, /树中的对象、数组或字符串/);
+  assert.match(
+    listingZh,
+    /恢复当时打开的独立标签页、原始\/已解析模式和搜索词/,
+  );
+  assert.match(listingZh, /JSON 内容不会上传、同步或发送到第三方服务器/);
+  assert.match(listingZh, /不会把 JSON 内容上传或同步到扩展开发者或第三方服务器/);
+  assert.match(listingZh, /不包含遥测或分析代码/);
+  assert.match(listingZh, /打开文件”不需要这项权限/);
   assert.match(listingZh, /允许访问文件网址/);
+  assert.match(listingZh, /提供树形节点的直接编辑/);
   assert.match(listingZh, /github\.com\/zcfan\/az-json-explorer/);
+  assert.doesNotMatch(listingZh, /任意路径/);
   assert.match(generator, /isolated-view-1\.png/);
   assert.match(generator, /isolated-view-2\.png/);
   assert.match(generator, /isolated-view-3\.png/);
