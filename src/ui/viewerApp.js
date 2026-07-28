@@ -40,6 +40,7 @@ import {
 } from './historyPanelResize.js';
 import {
   hasExceededManualInputDragThreshold,
+  resolveManualInputDrag,
   resizeManualInputHeight,
   shouldToggleManualInputAfterPointerGesture,
 } from './manualInputResize.js';
@@ -569,6 +570,7 @@ class JsonViewerApp {
         '[data-standalone-shortcuts]',
       ),
       loader: this.shadow.querySelector('.jt-loader'),
+      manualInputRegion: this.shadow.querySelector('.jt-manual-input-region'),
       manualInput: this.shadow.querySelector('.jt-manual-input'),
       manualInputActions: this.shadow.querySelector('.jt-loader-actions'),
       manualInputResizer: this.shadow.querySelector('.jt-manual-input-resizer'),
@@ -1060,17 +1062,13 @@ class JsonViewerApp {
       return;
     }
 
-    const { manualInput, manualInputResizer } = this.elements;
-    const renderedHeight = manualInput.getBoundingClientRect().height;
-    const computedHeight = Number.parseFloat(
-      this.host.ownerDocument.defaultView
-        ?.getComputedStyle(manualInput)
-        .height || '',
-    );
+    const { manualInputRegion, manualInputResizer } = this.elements;
     this.manualInputResizeState = {
       pointerId: event.pointerId,
       startClientY: event.clientY,
-      startHeight: renderedHeight || computedHeight || 300,
+      startHandleClientY: manualInputResizer.getBoundingClientRect().top,
+      regionClientY: manualInputRegion.getBoundingClientRect().top,
+      expandedHandleOffset: this.measureManualInputExpandedHandleOffset(),
       dragging: false,
     };
     manualInputResizer.setPointerCapture(event.pointerId);
@@ -1091,7 +1089,6 @@ class JsonViewerApp {
         return;
       }
       state.dragging = true;
-      this.setManualInputExpanded(true);
       this.elements.manualInputResizer.classList.add(
         'jt-manual-input-resizer-active',
       );
@@ -1099,12 +1096,12 @@ class JsonViewerApp {
 
     const viewportHeight =
       this.host.ownerDocument.defaultView?.innerHeight || window.innerHeight;
-    const height = resizeManualInputHeight({
+    const layout = resolveManualInputDrag({
       ...state,
       clientY: event.clientY,
       viewportHeight,
     });
-    this.elements.manualInput.style.height = `${Math.round(height)}px`;
+    this.applyManualInputDragLayout(layout);
     event.preventDefault();
   }
 
@@ -1118,6 +1115,7 @@ class JsonViewerApp {
     if (manualInputResizer.hasPointerCapture(event.pointerId)) {
       manualInputResizer.releasePointerCapture(event.pointerId);
     }
+    manualInputResizer.style.transform = '';
     this.manualInputResizeState = null;
     manualInputResizer.classList.remove('jt-manual-input-resizer-active');
 
@@ -1131,6 +1129,61 @@ class JsonViewerApp {
     ) {
       this.toggleManualInput();
     }
+  }
+
+  measureManualInputExpandedHandleOffset() {
+    const {
+      manualInputRegion,
+      manualInput,
+      manualInputActions,
+      manualInputResizer,
+      manualInputToggle,
+    } = this.elements;
+    const inputWasHidden = manualInput.hidden;
+    const actionsWereHidden = manualInputActions.hidden;
+    const expandedAttribute = manualInputToggle.getAttribute('aria-expanded');
+    const resizerTransform = manualInputResizer.style.transform;
+
+    manualInputResizer.style.transform = '';
+    manualInput.hidden = false;
+    manualInputActions.hidden = false;
+    manualInputToggle.setAttribute('aria-expanded', 'true');
+
+    const regionClientY = manualInputRegion.getBoundingClientRect().top;
+    const inputHeight = manualInput.getBoundingClientRect().height;
+    const handleClientY = manualInputResizer.getBoundingClientRect().top;
+
+    manualInput.hidden = inputWasHidden;
+    manualInputActions.hidden = actionsWereHidden;
+    manualInputToggle.setAttribute('aria-expanded', expandedAttribute);
+    manualInputResizer.style.transform = resizerTransform;
+
+    return handleClientY - regionClientY - inputHeight;
+  }
+
+  applyManualInputDragLayout(layout) {
+    const {
+      manualInput,
+      manualInputResizer,
+    } = this.elements;
+    manualInputResizer.style.transform = '';
+
+    if (manualInput.hidden === layout.expanded) {
+      this.setManualInputExpanded(layout.expanded);
+    }
+    if (!layout.expanded) {
+      return;
+    }
+    manualInput.style.height = `${Math.round(layout.height)}px`;
+
+    const handleTranslation =
+      layout.handleClientY - manualInputResizer.getBoundingClientRect().top;
+    if (Math.abs(handleTranslation) < 0.5) {
+      return;
+    }
+
+    const transform = `translateY(${handleTranslation}px)`;
+    manualInputResizer.style.transform = transform;
   }
 
   setManualInputExpanded(expanded) {

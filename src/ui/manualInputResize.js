@@ -27,6 +27,33 @@ export function resizeManualInputHeight({
   ));
 }
 
+export function resolveManualInputDrag({
+  startHandleClientY,
+  startClientY,
+  clientY,
+  regionClientY,
+  expandedHandleOffset,
+  viewportHeight,
+}) {
+  const handleClientY =
+    startHandleClientY + clientY - startClientY;
+  const requestedHeight =
+    handleClientY - regionClientY - expandedHandleOffset;
+  const maximum = Number.isFinite(viewportHeight)
+    ? Math.max(
+        MIN_MANUAL_INPUT_HEIGHT,
+        viewportHeight * MAX_MANUAL_INPUT_VIEWPORT_RATIO,
+      )
+    : Number.POSITIVE_INFINITY;
+  const expanded = requestedHeight >= MIN_MANUAL_INPUT_HEIGHT;
+
+  return {
+    expanded,
+    height: Math.min(maximum, Math.max(0, requestedHeight)),
+    handleClientY: expanded ? handleClientY : null,
+  };
+}
+
 export function shouldToggleManualInputAfterPointerGesture({ dragging }) {
   return !dragging;
 }

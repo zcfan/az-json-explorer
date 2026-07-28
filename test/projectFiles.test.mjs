@@ -420,6 +420,18 @@ test('viewer supports one-way manual JSON input without echoing file content', a
   );
   assert.match(
     viewer,
+    /const layout = resolveManualInputDrag\(\{[\s\S]*this\.applyManualInputDragLayout\(layout\)/,
+  );
+  assert.match(
+    viewer,
+    /applyManualInputDragLayout\(layout\) \{[\s\S]*setManualInputExpanded\(layout\.expanded\)[\s\S]*if \(!layout\.expanded\) \{[\s\S]*return;[\s\S]*layout\.handleClientY - manualInputResizer\.getBoundingClientRect\(\)\.top/,
+  );
+  assert.match(
+    viewer,
+    /applyManualInputDragLayout\(layout\) \{[\s\S]*manualInputResizer\.style\.transform/,
+  );
+  assert.match(
+    viewer,
     /toggleManualInput\(\) \{[\s\S]*setManualInputExpanded\(this\.elements\.manualInput\.hidden\)/,
   );
   assert.match(

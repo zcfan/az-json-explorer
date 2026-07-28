@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import {
   hasExceededManualInputDragThreshold,
+  resolveManualInputDrag,
   resizeManualInputHeight,
   shouldToggleManualInputAfterPointerGesture,
 } from '../src/ui/manualInputResize.js';
@@ -44,6 +45,53 @@ test('manual input drag resizes vertically', () => {
       clientY: 0,
     }),
     92,
+  );
+});
+
+test('manual input drag collapses below usable height and parks the handle', () => {
+  assert.deepEqual(
+    resolveManualInputDrag({
+      startHandleClientY: 240,
+      startClientY: 250,
+      clientY: 241,
+      regionClientY: 100,
+      expandedHandleOffset: 40,
+      viewportHeight: 800,
+    }),
+    {
+      expanded: false,
+      height: 91,
+      handleClientY: null,
+    },
+  );
+});
+
+test('collapsed manual input expands only after the drag provides 92px of usable height', () => {
+  const drag = {
+    startHandleClientY: 116,
+    startClientY: 120,
+    regionClientY: 100,
+    expandedHandleOffset: 40,
+    viewportHeight: 800,
+  };
+
+  assert.equal(
+    resolveManualInputDrag({
+      ...drag,
+      clientY: 235,
+    }).expanded,
+    false,
+  );
+  assert.deepEqual(
+    resolveManualInputDrag({
+      ...drag,
+      clientY: 236,
+    }),
+    {
+      expanded: true,
+      height: 92,
+      handleClientY: 232,
+    },
   );
 });
 
