@@ -27,6 +27,8 @@ node fixtures/large-sample-generator.mjs 50000
 
 `scripts/generate-store-assets.mjs` regenerates promotional images from source HTML and normalizes
 captured product screenshots under `store-assets/source/` to the Chrome Web Store's 1280×800 format.
+It also regenerates the aligned English and Simplified Chinese listing drafts in
+`store-assets/listing.md` and `store-assets/listing.zh-CN.md`.
 
 The current store presentation centers on three product capabilities:
 

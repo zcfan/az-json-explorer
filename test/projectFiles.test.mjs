@@ -130,7 +130,10 @@ test('sample fixture is valid JSON and includes nested stringified JSON', async 
 });
 
 test('store presentation centers on parse, isolated views, and history', async () => {
-  const listing = await readFile(new URL('../store-assets/listing.md', import.meta.url), 'utf8');
+  const [listing, listingZh] = await Promise.all([
+    readFile(new URL('../store-assets/listing.md', import.meta.url), 'utf8'),
+    readFile(new URL('../store-assets/listing.zh-CN.md', import.meta.url), 'utf8'),
+  ]);
   const generator = await readFile(
     new URL('../scripts/generate-store-assets.mjs', import.meta.url),
     'utf8',
@@ -141,10 +144,18 @@ test('store presentation centers on parse, isolated views, and history', async (
   assert.match(listing, /History:/);
   assert.match(listing, /Star the project on GitHub:/);
   assert.match(listing, /github\.com\/zcfan\/az-json-explorer/);
+  assert.match(listingZh, /解析为 JSON：/);
+  assert.match(listingZh, /独立视图：/);
+  assert.match(listingZh, /历史记录：/);
+  assert.match(listingZh, /JSON 内容不会上传、同步或发送到任何外部服务器/);
+  assert.match(listingZh, /允许访问文件网址/);
+  assert.match(listingZh, /github\.com\/zcfan\/az-json-explorer/);
   assert.match(generator, /isolated-view-1\.png/);
   assert.match(generator, /isolated-view-2\.png/);
   assert.match(generator, /isolated-view-3\.png/);
+  assert.match(generator, /listing\.zh-CN\.md/);
   assert.doesNotMatch(listing, /large-json-navigation/);
+  assert.doesNotMatch(listingZh, /large-json-navigation/);
   assert.equal(generator.match(/class="tab tab-active"/g)?.length, 1);
   assert.match(
     generator,
