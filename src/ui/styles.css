@@ -344,9 +344,14 @@
   min-height: 16px;
   align-items: center;
   justify-content: center;
-  cursor: row-resize;
+  cursor: pointer;
   touch-action: none;
   user-select: none;
+}
+
+.jt-manual-input-resizer-active,
+.jt-manual-input-resizer-active .jt-manual-input-toggle {
+  cursor: ns-resize;
 }
 
 .jt-manual-input-resizer::before {

@@ -1060,7 +1060,7 @@ class JsonViewerApp {
       return;
     }
 
-    const { manualInput, manualInputResizer, manualInputToggle } = this.elements;
+    const { manualInput, manualInputResizer } = this.elements;
     const renderedHeight = manualInput.getBoundingClientRect().height;
     const computedHeight = Number.parseFloat(
       this.host.ownerDocument.defaultView
@@ -1069,10 +1069,8 @@ class JsonViewerApp {
     );
     this.manualInputResizeState = {
       pointerId: event.pointerId,
-      startClientX: event.clientX,
       startClientY: event.clientY,
       startHeight: renderedHeight || computedHeight || 300,
-      startedOnToggle: event.composedPath().includes(manualInputToggle),
       dragging: false,
     };
     manualInputResizer.setPointerCapture(event.pointerId);

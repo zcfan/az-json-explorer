@@ -7,13 +7,13 @@ import {
   shouldToggleManualInputAfterPointerGesture,
 } from '../src/ui/manualInputResize.js';
 
-test('manual input drag starts only beyond 5px and resizes vertically', () => {
+test('manual input drag starts only after more than 3px of vertical movement', () => {
   assert.equal(
     hasExceededManualInputDragThreshold({
       startClientX: 10,
       startClientY: 10,
-      clientX: 13,
-      clientY: 14,
+      clientX: 100,
+      clientY: 13,
     }),
     false,
   );
@@ -21,12 +21,14 @@ test('manual input drag starts only beyond 5px and resizes vertically', () => {
     hasExceededManualInputDragThreshold({
       startClientX: 10,
       startClientY: 10,
-      clientX: 14,
+      clientX: 10,
       clientY: 14,
     }),
     true,
   );
+});
 
+test('manual input drag resizes vertically', () => {
   assert.equal(
     resizeManualInputHeight({
       startHeight: 300,
@@ -57,24 +59,15 @@ test('manual input height never exceeds 30% of the viewport', () => {
   );
 });
 
-test('only an undragged press on the toggle text changes input visibility', () => {
+test('an undragged press anywhere on the resizer changes input visibility', () => {
   assert.equal(
     shouldToggleManualInputAfterPointerGesture({
-      startedOnToggle: true,
       dragging: false,
     }),
     true,
   );
   assert.equal(
     shouldToggleManualInputAfterPointerGesture({
-      startedOnToggle: false,
-      dragging: false,
-    }),
-    false,
-  );
-  assert.equal(
-    shouldToggleManualInputAfterPointerGesture({
-      startedOnToggle: true,
       dragging: true,
     }),
     false,

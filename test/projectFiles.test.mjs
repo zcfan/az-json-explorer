@@ -453,7 +453,11 @@ test('viewer supports one-way manual JSON input without echoing file content', a
   assert.match(css, /\.jt-manual-input\s*\{[^}]*resize:\s*none;/s);
   assert.match(
     css,
-    /\.jt-manual-input-resizer\s*\{[^}]*min-height:\s*16px;[^}]*cursor:\s*row-resize;[^}]*touch-action:\s*none;/s,
+    /\.jt-manual-input-resizer\s*\{[^}]*min-height:\s*16px;[^}]*cursor:\s*pointer;[^}]*touch-action:\s*none;/s,
+  );
+  assert.match(
+    css,
+    /\.jt-manual-input-resizer-active,\s*\.jt-manual-input-resizer-active \.jt-manual-input-toggle\s*\{[^}]*cursor:\s*ns-resize;/s,
   );
   assert.match(
     css,
