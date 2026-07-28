@@ -68,6 +68,10 @@ test('content script installs the webpage launch bridge before page detection ca
 test('standalone viewer claims external launch payloads without putting JSON in the URL', async () => {
   const viewer = await readFile(new URL('../src/viewer.js', import.meta.url), 'utf8');
 
+  assert.doesNotMatch(
+    viewer,
+    /sourceLabel:\s*translate\('standaloneViewer',\s*'Standalone viewer'\)/,
+  );
   assert.match(viewer, /params\.get\('launch'\)/);
   assert.match(viewer, /INTERNAL_LAUNCH_CLAIM_TYPE/);
   assert.match(viewer, /chrome\.runtime\.sendMessage/);

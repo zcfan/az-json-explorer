@@ -11,7 +11,6 @@ localizeDocument(document);
 const app = mountJsonViewer(document.getElementById('app'), {
   embedded,
   currentVersion,
-  sourceLabel: translate('standaloneViewer', 'Standalone viewer'),
   styleUrl: new URL('./ui/styles.css', import.meta.url).href,
   workerUrl: new URL('./worker/jsonWorker.js', import.meta.url).href,
 });
