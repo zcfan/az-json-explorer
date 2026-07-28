@@ -1,0 +1,29 @@
+docs/modules/viewer-ui.md
+  s_81fa79899fb370::t_20ab059cab02a2 61-63
+src/ui/manualInputResize.js
+  s_81fa79899fb370::t_e8fbfeaf6e6784 30-56
+src/ui/viewerApp.js
+  s_81fa79899fb370::t_d5cc253245e588 43,573,1065,1069-1071,1099,1104,1118,1134-1188
+test/manualInputResize.test.mjs
+  s_81fa79899fb370::t_4cd05082db79ad 6,51-97
+test/projectFiles.test.mjs
+  s_81fa79899fb370::t_6265ba85691d1b 421-432
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "b064de44ac77b5038c2be459f0df072bdec2a579",
+  "prompts": {},
+  "sessions": {
+    "s_81fa79899fb370": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fa8c8-cb55-7870-a879-03dcade3a12c",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
