@@ -73,10 +73,10 @@
     "message": "No need to click the input. Press"
   },
   "proTipPasteAnywhereOutcome": {
-    "message": "anywhere in the viewer to paste and parse immediately."
+    "message": "in a non-editable area of the viewer to paste and parse immediately."
   },
   "proTipReplaceInputIntro": {
-    "message": "When the input is not focused,"
+    "message": "Outside editable controls,"
   },
   "proTipReplaceInputOutcome": {
     "message": "replaces all existing content. When focused, paste behaves like normal editing: it inserts at the cursor or replaces the selection."
@@ -233,7 +233,7 @@
     "message": "Open shortcut settings"
   },
   "jsonInputNotFocused": {
-    "message": "JSON input not focused"
+    "message": "Non-editable viewer area focused"
   },
   "shortcutPasteFromAnywhere": {
     "message": "Show the input, clear it, paste clipboard text, and parse."

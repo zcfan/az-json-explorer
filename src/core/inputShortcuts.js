@@ -52,12 +52,7 @@ export function isSelectAllShortcut(event, platform = getRuntimePlatform()) {
 }
 
 export function shouldRedirectSelectAll(target) {
-  const tagName = String(target?.tagName || '').toUpperCase();
-  return (
-    tagName !== 'INPUT' &&
-    tagName !== 'TEXTAREA' &&
-    !target?.isContentEditable
-  );
+  return !isEditableTarget(target);
 }
 
 export function isManualInputToggleShortcut(event) {
@@ -85,6 +80,18 @@ export function getSearchNavigationDelta(event) {
   return event.shiftKey ? -1 : 1;
 }
 
-export function shouldRedirectPaste(target, manualInput) {
-  return target !== manualInput;
+export function getPasteAction(target, manualInput) {
+  if (target === manualInput) {
+    return 'insert-and-parse';
+  }
+  return isEditableTarget(target) ? 'native' : 'replace-and-parse';
+}
+
+function isEditableTarget(target) {
+  const tagName = String(target?.tagName || '').toUpperCase();
+  return (
+    tagName === 'INPUT' ||
+    tagName === 'TEXTAREA' ||
+    Boolean(target?.isContentEditable)
+  );
 }

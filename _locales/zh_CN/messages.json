@@ -70,13 +70,13 @@
     "message": "请注意：自定义快捷键仅在 Chrome 位于前台时有效。"
   },
   "proTipPasteAnywhereIntro": {
-    "message": "无需点击 JSON 输入框；在查看器任意位置按"
+    "message": "无需点击 JSON 输入框；在查看器非编辑区域按"
   },
   "proTipPasteAnywhereOutcome": {
     "message": "即可粘贴并立即解析。"
   },
   "proTipReplaceInputIntro": {
-    "message": "当 JSON 输入框未聚焦时，"
+    "message": "焦点不在任何可编辑控件时，"
   },
   "proTipReplaceInputOutcome": {
     "message": "会替换输入框中的全部现有内容；输入框已聚焦时，则遵循常规编辑逻辑：在光标处插入，或替换选中内容。"
@@ -233,7 +233,7 @@
     "message": "打开快捷键设置"
   },
   "jsonInputNotFocused": {
-    "message": "JSON 输入框未聚焦时"
+    "message": "焦点位于查看器非编辑区域时"
   },
   "shortcutPasteFromAnywhere": {
     "message": "显示并清空输入框，粘贴剪贴板文本后解析。"

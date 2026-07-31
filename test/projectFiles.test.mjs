@@ -310,7 +310,7 @@ test('viewer help exposes grouped shortcuts and the published changelog', async 
   );
   assert.match(viewer, />Chrome running in the background<\/h3>/);
   assert.match(viewer, />Chrome in focus<\/h3>/);
-  assert.match(viewer, />JSON input not focused<\/h3>/);
+  assert.match(viewer, />Non-editable viewer area focused<\/h3>/);
   assert.match(viewer, />JSON input focused<\/h3>/);
   assert.match(viewer, />Viewer focused<\/h3>/);
   assert.match(viewer, />Search focused<\/h3>/);
@@ -743,11 +743,15 @@ test('viewer redirects page paste and exposes the platform parse shortcut', asyn
   assert.match(viewer, /getParseShortcutLabel/);
   assert.match(viewer, /getPasteShortcutLabel/);
   assert.match(viewer, /Paste JSON, or press \$\{pasteShortcut\} anywhere/);
-  assert.match(viewer, /shouldRedirectPaste/);
+  assert.match(viewer, /getPasteAction/);
   assert.match(viewer, /clipboardData\?\.getData\('text\/plain'\)/);
   assert.match(
     viewer,
-    /if \(replaceAll\) \{\s*this\.setManualInputExpanded\(true\);\s*manualInput\.value = '';\s*manualInput\.setSelectionRange\(0, 0\);/,
+    /if \(pasteAction === 'native'\) \{\s*return;\s*\}\s*event\.preventDefault\(\);/,
+  );
+  assert.match(
+    viewer,
+    /if \(pasteAction === 'replace-and-parse'\) \{\s*this\.setManualInputExpanded\(true\);\s*manualInput\.value = '';\s*manualInput\.setSelectionRange\(0, 0\);/,
   );
   assert.match(viewer, /manualInput\.setRangeText/);
   assert.match(

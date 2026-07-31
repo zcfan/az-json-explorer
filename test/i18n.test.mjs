@@ -85,7 +85,8 @@ test('Pro Tips copy preserves shortcut, paste, isolated-view, and integration se
         'As long as Chrome is running in the background, AZ JSON Explorer opens, comes to the front, and parses it.',
       customShortcut:
         'Custom shortcuts work only while Chrome is in the foreground.',
-      paste: 'anywhere in the viewer to paste and parse immediately.',
+      paste:
+        'in a non-editable area of the viewer to paste and parse immediately.',
       replace:
         'replaces all existing content. When focused, paste behaves like normal editing: it inserts at the cursor or replaces the selection.',
       resize:

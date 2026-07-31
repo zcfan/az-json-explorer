@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  getPasteAction,
   getParseShortcutLabel,
   getPasteShortcutLabel,
   getSearchNavigationDelta,
@@ -9,7 +10,6 @@ import {
   isParseShortcut,
   isSearchShortcut,
   isSelectAllShortcut,
-  shouldRedirectPaste,
   shouldRedirectSelectAll,
 } from '../src/core/inputShortcuts.js';
 
@@ -108,11 +108,13 @@ test('Enter navigates search results forward and Shift+Enter navigates backward'
   assert.equal(getSearchNavigationDelta({ key: 'NumpadEnter' }), 0);
 });
 
-test('paste redirects whenever the manual JSON input is not the real target', () => {
+test('paste is routed by its actual editing target', () => {
   const manualInput = { tagName: 'TEXTAREA' };
 
-  assert.equal(shouldRedirectPaste(manualInput, manualInput), false);
-  assert.equal(shouldRedirectPaste({ tagName: 'INPUT' }, manualInput), true);
-  assert.equal(shouldRedirectPaste({ tagName: 'TEXTAREA' }, manualInput), true);
-  assert.equal(shouldRedirectPaste(null, manualInput), true);
+  assert.equal(getPasteAction(manualInput, manualInput), 'insert-and-parse');
+  assert.equal(getPasteAction({ tagName: 'INPUT' }, manualInput), 'native');
+  assert.equal(getPasteAction({ tagName: 'TEXTAREA' }, manualInput), 'native');
+  assert.equal(getPasteAction({ isContentEditable: true }, manualInput), 'native');
+  assert.equal(getPasteAction({ tagName: 'BUTTON' }, manualInput), 'replace-and-parse');
+  assert.equal(getPasteAction(null, manualInput), 'replace-and-parse');
 });

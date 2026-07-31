@@ -6,6 +6,7 @@ import {
   translate,
 } from '../core/i18n.js';
 import {
+  getPasteAction,
   getParseShortcutLabel,
   getPasteShortcutLabel,
   getSearchNavigationDelta,
@@ -13,7 +14,6 @@ import {
   isParseShortcut,
   isSearchShortcut,
   isSelectAllShortcut,
-  shouldRedirectPaste,
   shouldRedirectSelectAll,
 } from '../core/inputShortcuts.js';
 import {
@@ -381,7 +381,7 @@ class JsonViewerApp {
             </div>
           </section>
           <section class="jt-shortcut-group" data-standalone-shortcuts>
-            <h3 data-i18n="jsonInputNotFocused">JSON input not focused</h3>
+            <h3 data-i18n="jsonInputNotFocused">Non-editable viewer area focused</h3>
             <div class="jt-shortcut-row">
               <kbd data-shortcut="paste"></kbd>
               <span data-i18n="shortcutPasteFromAnywhere">Show the input, clear it, paste clipboard text, and parse.</span>
@@ -464,10 +464,10 @@ class JsonViewerApp {
               <li>
                 <span data-i18n="proTipPasteAnywhereIntro">No need to click the input. Press</span>
                 <kbd data-shortcut="paste"></kbd>
-                <span data-i18n="proTipPasteAnywhereOutcome">anywhere in the viewer to paste and parse immediately.</span>
+                <span data-i18n="proTipPasteAnywhereOutcome">in a non-editable area of the viewer to paste and parse immediately.</span>
               </li>
               <li>
-                <span data-i18n="proTipReplaceInputIntro">When the input is not focused,</span>
+                <span data-i18n="proTipReplaceInputIntro">Outside editable controls,</span>
                 <kbd data-shortcut="paste"></kbd>
                 <span data-i18n="proTipReplaceInputOutcome">replaces all existing content. When focused, paste behaves like normal editing: it inserts at the cursor or replaces the selection.</span>
               </li>
@@ -777,10 +777,14 @@ class JsonViewerApp {
           return;
         }
 
-        event.preventDefault();
         const { manualInput } = this.elements;
-        const replaceAll = shouldRedirectPaste(target, manualInput);
-        if (replaceAll) {
+        const pasteAction = getPasteAction(target, manualInput);
+        if (pasteAction === 'native') {
+          return;
+        }
+
+        event.preventDefault();
+        if (pasteAction === 'replace-and-parse') {
           this.setManualInputExpanded(true);
           manualInput.value = '';
           manualInput.setSelectionRange(0, 0);
