@@ -1,0 +1,23 @@
+CHANGELOG.md
+  s_84fd7314541505::t_08d602d46ee21f 7-10
+CHANGELOG.zh-CN.md
+  s_84fd7314541505::t_f6f43680977976 7-10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "33c1ad032b19f1417c9e662e73d41d6b93c9b3f2",
+  "prompts": {},
+  "sessions": {
+    "s_84fd7314541505": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fb5fb-9058-7351-bef0-650570dac6fe",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
