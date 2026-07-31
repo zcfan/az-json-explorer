@@ -347,7 +347,7 @@ test('viewer shows a ten-second changelog notice once per extension version', as
   );
   assert.match(
     viewer,
-    /AZ JSON Explorer <strong class="jt-version-update-version"><\/strong>[\s\S]*data-i18n="versionUpdateSuffix"[\s\S]*adds Pro Tips and remembers your viewer layout\./,
+    /AZ JSON Explorer <strong class="jt-version-update-version"><\/strong>[\s\S]*data-i18n="versionUpdateSuffix"[\s\S]*keeps paste in the focused search or other editable control\./,
   );
   assert.match(viewer, /claimVersionUpdateNotice\(storage, currentVersion\)/);
   assert.match(

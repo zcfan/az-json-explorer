@@ -4,6 +4,10 @@
 
 This file records published AZ JSON Explorer versions. It is updated only when a version is released.
 
+## 0.1.12 — 2026-07-31
+
+- Fixed paste handling so clipboard text stays in a focused search or other editable control instead of replacing the JSON input; pasting from non-editable viewer areas still replaces and parses the JSON input.
+
 ## 0.1.11 — 2026-07-28
 
 - Added a localized Pro Tips guide for faster shortcut-and-paste workflows, input resizing, isolated views, and project integration.

@@ -199,7 +199,7 @@ class JsonViewerApp {
       <div class="jt-version-update-notice" role="status" aria-live="polite" hidden>
         <span>
           AZ JSON Explorer <strong class="jt-version-update-version"></strong>
-          <span data-i18n="versionUpdateSuffix">adds Pro Tips and remembers your viewer layout.</span>
+          <span data-i18n="versionUpdateSuffix">keeps paste in the focused search or other editable control.</span>
         </span>
         <a
           class="jt-version-update-link"

@@ -13,7 +13,7 @@
     "message": "Open a new standalone JSON viewer"
   },
   "versionUpdateSuffix": {
-    "message": "adds Pro Tips and remembers your viewer layout."
+    "message": "keeps paste in the focused search or other editable control."
   },
   "seeWhatsNew": {
     "message": "See what’s new"
