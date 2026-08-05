@@ -931,6 +931,15 @@ test('parse button is hidden after a string already has parsed cache', async () 
   assert.match(viewer, /if \(row\.canParseAsJson && !row\.hasParsed\)/);
 });
 
+test('raw and parsed badges stay compact within dense JSON rows', async () => {
+  const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
+
+  assert.match(css, /\.jt-badge\s*\{[^}]*height:\s*18px;/s);
+  assert.match(css, /\.jt-badge\s*\{[^}]*padding:\s*0 6px;/s);
+  assert.match(css, /\.jt-badge\s*\{[^}]*font-size:\s*10px;/s);
+  assert.match(css, /\.jt-badge\s*\{[^}]*line-height:\s*1;/s);
+});
+
 test('an isolated view switches row mode through tab-local state', async () => {
   const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
 
@@ -997,6 +1006,7 @@ test('only blank areas and the toggle expand a row without blocking text selecti
   assert.match(viewer, /element\.addEventListener\('click', \(event\) =>/);
   assert.match(viewer, /event\.target === element/);
   assert.match(viewer, /event\.target\.classList\.contains\('jt-indent'\)/);
+  assert.match(viewer, /event\.target\.classList\.contains\('jt-value-aligner'\)/);
   assert.match(viewer, /window\.getSelection\(\)\?\.isCollapsed === false/);
   assert.match(viewer, /this\.toggleExpanded\(row\)/);
   assert.match(css, /\.jt-row-expandable\s*\{[^}]*cursor:\s*pointer;/s);
@@ -1007,12 +1017,43 @@ test('nested rows draw vertical indentation guides aligned with ancestor keys', 
   const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
   const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
 
-  assert.match(viewer, /const INDENT_WIDTH = 28;/);
+  assert.match(viewer, /const INDENT_WIDTH = 24;/);
   assert.match(viewer, /row\.depth \* INDENT_WIDTH/);
   assert.match(viewer, /row\.depth > 0 \? 'jt-indent jt-indent-guided' : 'jt-indent'/);
   assert.match(css, /\.jt-indent\s*\{[^}]*height:\s*100%;/s);
-  assert.match(css, /\.jt-indent-guided\s*\{[^}]*repeating-linear-gradient\([^)]*28px/s);
-  assert.match(css, /#e2e8f0 24px 25px/);
+  assert.match(css, /\.jt-indent-guided\s*\{[^}]*repeating-linear-gradient\([^)]*24px/s);
+  assert.match(css, /#e2e8f0 23px 24px/);
+});
+
+test('dense JSON row metrics stay synchronized with virtual scrolling', async () => {
+  const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
+
+  assert.match(viewer, /const ROW_HEIGHT = 18;/);
+  assert.match(css, /\.jt-tree\s*\{[^}]*font:\s*12px\/18px/s);
+  assert.match(css, /\.jt-row\s*\{[^}]*height:\s*18px;/s);
+  assert.match(css, /\.jt-toggle\s*\{[^}]*width:\s*20px;[^}]*height:\s*18px;/s);
+  assert.match(css, /\.jt-parse-button\s*\{[^}]*height:\s*18px;/s);
+  assert.match(css, /\.jt-view-all-button\s*\{[^}]*height:\s*18px;/s);
+});
+
+test('visible values snap forward to the global indentation grid', async () => {
+  const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
+
+  assert.match(
+    viewer,
+    /this\.elements\.rowLayer\.replaceChildren\(fragment\);\s*this\.alignVisibleRowValues\(\);/,
+  );
+  assert.match(viewer, /const VALUE_ALIGNMENT_GRID_WIDTH = INDENT_WIDTH \* 2;/);
+  assert.match(viewer, /getForwardGridSpacing\([^;]*VALUE_ALIGNMENT_GRID_WIDTH/s);
+  assert.match(viewer, /className = 'jt-value-aligner'/);
+  assert.ok(
+    viewer.indexOf("className = 'jt-value-aligner'") <
+      viewer.indexOf('if (row.canParseAsJson && !row.hasParsed)'),
+    'value badges and actions should appear after the alignment spacer',
+  );
+  assert.match(css, /\.jt-value-aligner\s*\{[^}]*flex:\s*0 0 auto;/s);
 });
 
 test('viewer wires Expand all through compact expansion state', async () => {

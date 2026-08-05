@@ -59,9 +59,11 @@ import {
   restoreViewSessionSnapshot,
   setViewTabPathMode,
 } from './viewTabs.js';
+import { getForwardGridSpacing } from './valueAlignment.js';
 
-const ROW_HEIGHT = 20;
-const INDENT_WIDTH = 28;
+const ROW_HEIGHT = 18;
+const INDENT_WIDTH = 24;
+const VALUE_ALIGNMENT_GRID_WIDTH = INDENT_WIDTH * 2;
 const OVERSCAN_ROWS = 14;
 const MAX_VISIBLE_ROWS = 100000;
 const AUTO_EXPAND_MAX_ROWS = 5000;
@@ -1877,6 +1879,23 @@ class JsonViewerApp {
     }
 
     this.elements.rowLayer.replaceChildren(fragment);
+    this.alignVisibleRowValues();
+  }
+
+  alignVisibleRowValues() {
+    const { rowLayer } = this.elements;
+    const layerLeft = rowLayer.getBoundingClientRect().left;
+    const aligners = Array.from(rowLayer.querySelectorAll('.jt-value-aligner'));
+    const spacings = aligners.map((aligner) =>
+      getForwardGridSpacing(
+        aligner.getBoundingClientRect().left - layerLeft,
+        VALUE_ALIGNMENT_GRID_WIDTH,
+      ),
+    );
+
+    for (let index = 0; index < aligners.length; index += 1) {
+      aligners[index].style.width = `${spacings[index]}px`;
+    }
   }
 
   createRowElement(row, index) {
@@ -1897,7 +1916,9 @@ class JsonViewerApp {
     if (row.expandable) {
       element.addEventListener('click', (event) => {
         const clickedEmptyArea =
-          event.target === element || event.target.classList.contains('jt-indent');
+          event.target === element ||
+          event.target.classList.contains('jt-indent') ||
+          event.target.classList.contains('jt-value-aligner');
         const hasTextSelection = window.getSelection()?.isCollapsed === false;
         if (!clickedEmptyArea || hasTextSelection) {
           return;
@@ -1959,6 +1980,11 @@ class JsonViewerApp {
       colon.textContent = ':';
       element.append(colon);
     }
+
+    const valueAligner = document.createElement('span');
+    valueAligner.className = 'jt-value-aligner';
+    valueAligner.setAttribute('aria-hidden', 'true');
+    element.append(valueAligner);
 
     if (row.canParseAsJson && !row.hasParsed) {
       const parseButton = document.createElement('button');
