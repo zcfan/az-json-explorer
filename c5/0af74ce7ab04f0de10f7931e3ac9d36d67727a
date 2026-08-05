@@ -1,0 +1,29 @@
+src/ui/styles.css
+  s_ffeb1dfce0bdf7::t_8216c4d1a4fbf3 732,934,981-982,989,1050-1054,1061,1095,1104,1107,1110,1112
+src/ui/valueAlignment.js
+  s_ffeb1dfce0bdf7::t_bd456346d22144 1-14
+src/ui/viewerApp.js
+  s_ffeb1dfce0bdf7::t_a986b9de995529 62,64-66,1882-1898,1919-1921,1984-1988
+test/projectFiles.test.mjs
+  s_ffeb1dfce0bdf7::t_d8cbe72d667702 934-942,1009,1020,1024-1056
+test/valueAlignment.test.mjs
+  s_ffeb1dfce0bdf7::t_ee047d2a4750ad 1-27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "c50af74ce7ab04f0de10f7931e3ac9d36d67727a",
+  "prompts": {},
+  "sessions": {
+    "s_ffeb1dfce0bdf7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fd11d-df38-7d51-9c81-084ab101dda1",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
