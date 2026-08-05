@@ -1,0 +1,31 @@
+_locales/en/messages.json
+  s_ffeb1dfce0bdf7::t_4e89f4624f7a8e 187-197
+_locales/zh_CN/messages.json
+  s_ffeb1dfce0bdf7::t_f7766637a95dc1 187-197
+docs/modules/viewer-ui.md
+  s_ffeb1dfce0bdf7::t_fe56728b329610 50,54-57
+src/ui/stickyAncestors.js
+  s_ffeb1dfce0bdf7::t_dd806360e97baa 1-92
+src/ui/styles.css
+  s_ffeb1dfce0bdf7::t_94e5184b18cf0c 923-978,1000-1015
+src/ui/viewerApp.js
+  s_ffeb1dfce0bdf7::t_67de3779250d11 35-38,68-69,138-140,332-337,620,1718,1729,1772,1790,1853,1855,1891-1895,1905-2001,2011,2017
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "3f493740d1989c4d7324d657ea3a51043beb2302",
+  "prompts": {},
+  "sessions": {
+    "s_ffeb1dfce0bdf7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fd11d-df38-7d51-9c81-084ab101dda1",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
