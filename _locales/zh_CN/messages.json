@@ -184,6 +184,17 @@
   "jsonTree": {
     "message": "JSON 树"
   },
+  "jsonAncestorNavigation": {
+    "message": "JSON 父级导航"
+  },
+  "goToJsonRow": {
+    "message": "定位到 $path$",
+    "placeholders": {
+      "path": {
+        "content": "$1"
+      }
+    }
+  },
   "loadLatestHistory": {
     "message": "点击加载最近一次历史记录"
   },

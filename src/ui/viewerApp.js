@@ -32,6 +32,10 @@ import {
   toggleExpansion,
 } from './expansionState.js';
 import { getRowSearchState, splitHighlightedText } from './searchHighlight.js';
+import {
+  createParentRowIndexes,
+  getStickyViewportAncestorIndexes,
+} from './stickyAncestors.js';
 import { createStringSearchSegments } from './stringSearchHighlight.js';
 import {
   MAX_HISTORY_PANEL_WIDTH,
@@ -61,6 +65,8 @@ import {
 } from './viewTabs.js';
 const ROW_HEIGHT = 18;
 const INDENT_WIDTH = 24;
+const MAX_STICKY_ANCESTOR_ROWS = 10;
+const STICKY_COVERED_THRESHOLD = 3;
 const OVERSCAN_ROWS = 14;
 const MAX_VISIBLE_ROWS = 100000;
 const AUTO_EXPAND_MAX_ROWS = 5000;
@@ -129,6 +135,9 @@ class JsonViewerApp {
     this.nextRequestId = 1;
     this.hasParsedRoot = false;
     this.rows = [];
+    this.parentRowIndexes = new Int32Array();
+    this.locatedRowIndex = -1;
+    this.locatedRowTimer = 0;
     this.expansion = createExplicitExpansionState();
     this.renderToken = 0;
     this.scrollFrame = 0;
@@ -320,6 +329,12 @@ class JsonViewerApp {
       <div class="jt-search-preview" hidden></div>
       <div class="jt-error" hidden></div>
       <section class="jt-tree" tabindex="0" aria-label="JSON tree" data-i18n-aria-label="jsonTree">
+        <nav
+          class="jt-sticky-layer"
+          aria-label="JSON ancestor navigation"
+          data-i18n-aria-label="jsonAncestorNavigation"
+          hidden
+        ></nav>
         <div class="jt-spacer"></div>
         <div class="jt-row-layer"></div>
         <button
@@ -602,6 +617,7 @@ class JsonViewerApp {
       status: this.shadow.querySelector('.jt-status'),
       error: this.shadow.querySelector('.jt-error'),
       tree: this.shadow.querySelector('.jt-tree'),
+      stickyLayer: this.shadow.querySelector('.jt-sticky-layer'),
       spacer: this.shadow.querySelector('.jt-spacer'),
       rowLayer: this.shadow.querySelector('.jt-row-layer'),
       emptyHistoryLoadButton: this.shadow.querySelector(
@@ -1699,6 +1715,7 @@ class JsonViewerApp {
     this.clearError();
     this.setStatus(translate('parsingInWorker', 'Parsing in worker...'));
     this.elements.rowLayer.replaceChildren();
+    this.clearStickyAncestors();
     this.elements.spacer.style.height = '0px';
 
     const response = await this.requestWorker('parse-root', {
@@ -1709,6 +1726,7 @@ class JsonViewerApp {
     if (!response.ok) {
       this.hasParsedRoot = false;
       this.rows = [];
+      this.parentRowIndexes = new Int32Array();
       this.showError(response.error);
       this.setStatus(translate('jsonParseFailed', 'JSON parse failed.'));
       return;
@@ -1751,6 +1769,7 @@ class JsonViewerApp {
       ),
     );
     this.elements.rowLayer.replaceChildren();
+    this.clearStickyAncestors();
     this.elements.spacer.style.height = '0px';
 
     const response = await this.requestWorker('parse-root', {
@@ -1768,6 +1787,7 @@ class JsonViewerApp {
     if (!response.ok) {
       this.hasParsedRoot = false;
       this.rows = [];
+      this.parentRowIndexes = new Int32Array();
       this.showError(response.error);
       this.setStatus(translate('jsonParseFailed', 'JSON parse failed.'));
       return;
@@ -1830,7 +1850,9 @@ class JsonViewerApp {
       return;
     }
 
+    this.clearLocatedRowHighlight();
     this.rows = response.rows;
+    this.parentRowIndexes = createParentRowIndexes(this.rows);
     this.hasRowLimit = response.truncated;
     this.elements.spacer.style.height = `${this.rows.length * ROW_HEIGHT}px`;
     this.renderVisibleRows();
@@ -1866,7 +1888,11 @@ class JsonViewerApp {
   renderVisibleRows() {
     const { tree } = this.elements;
     const viewportHeight = tree.clientHeight || 600;
-    const first = Math.max(0, Math.floor(tree.scrollTop / ROW_HEIGHT) - OVERSCAN_ROWS);
+    const topRowIndex = Math.min(
+      Math.max(0, Math.floor(tree.scrollTop / ROW_HEIGHT)),
+      Math.max(0, this.rows.length - 1),
+    );
+    const first = Math.max(0, topRowIndex - OVERSCAN_ROWS);
     const visibleCount = Math.ceil(viewportHeight / ROW_HEIGHT) + OVERSCAN_ROWS * 2;
     const last = Math.min(this.rows.length, first + visibleCount);
     const fragment = document.createDocumentFragment();
@@ -1876,6 +1902,103 @@ class JsonViewerApp {
     }
 
     this.elements.rowLayer.replaceChildren(fragment);
+    this.renderStickyAncestors(tree.scrollTop);
+  }
+
+  clearStickyAncestors() {
+    this.elements.stickyLayer.replaceChildren();
+    this.elements.stickyLayer.hidden = true;
+  }
+
+  clearLocatedRowHighlight() {
+    window.clearTimeout(this.locatedRowTimer);
+    this.locatedRowTimer = 0;
+    this.locatedRowIndex = -1;
+  }
+
+  renderStickyAncestors(scrollTop) {
+    const ancestorIndexes = getStickyViewportAncestorIndexes(
+      this.parentRowIndexes,
+      scrollTop,
+      ROW_HEIGHT,
+      MAX_STICKY_ANCESTOR_ROWS,
+      STICKY_COVERED_THRESHOLD,
+    );
+
+    if (ancestorIndexes.length === 0) {
+      this.clearStickyAncestors();
+      return;
+    }
+
+    const fragment = document.createDocumentFragment();
+    for (const rowIndex of ancestorIndexes) {
+      fragment.append(this.createStickyAncestorElement(this.rows[rowIndex], rowIndex));
+    }
+    this.elements.stickyLayer.replaceChildren(fragment);
+    this.elements.stickyLayer.hidden = false;
+  }
+
+  createStickyAncestorElement(row, rowIndex) {
+    const button = document.createElement('button');
+    button.className = 'jt-sticky-row';
+    button.type = 'button';
+    const locationLabel = translate(
+      'goToJsonRow',
+      `Go to ${row.labelPath}`,
+      row.labelPath,
+    );
+    button.setAttribute('aria-label', locationLabel);
+    button.title = locationLabel;
+    button.addEventListener('click', () => this.locateTreeRow(rowIndex));
+    button.addEventListener('contextmenu', (event) => event.preventDefault());
+
+    const indent = document.createElement('span');
+    indent.className = row.depth > 0 ? 'jt-indent jt-indent-guided' : 'jt-indent';
+    indent.style.width = `${row.depth * INDENT_WIDTH}px`;
+    button.append(indent);
+
+    const toggleSpace = document.createElement('span');
+    toggleSpace.className = 'jt-sticky-toggle-space';
+    toggleSpace.setAttribute('aria-hidden', 'true');
+    button.append(toggleSpace);
+
+    const key = document.createElement('span');
+    key.className = 'jt-key';
+    key.textContent = row.key === '$' ? '$' : JSON.stringify(row.key);
+    button.append(key);
+
+    if (row.parsed) {
+      const badge = document.createElement('span');
+      badge.className = 'jt-badge jt-badge-parsed jt-sticky-badge';
+      badge.textContent = translate('parsed', 'parsed');
+      button.append(badge);
+    }
+
+    if (row.key !== '$') {
+      const colon = document.createElement('span');
+      colon.className = 'jt-colon';
+      colon.textContent = ':';
+      button.append(colon);
+    }
+
+    return button;
+  }
+
+  locateTreeRow(rowIndex) {
+    const { tree } = this.elements;
+    this.locatedRowIndex = rowIndex;
+    tree.scrollTop = Math.max(0, (rowIndex - 1) * ROW_HEIGHT);
+    this.renderVisibleRows();
+    tree.focus({ preventScroll: true });
+
+    window.clearTimeout(this.locatedRowTimer);
+    this.locatedRowTimer = window.setTimeout(() => {
+      this.locatedRowIndex = -1;
+      this.locatedRowTimer = 0;
+      this.elements.rowLayer
+        .querySelector(`[data-row-index="${rowIndex}"]`)
+        ?.classList.remove('jt-row-located');
+    }, 1200);
   }
 
   createRowElement(row, index) {
@@ -1885,11 +2008,13 @@ class JsonViewerApp {
       'jt-row',
       `jt-kind-${row.kind}`,
       row.expandable ? 'jt-row-expandable' : '',
+      index === this.locatedRowIndex ? 'jt-row-located' : '',
       searchState.highlighted ? 'jt-row-search-hit' : '',
       searchState.current ? 'jt-row-search-current' : '',
     ]
       .filter(Boolean)
       .join(' ');
+    element.dataset.rowIndex = String(index);
     element.style.transform = `translateY(${index * ROW_HEIGHT}px)`;
     element.title = formatPath(row.path);
     element.addEventListener('contextmenu', (event) => this.openRowContextMenu(event, row));

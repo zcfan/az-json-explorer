@@ -920,6 +920,62 @@
   width: 1px;
 }
 
+.jt-sticky-layer {
+  position: sticky;
+  z-index: 3;
+  top: 0;
+  display: flex;
+  height: 0;
+  flex-direction: column;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.jt-sticky-layer[hidden] {
+  display: none;
+}
+
+.jt-sticky-row {
+  position: relative;
+  display: flex;
+  flex: 0 0 18px;
+  width: 100%;
+  min-width: max-content;
+  height: 18px;
+  align-items: center;
+  border: 0;
+  padding: 0 12px 0 0;
+  color: inherit;
+  background: #ffffff;
+  font: inherit;
+  text-align: left;
+  white-space: nowrap;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.jt-sticky-row:hover {
+  background: #f1f5f9;
+}
+
+.jt-sticky-row:focus-visible {
+  outline: 1px solid #60a5fa;
+  outline-offset: -1px;
+}
+
+.jt-sticky-row:last-child {
+  box-shadow: 0 1px 0 #dbe3ee;
+}
+
+.jt-sticky-toggle-space {
+  flex: 0 0 24px;
+}
+
+.jt-sticky-badge {
+  pointer-events: none;
+  cursor: inherit;
+}
+
 .jt-row-layer {
   position: absolute;
   inset: 0;
@@ -939,6 +995,22 @@
 
 .jt-row:hover {
   background: #f8fafc;
+}
+
+.jt-row-located {
+  animation: jt-row-located 1200ms ease-out;
+}
+
+@keyframes jt-row-located {
+  from {
+    background: #bfdbfe;
+    box-shadow: inset 3px 0 #2563eb;
+  }
+
+  to {
+    background: transparent;
+    box-shadow: inset 3px 0 transparent;
+  }
 }
 
 .jt-row-expandable {

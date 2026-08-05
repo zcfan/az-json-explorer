@@ -1050,6 +1050,47 @@ test('dense JSON row metrics stay synchronized with virtual scrolling', async ()
   assert.match(css, /\.jt-view-all-button\s*\{[^}]*height:\s*18px;/s);
 });
 
+test('sticky ancestors are navigation-only and capped at ten rows', async () => {
+  const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
+  const stickyRenderer = viewer.slice(
+    viewer.indexOf('createStickyAncestorElement(row, rowIndex)'),
+    viewer.indexOf('\n  locateTreeRow(rowIndex) {'),
+  );
+
+  assert.match(viewer, /const MAX_STICKY_ANCESTOR_ROWS = 10;/);
+  assert.match(viewer, /const STICKY_COVERED_THRESHOLD = 3;/);
+  assert.match(viewer, /createParentRowIndexes\(this\.rows\)/);
+  assert.match(
+    viewer,
+    /ROW_HEIGHT,\s+MAX_STICKY_ANCESTOR_ROWS,\s+STICKY_COVERED_THRESHOLD,/,
+  );
+  assert.doesNotMatch(viewer, /getStickyRowLimit|MAX_STICKY_VIEWPORT_RATIO/);
+  assert.match(stickyRenderer, /className = 'jt-sticky-row'/);
+  assert.match(
+    stickyRenderer,
+    /addEventListener\('click', \(\) => this\.locateTreeRow\(rowIndex\)\)/,
+  );
+  assert.match(
+    stickyRenderer,
+    /addEventListener\('contextmenu', \(event\) => event\.preventDefault\(\)\)/,
+  );
+  assert.doesNotMatch(
+    stickyRenderer,
+    /createRowElement|toggleExpanded|parseStringRow|openRowContextMenu|jt-toggle|jt-parse-button/,
+  );
+  assert.match(stickyRenderer, /if \(row\.parsed\)/);
+  assert.match(stickyRenderer, /document\.createElement\('span'\)/);
+  assert.match(stickyRenderer, /jt-badge jt-badge-parsed jt-sticky-badge/);
+  assert.doesNotMatch(stickyRenderer, /badge\.addEventListener/);
+  assert.match(viewer, /tree\.scrollTop = Math\.max\(0, \(rowIndex - 1\) \* ROW_HEIGHT\);/);
+  assert.match(viewer, /index === this\.locatedRowIndex \? 'jt-row-located' : ''/);
+  assert.match(css, /\.jt-sticky-layer\s*\{[^}]*position:\s*sticky;/s);
+  assert.match(css, /\.jt-sticky-row\s*\{[^}]*cursor:\s*pointer;/s);
+  assert.match(css, /\.jt-sticky-badge\s*\{[^}]*pointer-events:\s*none;/s);
+  assert.match(css, /\.jt-row-located\s*\{[^}]*animation:/s);
+});
+
 test('JSON keys use muted color and regular weight in dense rows', async () => {
   const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
 

@@ -47,10 +47,14 @@ The viewer UI is the main-thread coordinator. It owns DOM rendering, user intera
 
 The tree uses virtual rows:
 
-- `ROW_HEIGHT` is fixed at 28px.
+- `ROW_HEIGHT` is fixed at 18px.
 - `spacer` sets total scroll height.
 - `rowLayer` contains only viewport rows plus overscan.
 - Row `transform: translateY(...)` positions each visible item.
+- Up to ten nearest ancestor rows remain visible in a sticky navigation layer. This limit is independent of viewport height.
+- Sticky ancestor rows are navigation-only: activating one aligns and briefly highlights its original row on the second viewport row whenever possible, leaving one row of context above it. They do not expose expansion, parsing, copying, or context-menu actions.
+- Ancestor selection starts from the first row below the sticky stack. A parent row is promoted once at least 3px of it is covered by either the viewport top or existing Sticky content, avoiding flicker from subpixel contact while preventing it from disappearing behind Sticky content.
+- Parsed-string ancestors retain their parsed badge in Sticky, but the badge is inert; the entire Sticky row remains a single navigation target.
 
 This is why row height and row DOM layout must remain stable.
 

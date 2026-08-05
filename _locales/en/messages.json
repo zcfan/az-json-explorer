@@ -184,6 +184,17 @@
   "jsonTree": {
     "message": "JSON tree"
   },
+  "jsonAncestorNavigation": {
+    "message": "JSON ancestor navigation"
+  },
+  "goToJsonRow": {
+    "message": "Go to $path$",
+    "placeholders": {
+      "path": {
+        "content": "$1"
+      }
+    }
+  },
   "loadLatestHistory": {
     "message": "Click to load the most recent history entry"
   },
