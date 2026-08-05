@@ -1,0 +1,29 @@
+src/ui/styles.css
+  s_ffeb1dfce0bdf7::t_849e7cb304b282 732,934,975-984,989-990
+src/ui/viewerApp.js
+  s_ffeb1dfce0bdf7::t_d643c49bd1608a 63-64,1911-1912
+src/worker/jsonWorker.js
+  s_ffeb1dfce0bdf7::t_458872de52dcc0 460-461,465-469
+test/jsonWorker.test.mjs
+  s_ffeb1dfce0bdf7::t_572414300c5ceb 606-607
+test/projectFiles.test.mjs
+  s_ffeb1dfce0bdf7::t_8405450f329bc8 1006-1017
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "9cc17f35a2eccb068f50de3f9ca58b6c293aa80c",
+  "prompts": {},
+  "sessions": {
+    "s_ffeb1dfce0bdf7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fd11d-df38-7d51-9c81-084ab101dda1",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
