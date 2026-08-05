@@ -52,9 +52,10 @@ The tree uses virtual rows:
 - `rowLayer` contains only viewport rows plus overscan.
 - Row `transform: translateY(...)` positions each visible item.
 - Up to ten nearest ancestor rows remain visible in a sticky navigation layer. This limit is independent of viewport height.
-- Sticky ancestor rows are navigation-only: activating one aligns and briefly highlights its original row on the second viewport row whenever possible, leaving one row of context above it. They do not expose expansion, parsing, copying, or context-menu actions.
+- Sticky ancestor rows are navigation-only: activating one aligns and briefly highlights its original row immediately below its remaining Sticky ancestor stack, so the target itself has just left Sticky. They do not expose expansion, parsing, copying, or context-menu actions.
 - Ancestor selection starts from the first row below the sticky stack. A parent row is promoted once at least 3px of it is covered by either the viewport top or existing Sticky content, avoiding flicker from subpixel contact while preventing it from disappearing behind Sticky content.
 - Parsed-string ancestors retain their parsed badge in Sticky, but the badge is inert; the entire Sticky row remains a single navigation target.
+- Expansion is restricted to each row's explicit chevron and the indentation before it. A row that moves out of Sticky and under the pointer therefore cannot be collapsed by a follow-up click on its key or trailing blank area.
 
 This is why row height and row DOM layout must remain stable.
 
@@ -89,7 +90,7 @@ This is why row height and row DOM layout must remain stable.
 - The tab strip scrolls horizontally when needed and never becomes vertically scrollable.
 - New roots with at most 5,000 fully expanded rows open in `all` mode; larger roots open with only the root expanded.
 - `Collapse`, `Expand root`, and `Expand all`: replace the expansion mode and refresh rows from the worker.
-- Clicking an expandable row's chevron, indentation, or trailing blank area expands or collapses it; clicking or selecting row text does not.
+- Clicking an expandable row's chevron or the indentation before it expands or collapses it; the trailing blank area and row text do not change expansion state.
 - `Expand all` shows `Expanding all...` while the worker prepares rows and keeps the 100,000-row truncation message on completion.
 - `Expand all` never parses raw strings; already-parsed strings participate when their display mode is `parsed`.
 - `Parse as JSON`: sends `parse-string` with the row path.

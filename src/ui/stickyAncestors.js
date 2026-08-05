@@ -42,6 +42,24 @@ export function getStickyAncestorIndexes(parentIndexes, rowIndex, maxCount = 10)
   return indexes.reverse();
 }
 
+export function getStickyExitScrollTop(
+  parentIndexes,
+  rowIndex,
+  rowHeight,
+  maxCount = 10,
+) {
+  if (!Number.isFinite(rowHeight) || rowHeight <= 0) {
+    return 0;
+  }
+
+  const ancestorCount = getStickyAncestorIndexes(
+    parentIndexes,
+    rowIndex,
+    maxCount,
+  ).length;
+  return Math.max(0, (rowIndex - ancestorCount) * rowHeight);
+}
+
 export function getStickyViewportAncestorIndexes(
   parentIndexes,
   scrollTop,

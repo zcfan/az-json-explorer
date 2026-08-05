@@ -5,6 +5,7 @@ import { collectVisibleRows } from '../src/core/treeModel.js';
 import {
   createParentRowIndexes,
   getStickyAncestorIndexes,
+  getStickyExitScrollTop,
   getStickyViewportAncestorIndexes,
 } from '../src/ui/stickyAncestors.js';
 
@@ -19,6 +20,15 @@ test('returns the nearest ten ancestors ordered from outer to inner', () => {
   const parentIndexes = createParentRowIndexes(rows);
 
   assert.deepEqual(getStickyAncestorIndexes(parentIndexes, 12, 10), [2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+});
+
+test('positions a located row immediately below its sticky ancestors', () => {
+  const rows = Array.from({ length: 13 }, (_, depth) => ({ depth }));
+  const parentIndexes = createParentRowIndexes(rows);
+
+  assert.equal(getStickyExitScrollTop(parentIndexes, 0, 18, 10), 0);
+  assert.equal(getStickyExitScrollTop(parentIndexes, 7, 18, 10), 0);
+  assert.equal(getStickyExitScrollTop(parentIndexes, 12, 18, 10), 36);
 });
 
 test('promotes parent rows covered by the sticky region into the sticky stack', () => {

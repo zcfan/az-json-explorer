@@ -34,6 +34,7 @@ import {
 import { getRowSearchState, splitHighlightedText } from './searchHighlight.js';
 import {
   createParentRowIndexes,
+  getStickyExitScrollTop,
   getStickyViewportAncestorIndexes,
 } from './stickyAncestors.js';
 import { createStringSearchSegments } from './stringSearchHighlight.js';
@@ -1949,7 +1950,10 @@ class JsonViewerApp {
     );
     button.setAttribute('aria-label', locationLabel);
     button.title = locationLabel;
-    button.addEventListener('click', () => this.locateTreeRow(rowIndex));
+    button.addEventListener('click', (event) => {
+      event.stopPropagation();
+      this.locateTreeRow(rowIndex);
+    });
     button.addEventListener('contextmenu', (event) => event.preventDefault());
 
     const indent = document.createElement('span');
@@ -1987,7 +1991,12 @@ class JsonViewerApp {
   locateTreeRow(rowIndex) {
     const { tree } = this.elements;
     this.locatedRowIndex = rowIndex;
-    tree.scrollTop = Math.max(0, (rowIndex - 1) * ROW_HEIGHT);
+    tree.scrollTop = getStickyExitScrollTop(
+      this.parentRowIndexes,
+      rowIndex,
+      ROW_HEIGHT,
+      MAX_STICKY_ANCESTOR_ROWS,
+    );
     this.renderVisibleRows();
     tree.focus({ preventScroll: true });
 
@@ -2018,23 +2027,13 @@ class JsonViewerApp {
     element.style.transform = `translateY(${index * ROW_HEIGHT}px)`;
     element.title = formatPath(row.path);
     element.addEventListener('contextmenu', (event) => this.openRowContextMenu(event, row));
-    if (row.expandable) {
-      element.addEventListener('click', (event) => {
-        const clickedEmptyArea =
-          event.target === element ||
-          event.target.classList.contains('jt-indent');
-        const hasTextSelection = window.getSelection()?.isCollapsed === false;
-        if (!clickedEmptyArea || hasTextSelection) {
-          return;
-        }
-
-        this.toggleExpanded(row);
-      });
-    }
 
     const indent = document.createElement('span');
     indent.className = row.depth > 0 ? 'jt-indent jt-indent-guided' : 'jt-indent';
     indent.style.width = `${row.depth * INDENT_WIDTH}px`;
+    if (row.expandable) {
+      indent.addEventListener('click', () => this.toggleExpanded(row));
+    }
     element.append(indent);
 
     const toggle = document.createElement('button');

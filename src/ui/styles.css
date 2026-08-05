@@ -1013,15 +1013,15 @@
   }
 }
 
-.jt-row-expandable {
-  cursor: pointer;
-}
-
 .jt-row-expandable .jt-key:not(.jt-key-copyable),
 .jt-row-expandable .jt-colon,
 .jt-row-expandable .jt-value,
 .jt-row-expandable .jt-inline-error {
   cursor: text;
+}
+
+.jt-row-expandable .jt-indent {
+  cursor: pointer;
 }
 
 .jt-row-search-hit {
