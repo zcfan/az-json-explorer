@@ -43,7 +43,7 @@ Search finds text in keys and primitive values without blocking on very large st
 
 `viewerApp` uses those flags to highlight keys, values, current rows, and search preview text.
 
-When the search input is focused, `Enter` selects the next result and `Shift+Enter` selects the previous result.
+Completing a search after the user changes its query selects and immediately reveals the first result. After that, navigation is explicit: clicking `Prev` or `Next`, pressing `Enter`, or pressing `Shift+Enter` selects and reveals one result. Result refreshes caused by view restoration, parsing, or expansion changes update matches without moving either tree or string view. Tree results are centered in the viewport whenever document boundaries allow; string results use centered `scrollIntoView` behavior.
 
 ## Contracts
 

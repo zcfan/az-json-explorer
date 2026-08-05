@@ -2,7 +2,9 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  getCenteredRowScrollTop,
   getRowSearchState,
+  getSearchNavigationIndex,
   splitHighlightedText,
 } from '../src/ui/searchHighlight.js';
 
@@ -35,4 +37,20 @@ test('marks row highlight state from search result paths and sources', () => {
     keyMatched: true,
     valueMatched: true,
   });
+});
+
+test('search navigation starts at the nearest result in the requested direction', () => {
+  assert.equal(getSearchNavigationIndex(-1, 1, 4), 0);
+  assert.equal(getSearchNavigationIndex(-1, -1, 4), 3);
+  assert.equal(getSearchNavigationIndex(0, -1, 4), 3);
+  assert.equal(getSearchNavigationIndex(3, 1, 4), 0);
+  assert.equal(getSearchNavigationIndex(0, 0, 4), -1);
+  assert.equal(getSearchNavigationIndex(0, 1, 0), -1);
+});
+
+test('centers search rows while clamping to document boundaries', () => {
+  assert.equal(getCenteredRowScrollTop(0, 18, 180, 100), 0);
+  assert.equal(getCenteredRowScrollTop(20, 18, 180, 100), 279);
+  assert.equal(getCenteredRowScrollTop(99, 18, 180, 100), 1620);
+  assert.equal(getCenteredRowScrollTop(-1, 18, 180, 100), 0);
 });

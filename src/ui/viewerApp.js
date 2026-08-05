@@ -31,7 +31,12 @@ import {
   revealExpansionPaths,
   toggleExpansion,
 } from './expansionState.js';
-import { getRowSearchState, splitHighlightedText } from './searchHighlight.js';
+import {
+  getCenteredRowScrollTop,
+  getRowSearchState,
+  getSearchNavigationIndex,
+  splitHighlightedText,
+} from './searchHighlight.js';
 import {
   createParentRowIndexes,
   getStickyExitScrollTop,
@@ -878,7 +883,7 @@ class JsonViewerApp {
     });
 
     this.elements.searchInput.addEventListener('input', () => {
-      this.scheduleSearch();
+      this.scheduleSearch({ revealFirst: true });
       this.scheduleHistorySessionSave();
     });
 
@@ -2714,9 +2719,7 @@ class JsonViewerApp {
       }
 
       if (search?.ready) {
-        await this.updateSearchUi(search.truncated, {
-          reveal: this.selectedSearchIndex >= 0,
-        });
+        await this.updateSearchUi(search.truncated);
       } else if (search?.query) {
         this.scheduleSearch();
       }
@@ -2744,7 +2747,7 @@ class JsonViewerApp {
     }
 
     if (search?.ready) {
-      await this.updateSearchUi(search.truncated, { reveal: false });
+      await this.updateSearchUi(search.truncated);
     } else if (search?.query) {
       this.scheduleSearch();
     }
@@ -2983,7 +2986,7 @@ class JsonViewerApp {
     this.scheduleHistorySessionSave();
   }
 
-  scheduleSearch() {
+  scheduleSearch(options = {}) {
     window.clearTimeout(this.searchTimer);
     const query = this.elements.searchInput.value.trim();
 
@@ -2999,11 +3002,11 @@ class JsonViewerApp {
 
     this.clearSearchResults(translate('searching', 'Searching...'));
     this.searchTimer = window.setTimeout(() => {
-      this.runFullTextSearch(query);
+      this.runFullTextSearch(query, options);
     }, SEARCH_DEBOUNCE_MS);
   }
 
-  async runFullTextSearch(query) {
+  async runFullTextSearch(query, options = {}) {
     const token = ++this.searchToken;
     const tab = this.getActiveTab();
     const response =
@@ -3042,7 +3045,10 @@ class JsonViewerApp {
     this.selectedSearchIndex = this.searchResults.length > 0 ? 0 : -1;
     this.searchResultsTruncated = response.result.truncated;
     this.searchResultsReady = true;
-    await this.updateSearchUi(response.result.truncated, { reveal: true });
+    await this.updateSearchUi(response.result.truncated);
+    if (options.revealFirst && this.selectedSearchIndex >= 0) {
+      await this.revealSelectedSearchResult();
+    }
   }
 
   clearSearchResults(message = translate('zeroMatches', '0 matches')) {
@@ -3069,13 +3075,29 @@ class JsonViewerApp {
       return;
     }
 
-    const nextIndex =
-      (this.selectedSearchIndex + delta + this.searchResults.length) % this.searchResults.length;
+    const nextIndex = getSearchNavigationIndex(
+      this.selectedSearchIndex,
+      delta,
+      this.searchResults.length,
+    );
     this.selectedSearchIndex = nextIndex;
-    await this.updateSearchUi(this.searchResultsTruncated, { reveal: true });
+    await this.updateSearchUi(this.searchResultsTruncated);
+    await this.revealSelectedSearchResult();
   }
 
-  async updateSearchUi(truncated = false, options = {}) {
+  async revealSelectedSearchResult() {
+    const match = this.searchResults[this.selectedSearchIndex];
+    if (!match) {
+      return;
+    }
+    if (this.getActiveTab().type === 'string') {
+      await this.revealStringSearchMatch(match);
+    } else {
+      await this.revealSearchMatch(match);
+    }
+  }
+
+  async updateSearchUi(truncated = false) {
     this.searchResultsTruncated = truncated;
     const total = this.searchResults.length;
     const selected = this.selectedSearchIndex;
@@ -3108,14 +3130,6 @@ class JsonViewerApp {
       `${match.pathLabel} ${source}: ${match.preview}`,
       [match.pathLabel, source, match.preview],
     );
-
-    if (options.reveal) {
-      if (this.getActiveTab().type === 'string') {
-        await this.revealStringSearchMatch(match);
-      } else {
-        await this.revealSearchMatch(match);
-      }
-    }
   }
 
   async revealStringSearchMatch(match) {
@@ -3146,7 +3160,12 @@ class JsonViewerApp {
     await this.refreshRows();
     const rowIndex = this.rows.findIndex((row) => row.pathKey === match.pathKey);
     if (rowIndex !== -1) {
-      this.elements.tree.scrollTop = Math.max(0, rowIndex * ROW_HEIGHT - ROW_HEIGHT * 2);
+      this.elements.tree.scrollTop = getCenteredRowScrollTop(
+        rowIndex,
+        ROW_HEIGHT,
+        this.elements.tree.clientHeight,
+        this.rows.length,
+      );
       this.renderVisibleRows();
     }
   }

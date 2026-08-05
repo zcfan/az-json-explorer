@@ -1025,21 +1025,21 @@
 }
 
 .jt-row-search-hit {
-  background: #fffdf3;
+  background: #fffaf0;
 }
 
 .jt-row-search-hit:hover {
-  background: #fff9e6;
+  background: #fff5dc;
 }
 
 .jt-row-search-current {
-  background: #fff6dc;
-  outline: 1px solid #f3d48a;
+  background: #fff1c7;
+  outline: 1px solid #ead89a;
   outline-offset: -1px;
 }
 
 .jt-row-search-current:hover {
-  background: #fff1c2;
+  background: #ffebaf;
 }
 
 .jt-indent {

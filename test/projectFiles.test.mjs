@@ -794,7 +794,7 @@ test('viewer saves and restores search progress independently for each tree tab'
   );
   assert.match(
     viewer,
-    /if \(search\?\.ready\)\s*\{[\s\S]*updateSearchUi\(search\.truncated,\s*\{\s*reveal:\s*false\s*\}\)/,
+    /if \(search\?\.ready\)\s*\{[\s\S]*updateSearchUi\(search\.truncated\)/,
   );
   assert.match(viewer, /else if \(search\?\.query\)\s*\{[\s\S]*this\.scheduleSearch\(\)/);
 });
@@ -916,13 +916,49 @@ test('viewer includes search result row and text highlight hooks', async () => {
   assert.match(css, /\.jt-search-mark/);
 });
 
-test('search row highlights stay visually softer than matched text highlights', async () => {
+test('search row highlights are visible while matched text remains strongest', async () => {
   const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
 
-  assert.match(css, /\.jt-row-search-hit\s*\{[^}]*background:\s*#fffdf3;/s);
-  assert.match(css, /\.jt-row-search-current\s*\{[^}]*background:\s*#fff6dc;/s);
-  assert.match(css, /\.jt-row-search-current\s*\{[^}]*outline:\s*1px solid #f3d48a;/s);
+  assert.match(css, /\.jt-row-search-hit\s*\{[^}]*background:\s*#fffaf0;/s);
+  assert.match(css, /\.jt-row-search-current\s*\{[^}]*background:\s*#fff1c7;/s);
+  assert.match(css, /\.jt-row-search-current\s*\{[^}]*outline:\s*1px solid #ead89a;/s);
   assert.match(css, /\.jt-search-mark\s*\{[^}]*background:\s*#facc15;/s);
+});
+
+test('search reveals after query edits or explicit navigation and centers tree matches', async () => {
+  const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
+  const searchRunner = viewer.slice(
+    viewer.indexOf('async runFullTextSearch(query, options = {})'),
+    viewer.indexOf('\n  clearSearchResults'),
+  );
+  const navigator = viewer.slice(
+    viewer.indexOf('async selectSearchResult(delta)'),
+    viewer.indexOf('\n  async updateSearchUi'),
+  );
+  const searchUi = viewer.slice(
+    viewer.indexOf('async updateSearchUi'),
+    viewer.indexOf('\n  async revealStringSearchMatch'),
+  );
+
+  assert.match(
+    viewer,
+    /searchInput\.addEventListener\('input',[\s\S]*scheduleSearch\(\{ revealFirst: true \}\)/,
+  );
+  assert.match(
+    searchRunner,
+    /this\.selectedSearchIndex = this\.searchResults\.length > 0 \? 0 : -1/,
+  );
+  assert.match(
+    searchRunner,
+    /if \(options\.revealFirst && this\.selectedSearchIndex >= 0\) \{\s+await this\.revealSelectedSearchResult\(\)/,
+  );
+  assert.match(navigator, /getSearchNavigationIndex/);
+  assert.match(navigator, /await this\.revealSelectedSearchResult\(\)/);
+  assert.doesNotMatch(searchUi, /revealSearchMatch|revealStringSearchMatch/);
+  assert.match(viewer, /scheduleSearch\(options = \{\}\)/);
+  assert.match(viewer, /this\.runFullTextSearch\(query, options\)/);
+  assert.match(viewer, /await this\.runFullTextSearch\(query\);/);
+  assert.match(viewer, /tree\.scrollTop = getCenteredRowScrollTop\(/);
 });
 
 test('parse button is hidden after a string already has parsed cache', async () => {

@@ -95,7 +95,7 @@ This is why row height and row DOM layout must remain stable.
 - `Expand all` never parses raw strings; already-parsed strings participate when their display mode is `parsed`.
 - `Parse as JSON`: sends `parse-string` with the row path.
 - In the whole-document view, a row `parsed` or `raw` badge toggles the cached source display mode.
-- Search: debounced worker search, result reveal, row highlighting.
+- Search: a debounced search triggered by editing the query reveals its first result. Afterward, only `Prev`, `Next`, `Enter`, and `Shift+Enter` reveal results; background result refreshes do not move the viewport. Tree results are centered whenever viewport boundaries allow.
 - `cmd+f` on macOS or `ctrl+f` on Windows/Linux focuses the viewer search input instead of opening browser find.
 - Row context menu: right-click any row, including the view root, to copy its value or `row.copyPath`.
 - String rows also expose JavaScript literal and JSON literal copy formats.
