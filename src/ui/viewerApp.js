@@ -60,7 +60,8 @@ import {
   setViewTabPathMode,
 } from './viewTabs.js';
 
-const ROW_HEIGHT = 28;
+const ROW_HEIGHT = 20;
+const INDENT_WIDTH = 28;
 const OVERSCAN_ROWS = 14;
 const MAX_VISIBLE_ROWS = 100000;
 const AUTO_EXPAND_MAX_ROWS = 5000;
@@ -1907,8 +1908,8 @@ class JsonViewerApp {
     }
 
     const indent = document.createElement('span');
-    indent.className = 'jt-indent';
-    indent.style.width = `${row.depth * 18}px`;
+    indent.className = row.depth > 0 ? 'jt-indent jt-indent-guided' : 'jt-indent';
+    indent.style.width = `${row.depth * INDENT_WIDTH}px`;
     element.append(indent);
 
     const toggle = document.createElement('button');

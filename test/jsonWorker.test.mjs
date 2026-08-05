@@ -603,8 +603,8 @@ test('worker collects visible row summaries from the retained root without cloni
   assert.deepEqual(
     rowsResponse.rows.map((row) => [row.depth, row.key, row.kind, row.displayValue]),
     [
-      [0, '$', 'object', '{2 keys}'],
-      [1, 'items', 'array', '[2 items]'],
+      [0, '$', 'object', ''],
+      [1, 'items', 'array', ''],
       [2, 0, 'object', '{1 keys}'],
       [2, 1, 'object', '{1 keys}'],
       [1, 'ok', 'boolean', 'true'],

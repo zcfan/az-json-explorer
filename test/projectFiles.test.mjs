@@ -1003,6 +1003,18 @@ test('only blank areas and the toggle expand a row without blocking text selecti
   assert.match(css, /\.jt-row-expandable \.jt-value[^}]*cursor:\s*text;/s);
 });
 
+test('nested rows draw vertical indentation guides aligned with ancestor keys', async () => {
+  const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
+
+  assert.match(viewer, /const INDENT_WIDTH = 28;/);
+  assert.match(viewer, /row\.depth \* INDENT_WIDTH/);
+  assert.match(viewer, /row\.depth > 0 \? 'jt-indent jt-indent-guided' : 'jt-indent'/);
+  assert.match(css, /\.jt-indent\s*\{[^}]*height:\s*100%;/s);
+  assert.match(css, /\.jt-indent-guided\s*\{[^}]*repeating-linear-gradient\([^)]*28px/s);
+  assert.match(css, /#e2e8f0 24px 25px/);
+});
+
 test('viewer wires Expand all through compact expansion state', async () => {
   const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
 

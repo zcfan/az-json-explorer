@@ -457,12 +457,16 @@ function createParseCacheAdapter(displayModeOverrides = new Map()) {
 
 function createDisplayRow(row, parseCache) {
   const parsedValue = parseCache.getParsed(row.path);
+  const isExpandedContainer =
+    row.expanded && (row.effectiveKind === 'array' || row.effectiveKind === 'object');
   const valueSummary =
     row.parsed || typeof row.value !== 'string'
       ? {
-          displayValue: row.parsed
-            ? summarizeContainer(row.effectiveValue)
-            : formatJsonValue(row.value),
+          displayValue: isExpandedContainer
+            ? ''
+            : row.parsed
+              ? summarizeContainer(row.effectiveValue)
+              : formatJsonValue(row.value),
           valueTruncated: false,
           valueLength: typeof row.value === 'string' ? row.value.length : null,
         }
