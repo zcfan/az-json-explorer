@@ -1034,8 +1034,8 @@
 
 .jt-key {
   margin-right: 3px;
-  color: #7c3aed;
-  font-weight: 600;
+  color: #76658f;
+  font-weight: 400;
 }
 
 .jt-key-copyable {
@@ -1045,11 +1045,6 @@
 .jt-colon {
   margin-right: 8px;
   color: #98a2b3;
-}
-
-.jt-value-aligner {
-  flex: 0 0 auto;
-  height: 1px;
 }
 
 .jt-value {
