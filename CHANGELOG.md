@@ -4,6 +4,13 @@
 
 This file records published AZ JSON Explorer versions. It is updated only when a version is released.
 
+## 0.1.13 — 2026-08-05
+
+- Added click-to-navigate Sticky ancestor rows for up to ten JSON nesting levels, including parsed-string badges, so deep context remains visible while scrolling.
+- Made the JSON tree denser and easier to scan with compact rows and parse badges, indentation guides, quieter keys, stronger values, and simplified value placement.
+- Restricted expansion and collapse to the chevron or its leading indentation, preventing navigation clicks and trailing row clicks from collapsing nodes accidentally.
+- Refined search navigation so query completion reveals the first match, explicit navigation centers matches when possible, background result refreshes no longer move the viewport, and matched rows remain clearly but softly highlighted.
+
 ## 0.1.12 — 2026-07-31
 
 - Fixed paste handling so clipboard text stays in a focused search or other editable control instead of replacing the JSON input; pasting from non-editable viewer areas still replaces and parses the JSON input.

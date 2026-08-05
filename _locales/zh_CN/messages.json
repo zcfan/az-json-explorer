@@ -13,7 +13,7 @@
     "message": "打开新的独立 JSON 查看器"
   },
   "versionUpdateSuffix": {
-    "message": "现在会将粘贴内容保留在已聚焦的搜索框或其他可编辑控件中。"
+    "message": "新增可点击定位的 Sticky 祖先行，深层 JSON 导航更清晰。"
   },
   "seeWhatsNew": {
     "message": "查看新功能"

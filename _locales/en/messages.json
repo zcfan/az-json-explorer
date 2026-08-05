@@ -13,7 +13,7 @@
     "message": "Open a new standalone JSON viewer"
   },
   "versionUpdateSuffix": {
-    "message": "keeps paste in the focused search or other editable control."
+    "message": "adds clickable Sticky ancestors for deep JSON navigation."
   },
   "seeWhatsNew": {
     "message": "See what’s new"

@@ -214,7 +214,7 @@ class JsonViewerApp {
       <div class="jt-version-update-notice" role="status" aria-live="polite" hidden>
         <span>
           AZ JSON Explorer <strong class="jt-version-update-version"></strong>
-          <span data-i18n="versionUpdateSuffix">keeps paste in the focused search or other editable control.</span>
+          <span data-i18n="versionUpdateSuffix">adds clickable Sticky ancestors for deep JSON navigation.</span>
         </span>
         <a
           class="jt-version-update-link"
