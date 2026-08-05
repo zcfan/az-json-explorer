@@ -1,0 +1,25 @@
+src/ui/styles.css
+  s_ffeb1dfce0bdf7::t_4529b9f3b8223f 1037-1038
+src/ui/viewerApp.js
+  s_ffeb1dfce0bdf7::t_2636f51957e8c5 1900
+test/projectFiles.test.mjs
+  s_ffeb1dfce0bdf7::t_218ea8c1383fd9 1039-1045,1049-1051
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "973937c3f76fbd875a6411df1a6d2cf9c599d6d8",
+  "prompts": {},
+  "sessions": {
+    "s_ffeb1dfce0bdf7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fd11d-df38-7d51-9c81-084ab101dda1",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
