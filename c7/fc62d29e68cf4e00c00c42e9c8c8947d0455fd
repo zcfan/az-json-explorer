@@ -1,0 +1,29 @@
+docs/modules/search.md
+  s_ffeb1dfce0bdf7::t_870e5610e2a091 46
+docs/modules/viewer-ui.md
+  s_ffeb1dfce0bdf7::t_1cd1f314942100 98
+src/ui/searchHighlight.js
+  s_ffeb1dfce0bdf7::t_35530da7cb7dc3 47-82
+src/ui/viewerApp.js
+  s_ffeb1dfce0bdf7::t_b7f1fed3892b83 34-39,886,2722,2750,2989,3005,3009,3048-3051,3078-3082,3084-3097,3100,3163-3168
+test/searchHighlight.test.mjs
+  s_ffeb1dfce0bdf7::t_bb4a0aec294c87 5,7,41-56
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "c7fc62d29e68cf4e00c00c42e9c8c8947d0455fd",
+  "prompts": {},
+  "sessions": {
+    "s_ffeb1dfce0bdf7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019fd11d-df38-7d51-9c81-084ab101dda1",
+        "model": "unknown"
+      },
+      "human_author": "AZ JSON Explorer <az-json-explorer@example.invalid>"
+    }
+  },
+  "attestation_metadata": {},
+  "remote_transcripts": {}
+}
