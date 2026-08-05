@@ -1034,7 +1034,7 @@
 
 .jt-key {
   margin-right: 3px;
-  color: #76658f;
+  color: hsl(220 3% 58%);
   font-weight: 400;
 }
 
@@ -1044,11 +1044,12 @@
 
 .jt-colon {
   margin-right: 8px;
-  color: #98a2b3;
+  color: hsl(220 45% 58%);
 }
 
 .jt-value {
   color: #111827;
+  font-weight: 900;
 }
 
 .jt-view-all-button {
@@ -1069,16 +1070,16 @@
 }
 
 .jt-effective-string {
-  color: #047857;
+  color: hsl(162 100% 26%);
   white-space: pre;
 }
 
 .jt-effective-number {
-  color: #1d4ed8;
+  color: hsl(219 100% 48%);
 }
 
 .jt-effective-boolean {
-  color: #b45309;
+  color: hsl(24 100% 38%);
 }
 
 .jt-effective-null,

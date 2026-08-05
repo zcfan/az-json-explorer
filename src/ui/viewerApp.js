@@ -1953,13 +1953,6 @@ class JsonViewerApp {
     });
     element.append(key);
 
-    if (row.key !== '$') {
-      const colon = document.createElement('span');
-      colon.className = 'jt-colon';
-      colon.textContent = ':';
-      element.append(colon);
-    }
-
     if (row.canParseAsJson && !row.hasParsed) {
       const parseButton = document.createElement('button');
       parseButton.className = 'jt-parse-button';
@@ -1995,6 +1988,13 @@ class JsonViewerApp {
         }
       });
       element.append(badge);
+    }
+
+    if (row.key !== '$') {
+      const colon = document.createElement('span');
+      colon.className = 'jt-colon';
+      colon.textContent = ':';
+      element.append(colon);
     }
 
     const value = document.createElement('span');

@@ -940,6 +940,20 @@ test('raw and parsed badges stay compact within dense JSON rows', async () => {
   assert.match(css, /\.jt-badge\s*\{[^}]*line-height:\s*1;/s);
 });
 
+test('parse controls appear between the key and colon while View all follows the value', async () => {
+  const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
+  const keyIndex = viewer.indexOf('element.append(key);');
+  const parseButtonIndex = viewer.indexOf('element.append(parseButton);');
+  const badgeIndex = viewer.indexOf('element.append(badge);');
+  const colonIndex = viewer.indexOf('element.append(colon);');
+  const valueIndex = viewer.indexOf('element.append(value);');
+  const viewAllIndex = viewer.indexOf('element.append(viewAllButton);');
+
+  assert.ok(keyIndex < parseButtonIndex && parseButtonIndex < colonIndex);
+  assert.ok(keyIndex < badgeIndex && badgeIndex < colonIndex);
+  assert.ok(colonIndex < valueIndex && valueIndex < viewAllIndex);
+});
+
 test('an isolated view switches row mode through tab-local state', async () => {
   const viewer = await readFile(new URL('../src/ui/viewerApp.js', import.meta.url), 'utf8');
 
@@ -1039,7 +1053,19 @@ test('dense JSON row metrics stay synchronized with virtual scrolling', async ()
 test('JSON keys use muted color and regular weight in dense rows', async () => {
   const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
 
-  assert.match(css, /\.jt-key\s*\{[^}]*color:\s*#76658f;[^}]*font-weight:\s*400;/s);
+  assert.match(
+    css,
+    /\.jt-key\s*\{[^}]*color:\s*hsl\(220 3% 58%\);[^}]*font-weight:\s*400;/s,
+  );
+});
+
+test('JSON values use maximum weight and saturation in dense rows', async () => {
+  const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
+
+  assert.match(css, /\.jt-value\s*\{[^}]*font-weight:\s*900;/s);
+  assert.match(css, /\.jt-effective-string\s*\{[^}]*color:\s*hsl\(162 100% 26%\);/s);
+  assert.match(css, /\.jt-effective-number\s*\{[^}]*color:\s*hsl\(219 100% 48%\);/s);
+  assert.match(css, /\.jt-effective-boolean\s*\{[^}]*color:\s*hsl\(24 100% 38%\);/s);
 });
 
 test('values follow their keys without column alignment spacers', async () => {
@@ -1048,7 +1074,10 @@ test('values follow their keys without column alignment spacers', async () => {
 
   assert.doesNotMatch(viewer, /valueAlignment|VALUE_ALIGNMENT|value-aligner|alignVisibleRowValues/);
   assert.doesNotMatch(css, /\.jt-value-aligner/);
-  assert.match(css, /\.jt-colon\s*\{[^}]*margin-right:\s*8px;/s);
+  assert.match(
+    css,
+    /\.jt-colon\s*\{[^}]*margin-right:\s*8px;[^}]*color:\s*hsl\(220 45% 58%\);/s,
+  );
 });
 
 test('viewer wires Expand all through compact expansion state', async () => {
