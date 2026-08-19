@@ -4,6 +4,10 @@
 
 This file records published AZ JSON Explorer versions. It is updated only when a version is released.
 
+## 0.1.14 — 2026-08-19
+
+- Added dark mode that follows the browser's color preference across standalone and embedded viewers, including controls, JSON syntax, search highlights, dialogs, and the initial loading background.
+
 ## 0.1.13 — 2026-08-05
 
 - Added click-to-navigate Sticky ancestor rows for up to ten JSON nesting levels, including parsed-string badges, so deep context remains visible while scrolling.

@@ -146,11 +146,13 @@ test('store presentation centers on parse, isolated views, and history', async (
   assert.match(listing, /Parse as JSON:/);
   assert.match(listing, /Isolated views:/);
   assert.match(listing, /History:/);
+  assert.match(listing, /Light and dark themes follow the browser's color preference/);
   assert.match(listing, /Star the project on GitHub:/);
   assert.match(listing, /github\.com\/zcfan\/az-json-explorer/);
   assert.match(listingZh, /解析嵌套 JSON：/);
   assert.match(listingZh, /独立视图：/);
   assert.match(listingZh, /历史记录：/);
+  assert.match(listingZh, /浅色与深色主题会自动跟随浏览器配色偏好/);
   assert.match(listingZh, /树中的对象、数组或字符串/);
   assert.match(
     listingZh,
@@ -189,6 +191,25 @@ test('viewer layout constrains the virtual tree to a scroll viewport', async () 
   assert.match(css, /\.jt-app\s*\{[^}]*(?:^|\n)\s*height:\s*100vh;/s);
   assert.match(css, /\.jt-app\s*\{[^}]*(?:^|\n)\s*overflow:\s*hidden;/s);
   assert.match(css, /\.jt-tree\s*\{[^}]*(?:^|\n)\s*min-height:\s*0;/s);
+});
+
+test('viewer follows the browser preferred color scheme', async () => {
+  const html = await readFile(new URL('../src/viewer.html', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
+
+  assert.match(html, /<meta name="color-scheme" content="light dark">/);
+  assert.match(
+    html,
+    /@media \(prefers-color-scheme: dark\)\s*\{[\s\S]*background:\s*#0f172a;/,
+  );
+  assert.match(css, /:host\s*\{[^}]*color-scheme:\s*light dark;/s);
+  assert.match(
+    css,
+    /@media \(prefers-color-scheme: dark\)\s*\{\s*:host\s*\{[^}]*--jt-surface-app:\s*#0f172a;[^}]*--jt-text-primary:\s*#f8fafc;/s,
+  );
+  assert.match(css, /\.jt-app\s*\{[^}]*background:\s*var\(--jt-surface-app\);/s);
+  assert.match(css, /\.jt-tree\s*\{[^}]*background:\s*var\(--jt-surface-primary\);/s);
+  assert.match(css, /\.jt-effective-string\s*\{[^}]*color:\s*var\(--jt-syntax-string\);/s);
 });
 
 test('viewer preserves consecutive whitespace in string values', async () => {
@@ -253,7 +274,7 @@ test('viewer exposes isolated tree and paged string tabs', async () => {
   assert.doesNotMatch(css, /\.jt-loader:has/);
   assert.match(
     css,
-    /\.jt-tabs::after\s*\{[^}]*z-index:\s*0;[^}]*right:\s*0;[^}]*bottom:\s*0;[^}]*left:\s*0;[^}]*height:\s*1px;[^}]*background:\s*#cbd5e1;/s,
+    /\.jt-tabs::after\s*\{[^}]*z-index:\s*0;[^}]*right:\s*0;[^}]*bottom:\s*0;[^}]*left:\s*0;[^}]*height:\s*1px;[^}]*background:\s*var\(--jt-border-default\);/s,
   );
   assert.match(
     css,
@@ -270,7 +291,7 @@ test('viewer exposes isolated tree and paged string tabs', async () => {
   );
   assert.match(
     css,
-    /\.jt-tab-active::after\s*\{[^}]*bottom:\s*-1px;[^}]*height:\s*2px;[^}]*background:\s*#eef2f7;/s,
+    /\.jt-tab-active::after\s*\{[^}]*bottom:\s*-1px;[^}]*height:\s*2px;[^}]*background:\s*var\(--jt-surface-muted\);/s,
   );
   assert.match(viewer, /const mode = document\.createElement\('button'\)/);
   assert.match(viewer, /mode\.addEventListener\('click',[\s\S]*toggleIsolatedTabMode/);
@@ -347,7 +368,7 @@ test('viewer shows a ten-second changelog notice once per extension version', as
   );
   assert.match(
     viewer,
-    /AZ JSON Explorer <strong class="jt-version-update-version"><\/strong>[\s\S]*data-i18n="versionUpdateSuffix"[\s\S]*adds clickable Sticky ancestors for deep JSON navigation\./,
+    /AZ JSON Explorer <strong class="jt-version-update-version"><\/strong>[\s\S]*data-i18n="versionUpdateSuffix"[\s\S]*adds dark mode that follows your browser\./,
   );
   assert.match(viewer, /claimVersionUpdateNotice\(storage, currentVersion\)/);
   assert.match(
@@ -477,12 +498,12 @@ test('viewer supports one-way manual JSON input without echoing file content', a
   );
   assert.match(
     css,
-    /\.jt-manual-input-toggle\s*\{[^}]*z-index:\s*1;[^}]*background:\s*#f8fafc;[^}]*cursor:\s*pointer;/s,
+    /\.jt-manual-input-toggle\s*\{[^}]*z-index:\s*1;[^}]*background:\s*var\(--jt-surface-subtle\);[^}]*cursor:\s*pointer;/s,
   );
   assert.doesNotMatch(css, /\.jt-manual-input-toggle::before/);
   assert.match(
     css,
-    /\.jt-manual-input-card\s*\{[^}]*width:\s*100%;[^}]*margin-top:\s*-6px;[^}]*border:\s*1px solid #cbd5e1;[^}]*border-radius:\s*0 0 8px 8px;[^}]*padding:\s*14px 10px 3px;/s,
+    /\.jt-manual-input-card\s*\{[^}]*width:\s*100%;[^}]*margin-top:\s*-6px;[^}]*border:\s*1px solid var\(--jt-border-default\);[^}]*border-radius:\s*0 0 8px 8px;[^}]*padding:\s*14px 10px 3px;/s,
   );
   assert.match(
     css,
@@ -490,11 +511,11 @@ test('viewer supports one-way manual JSON input without echoing file content', a
   );
   assert.match(
     css,
-    /\.jt-manual-input-resizer:hover::before,[\s\S]*\.jt-manual-input-resizer:has\(\.jt-manual-input-toggle:focus-visible\)::before,[\s\S]*\.jt-manual-input-resizer-active::before\s*\{[^}]*background:\s*#3b82f6;/s,
+    /\.jt-manual-input-resizer:hover::before,[\s\S]*\.jt-manual-input-resizer:has\(\.jt-manual-input-toggle:focus-visible\)::before,[\s\S]*\.jt-manual-input-resizer-active::before\s*\{[^}]*background:\s*var\(--jt-accent-bright\);/s,
   );
   assert.match(
     css,
-    /\.jt-manual-input-resizer::before\s*\{[^}]*height:\s*1px;[^}]*background:\s*#e2e8f0;/s,
+    /\.jt-manual-input-resizer::before\s*\{[^}]*height:\s*1px;[^}]*background:\s*var\(--jt-border-soft\);/s,
   );
   assert.doesNotMatch(css, /\.jt-manual-input-resizer:focus-within::before/);
   assert.match(
@@ -831,7 +852,7 @@ test('paged string tabs search, highlight, and restore their own current match',
   );
   assert.match(
     css,
-    /\.jt-copy-all-button\s*\{[^}]*border-color:\s*#93c5fd;[^}]*color:\s*#1d4ed8;[^}]*background:\s*#eff6ff;/s,
+    /\.jt-copy-all-button\s*\{[^}]*border-color:\s*var\(--jt-accent-border\);[^}]*color:\s*var\(--jt-accent-strong\);[^}]*background:\s*var\(--jt-accent-surface\);/s,
   );
   assert.doesNotMatch(viewer, /class="jt-string-view-footer"/);
   assert.doesNotMatch(css, /\.jt-string-view-footer\s*\{/);
@@ -919,10 +940,10 @@ test('viewer includes search result row and text highlight hooks', async () => {
 test('search row highlights are visible while matched text remains strongest', async () => {
   const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
 
-  assert.match(css, /\.jt-row-search-hit\s*\{[^}]*background:\s*#fffaf0;/s);
-  assert.match(css, /\.jt-row-search-current\s*\{[^}]*background:\s*#fff1c7;/s);
-  assert.match(css, /\.jt-row-search-current\s*\{[^}]*outline:\s*1px solid #ead89a;/s);
-  assert.match(css, /\.jt-search-mark\s*\{[^}]*background:\s*#facc15;/s);
+  assert.match(css, /\.jt-row-search-hit\s*\{[^}]*background:\s*var\(--jt-search-hit\);/s);
+  assert.match(css, /\.jt-row-search-current\s*\{[^}]*background:\s*var\(--jt-search-current\);/s);
+  assert.match(css, /\.jt-row-search-current\s*\{[^}]*outline:\s*1px solid var\(--jt-search-current-border\);/s);
+  assert.match(css, /\.jt-search-mark\s*\{[^}]*background:\s*var\(--jt-mark-bg\);/s);
 });
 
 test('search reveals after query edits or explicit navigation and centers tree matches', async () => {
@@ -1079,8 +1100,8 @@ test('nested rows draw vertical indentation guides aligned with ancestor keys', 
   assert.match(viewer, /row\.depth \* INDENT_WIDTH/);
   assert.match(viewer, /row\.depth > 0 \? 'jt-indent jt-indent-guided' : 'jt-indent'/);
   assert.match(css, /\.jt-indent\s*\{[^}]*height:\s*100%;/s);
-  assert.match(css, /\.jt-indent-guided\s*\{[^}]*repeating-linear-gradient\([^)]*24px/s);
-  assert.match(css, /#e2e8f0 23px 24px/);
+  assert.match(css, /\.jt-indent-guided\s*\{[^}]*repeating-linear-gradient\([\s\S]*?24px/s);
+  assert.match(css, /var\(--jt-border-soft\) 23px 24px/);
 });
 
 test('dense JSON row metrics stay synchronized with virtual scrolling', async () => {
@@ -1141,7 +1162,7 @@ test('JSON keys use muted color and regular weight in dense rows', async () => {
 
   assert.match(
     css,
-    /\.jt-key\s*\{[^}]*color:\s*hsl\(220 3% 58%\);[^}]*font-weight:\s*400;/s,
+    /\.jt-key\s*\{[^}]*color:\s*var\(--jt-syntax-key\);[^}]*font-weight:\s*400;/s,
   );
 });
 
@@ -1149,9 +1170,9 @@ test('JSON values use maximum weight and saturation in dense rows', async () => 
   const css = await readFile(new URL('../src/ui/styles.css', import.meta.url), 'utf8');
 
   assert.match(css, /\.jt-value\s*\{[^}]*font-weight:\s*900;/s);
-  assert.match(css, /\.jt-effective-string\s*\{[^}]*color:\s*hsl\(162 100% 26%\);/s);
-  assert.match(css, /\.jt-effective-number\s*\{[^}]*color:\s*hsl\(219 100% 48%\);/s);
-  assert.match(css, /\.jt-effective-boolean\s*\{[^}]*color:\s*hsl\(24 100% 38%\);/s);
+  assert.match(css, /\.jt-effective-string\s*\{[^}]*color:\s*var\(--jt-syntax-string\);/s);
+  assert.match(css, /\.jt-effective-number\s*\{[^}]*color:\s*var\(--jt-syntax-number\);/s);
+  assert.match(css, /\.jt-effective-boolean\s*\{[^}]*color:\s*var\(--jt-syntax-boolean\);/s);
 });
 
 test('values follow their keys without column alignment spacers', async () => {
@@ -1162,7 +1183,7 @@ test('values follow their keys without column alignment spacers', async () => {
   assert.doesNotMatch(css, /\.jt-value-aligner/);
   assert.match(
     css,
-    /\.jt-colon\s*\{[^}]*margin-right:\s*8px;[^}]*color:\s*hsl\(220 45% 58%\);/s,
+    /\.jt-colon\s*\{[^}]*margin-right:\s*8px;[^}]*color:\s*var\(--jt-syntax-colon\);/s,
   );
 });
 

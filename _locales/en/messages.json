@@ -13,7 +13,7 @@
     "message": "Open a new standalone JSON viewer"
   },
   "versionUpdateSuffix": {
-    "message": "adds clickable Sticky ancestors for deep JSON navigation."
+    "message": "adds dark mode that follows your browser."
   },
   "seeWhatsNew": {
     "message": "See what’s new"

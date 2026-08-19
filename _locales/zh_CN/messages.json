@@ -13,7 +13,7 @@
     "message": "打开新的独立 JSON 查看器"
   },
   "versionUpdateSuffix": {
-    "message": "新增可点击定位的 Sticky 祖先行，深层 JSON 导航更清晰。"
+    "message": "新增跟随浏览器设置的深色模式。"
   },
   "seeWhatsNew": {
     "message": "查看新功能"

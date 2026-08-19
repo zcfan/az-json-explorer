@@ -27,7 +27,7 @@ Key features:
 
 AZ JSON Explorer can replace raw JSON pages directly in Chrome or open manual input and local files in its standalone viewer. Web Worker parsing and virtual scrolling keep large trees responsive.
 
-The interface is available in English and Simplified Chinese and follows Chrome's UI language automatically.
+The interface is available in English and Simplified Chinese and follows Chrome's UI language automatically. Light and dark themes follow the browser's color preference in both standalone and embedded viewers.
 
 History is stored locally in your browser until you clean it. JSON content is never uploaded or synced to an external server.
 
@@ -47,6 +47,7 @@ Feature callouts:
 - Parse nested JSON strings without losing the original raw value.
 - Focus on any JSON path in an independent, searchable tab.
 - Reopen recent manual inputs and files from local browser history.
+- Follow the browser's light or dark color preference automatically.
 
 Like AZ JSON Explorer? Star the project on GitHub:
 https://github.com/zcfan/az-json-explorer

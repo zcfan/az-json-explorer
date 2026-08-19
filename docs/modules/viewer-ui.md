@@ -59,6 +59,12 @@ The tree uses virtual rows:
 
 This is why row height and row DOM layout must remain stable.
 
+## Appearance
+
+- The standalone and embedded viewers follow the browser's `prefers-color-scheme` setting and react to changes without reloading.
+- `src/viewer.html` declares support for light and dark browser controls and supplies the initial page background before the Shadow DOM stylesheet loads.
+- Component colors come from the semantic custom properties on `:host` in `src/ui/styles.css`. Light values are the default; the dark media query changes the palette rather than duplicating component rules.
+
 ## User Interactions
 
 - Every paste into the manual JSON textarea immediately parses the resulting input.

@@ -59,7 +59,7 @@ Key features:
 
 AZ JSON Explorer can replace raw JSON pages directly in Chrome or open manual input and local files in its standalone viewer. Web Worker parsing and virtual scrolling keep large trees responsive.
 
-The interface is available in English and Simplified Chinese and follows Chrome's UI language automatically.
+The interface is available in English and Simplified Chinese and follows Chrome's UI language automatically. Light and dark themes follow the browser's color preference in both standalone and embedded viewers.
 
 History is stored locally in your browser until you clean it. JSON content is never uploaded or synced to an external server.
 
@@ -79,6 +79,7 @@ Feature callouts:
 - Parse nested JSON strings without losing the original raw value.
 - Focus on any JSON path in an independent, searchable tab.
 - Reopen recent manual inputs and files from local browser history.
+- Follow the browser's light or dark color preference automatically.
 
 Like AZ JSON Explorer? Star the project on GitHub:
 https://github.com/zcfan/az-json-explorer
@@ -129,7 +130,7 @@ AZ JSON Explorer 是一款在浏览器本地处理数据的 JSON 查看器，适
 
 AZ JSON Explorer 可在识别到原始 JSON 页面后直接显示嵌入式查看器，也可在独立查看器中接收粘贴内容或打开本地文件。解析、树搜索和超长字符串搜索由 Web Worker 处理；树形区域只渲染当前视口附近的行，降低大型 JSON 对界面渲染的压力。
 
-界面支持英语和简体中文，并自动跟随 Chrome 的界面语言。
+界面支持英语和简体中文，并自动跟随 Chrome 的界面语言；独立和嵌入式查看器的浅色与深色主题会自动跟随浏览器配色偏好。
 
 历史记录仅保存成功解析的手动输入和用户主动打开的文件，数据保存在本地浏览器中，且不会自动清理；你可以随时手动删除。JSON 内容不会上传、同步或发送到第三方服务器。
 
@@ -149,6 +150,7 @@ https://github.com/zcfan/az-json-explorer
 - 一键展开字符串中的 JSON 对象或数组，同时保留原始内容。
 - 将对象、数组或字符串放进独立标签页，并分别保留模式和搜索词。
 - 从浏览器本地历史记录恢复最近输入、文件和独立标签页。
+- 自动跟随浏览器的浅色或深色配色偏好。
 
 喜欢 AZ JSON Explorer？欢迎在 GitHub 上为项目点个 Star：
 https://github.com/zcfan/az-json-explorer

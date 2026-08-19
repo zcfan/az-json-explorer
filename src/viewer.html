@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
     <title>AZ JSON Explorer</title>
     <style>
       html,
@@ -10,6 +11,13 @@
         height: 100%;
         margin: 0;
         background: #f6f7f9;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        html,
+        body {
+          background: #0f172a;
+        }
       }
 
       #app {
